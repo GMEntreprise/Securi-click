@@ -8,20 +8,23 @@ const config: ExpoConfig = {
   scheme: 'securiclick',
   userInterfaceStyle: 'automatic',
 
-  icon: './assets/images/icon.png',
+  icon: './assets/icons/adaptive-icon.png',
 
   ios: {
     bundleIdentifier: 'com.shavod.Securiclick',
-    icon: './assets/expo.icon',
+    icon: {
+      light: './assets/icons/ios-light.png',
+      dark: './assets/icons/ios-dark.png',
+      tinted: './assets/icons/ios-tinted.png',
+    },
     supportsTablet: true,
   },
 
   android: {
     adaptiveIcon: {
       backgroundColor: '#E6F4FE',
-      foregroundImage: './assets/images/android-icon-foreground.png',
-      backgroundImage: './assets/images/android-icon-background.png',
-      monochromeImage: './assets/images/android-icon-monochrome.png',
+      foregroundImage: './assets/icons/adaptive-icon.png',
+      monochromeImage: './assets/icons/adaptive-icon.png',
     },
     predictiveBackGestureEnabled: false,
     package: 'com.shavod.Securiclick',
@@ -38,8 +41,12 @@ const config: ExpoConfig = {
       'expo-splash-screen',
       {
         backgroundColor: '#208AEF',
+        image: './assets/icons/splash-icon-light.png',
+        dark: {
+          image: './assets/icons/splash-icon-dark.png',
+        },
         android: {
-          image: './assets/images/splash-icon.png',
+          image: './assets/icons/splash-icon-light.png',
           imageWidth: 76,
         },
       },
