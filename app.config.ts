@@ -18,6 +18,8 @@ const config: ExpoConfig = {
       tinted: './assets/icons/ios-tinted.png',
     },
     supportsTablet: true,
+    buildNumber: '1.0.0',
+    deploymentTarget: '15.0',
     infoPlist: {
       NSCameraUsageDescription:
         "SecuriClick a besoin d'accéder à votre caméra pour scanner les QR codes et prendre des photos des enfants.",
