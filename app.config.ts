@@ -39,7 +39,7 @@ const config: ExpoConfig = {
       monochromeImage: './assets/icons/adaptive-icon.png',
     },
     predictiveBackGestureEnabled: false,
-    package: 'com.shavod.Securiclick',
+    package: 'com.shavod.securiclick',
     permissions: [
       'android.permission.CAMERA',
       'android.permission.RECORD_AUDIO',
@@ -94,13 +94,7 @@ const config: ExpoConfig = {
         fingerprint: true,
       },
     ],
-    ['expo-qr-code'],
-    ['expo-barcode-scanner'],
     'expo-file-system',
-    'expo-device',
-    'expo-network',
-    'expo-haptics',
-    'expo-status-bar',
   ],
 
   experiments: {
@@ -116,3 +110,5 @@ const config: ExpoConfig = {
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
   },
 };
+
+export default config;
