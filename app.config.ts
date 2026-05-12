@@ -1,7 +1,7 @@
 import type { ExpoConfig } from 'expo/config';
 
 const config: ExpoConfig = {
-  name: 'Securiclick',
+  name: 'SecuriClick',
   slug: 'securiclick',
   version: '1.0.0',
   orientation: 'portrait',
@@ -18,6 +18,18 @@ const config: ExpoConfig = {
       tinted: './assets/icons/ios-tinted.png',
     },
     supportsTablet: true,
+    infoPlist: {
+      NSCameraUsageDescription:
+        "SecuriClick a besoin d'accéder à votre caméra pour scanner les QR codes et prendre des photos des enfants.",
+      NSPhotoLibraryUsageDescription:
+        "SecuriClick a besoin d'accéder à vos photos pour les ajouter aux profils des enfants.",
+      NSPhotoLibraryAddUsageDescription:
+        "SecuriClick a besoin d'enregistrer des photos dans votre galerie lors des récupérations d'enfants.",
+      NSMicrophoneUsageDescription:
+        "SecuriClick a besoin d'accéder à votre microphone pour enregistrer des notes vocales lors des récupérations.",
+      NSContactsUsageDescription:
+        "SecuriClick a besoin d'accéder à vos contacts pour ajouter les personnes autorisées à récupérer les enfants.",
+    },
   },
 
   android: {
@@ -28,6 +40,14 @@ const config: ExpoConfig = {
     },
     predictiveBackGestureEnabled: false,
     package: 'com.shavod.Securiclick',
+    permissions: [
+      'android.permission.CAMERA',
+      'android.permission.RECORD_AUDIO',
+      'android.permission.READ_CONTACTS',
+      'android.permission.WRITE_CONTACTS',
+      'android.permission.READ_EXTERNAL_STORAGE',
+      'android.permission.WRITE_EXTERNAL_STORAGE',
+    ],
   },
 
   web: {
@@ -45,10 +65,6 @@ const config: ExpoConfig = {
         dark: {
           image: './assets/icons/splash-icon-dark.png',
         },
-        android: {
-          image: './assets/icons/splash-icon-light.png',
-          imageWidth: 76,
-        },
       },
     ],
     'expo-secure-store',
@@ -57,8 +73,10 @@ const config: ExpoConfig = {
     [
       'expo-camera',
       {
-        cameraPermission: 'Allow $(PRODUCT_NAME) to access your camera',
-        microphonePermission: 'Allow $(PRODUCT_NAME) to access your microphone',
+        cameraPermission:
+          'Allow SecuriClick to access your camera for QR code scanning and taking photos',
+        microphonePermission:
+          'Allow SecuriClick to access your microphone for voice notes during pickups',
       },
     ],
     [
@@ -66,6 +84,7 @@ const config: ExpoConfig = {
       {
         icon: './assets/images/icon.png',
         color: '#208AEF',
+        defaultChannel: 'default',
       },
     ],
     [
@@ -75,6 +94,13 @@ const config: ExpoConfig = {
         fingerprint: true,
       },
     ],
+    ['expo-qr-code'],
+    ['expo-barcode-scanner'],
+    'expo-file-system',
+    'expo-device',
+    'expo-network',
+    'expo-haptics',
+    'expo-status-bar',
   ],
 
   experiments: {
@@ -86,7 +112,7 @@ const config: ExpoConfig = {
     eas: {
       projectId: 'your-project-id',
     },
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL!,
+    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
   },
 };
-
-export default config;
