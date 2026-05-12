@@ -1,17 +1,16 @@
-import { View, Text } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Redirect } from 'expo-router';
+import { useSession } from '@/features/auth/store/auth.store';
 
-export default function HomeScreen() {
-  return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="flex-1 items-center justify-center px-4">
-        <Text className="text-2xl font-bold text-gray-900 mb-4">
-          SecuriClick
-        </Text>
-        <Text className="text-center text-gray-600">
-          Welcome to your secure mobile application
-        </Text>
-      </View>
-    </SafeAreaView>
-  );
+/**
+ * Point d’entrée `/` : redirection stable après session connue (pas de flicker : le layout
+ * parent n’affiche cette pile qu’une fois `isRestoring === false`).
+ */
+export default function Index() {
+  const session = useSession();
+
+  if (session) {
+    return <Redirect href="/home" />;
+  }
+
+  return <Redirect href="/login" />;
 }

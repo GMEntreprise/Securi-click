@@ -1,8 +1,5 @@
 /**
- * Tabs fichier-based comme la doc Expo (groupe (tabs), un Trigger ≈ un fichier écran).
- * Ici : Tabs JavaScript + CurvedBottomTabs — obligatoire pour une barre entièrement custom.
- * Les Native Tabs (expo-router/unstable-native-tabs) réservent la barre au système ; ils ne
- * remplacent pas par ce composant Reacticx.
+ * Tabs + CurvedBottomTabs (barre custom). Routes : /home, /search, /profile.
  *
  * @see https://docs.expo.dev/router/advanced/tabs/
  */
@@ -23,7 +20,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: 'Accueil',
           tabBarIcon: ({ color, size }) => (
