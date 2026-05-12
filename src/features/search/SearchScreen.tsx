@@ -6,12 +6,17 @@ import {
   FlatList,
   TouchableOpacity,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { curvedTabBarVisualHeight } from '@/constants/tabBar';
 import { useDebounce, useDebouncedCallback } from '@/hooks';
 import { searchItems } from '@/services/searchService';
 import { SearchResult, SearchResponse } from './types';
 
 const SearchScreen = React.memo(() => {
+  const { bottom } = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 300);
 
@@ -75,7 +80,11 @@ const SearchScreen = React.memo(() => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView
+      className="flex-1 bg-white"
+      edges={['top', 'left', 'right']}
+      style={{ paddingBottom: curvedTabBarVisualHeight + bottom }}
+    >
       <View className="p-4">
         <Text className="text-2xl font-bold text-gray-900 mb-4">Search</Text>
 
@@ -107,7 +116,10 @@ const SearchScreen = React.memo(() => {
         renderItem={renderSearchResult}
         keyExtractor={keyExtractor}
         ListEmptyComponent={loading ? loadingComponent : listEmptyComponent}
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{
+          flexGrow: 1,
+          paddingBottom: 8,
+        }}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
