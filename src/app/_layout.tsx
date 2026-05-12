@@ -1,20 +1,19 @@
-import '../../global.css';
-import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-import { Stack } from 'expo-router';
-import {
-  ThemeProvider,
-  DarkTheme,
-  DefaultTheme,
-} from '@react-navigation/native';
-import { useColorScheme } from 'react-native';
-import { QueryProvider, SupabaseProvider } from '@/providers';
-import { StatusBar } from 'expo-status-bar';
 import {
   useAuthStore,
   useIsAuthenticated,
-  useIsRestoring,
 } from '@/features/auth/store/auth.store';
+import { QueryProvider, SupabaseProvider } from '@/providers';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from '@react-navigation/native';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { ActivityIndicator, useColorScheme, View } from 'react-native';
+import '../../global.css';
+import { useIsRestoring } from '../features/auth';
 
 function RootNavigation() {
   const initialize = useAuthStore(s => s.initialize);
