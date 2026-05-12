@@ -1,24 +1,24 @@
-import React, { memo, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { Controller, useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import {
   loginSchema,
   type LoginFormValues,
 } from '@/features/auth/schemas/login.schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import React, { memo, useCallback } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 
 interface LoginFormProps {
-  onSubmit: (data: LoginFormValues) => void;
+  onSubmit: (data: any) => void;
   isLoading: boolean;
-  errorMessage?: string | null;
+  error?: string | null;
 }
 
 export const LoginForm = memo(function LoginForm({

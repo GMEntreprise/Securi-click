@@ -1,40 +1,28 @@
 import { create } from 'zustand';
-import { queryClient } from '@/lib/queryClient';
-import type { AuthSession, AuthStateSlice } from '../types';
 import { authService } from '../services/supabaseAuth.service';
+import type { AuthSession, AuthState } from '../types';
 
 interface AuthActions {
   initialize: () => Promise<void>;
-  setSession: (session: AuthSession | null) => void;
   login: (session: AuthSession) => void;
   logout: () => Promise<void>;
   setLoading: (isLoading: boolean) => void;
 }
 
-let authSubscription: { unsubscribe: () => void } | null = null;
-
-export const useAuthStore = create<AuthStateSlice & AuthActions>(set => ({
+export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   session: null,
   isLoading: false,
   isRestoring: true,
 
   initialize: async () => {
-    set({ isRestoring: true });
     try {
+      set({ isRestoring: true });
       const session = await authService.restoreSession();
-      set({ session });
-
-      if (!authSubscription) {
-        authSubscription = authService.subscribeAuth(next => {
-          set({ session: next });
-        });
-      }
+      if (session) set({ session });
     } finally {
       set({ isRestoring: false });
     }
   },
-
-  setSession: session => set({ session }),
 
   login: session => set({ session, isLoading: false }),
 
@@ -42,24 +30,19 @@ export const useAuthStore = create<AuthStateSlice & AuthActions>(set => ({
     set({ isLoading: true });
     try {
       await authService.signOut();
-      set({ session: null });
-      queryClient.removeQueries({ queryKey: ['user'] });
-    } finally {
+      set({ session: null, isLoading: false });
+    } catch (error) {
       set({ isLoading: false });
+      throw error;
     }
   },
 
   setLoading: isLoading => set({ isLoading }),
 }));
 
+// Selectors pour ZERO re-renders
 export const useSession = () => useAuthStore(s => s.session);
 export const useIsAuthenticated = () => useAuthStore(s => !!s.session);
-export const useAuthLoading = () =>
-  useAuthStore(s => s.isLoading || s.isRestoring);
-
-/** Alias explicite : chargement mutation ou restauration session */
 export const useIsLoading = () =>
   useAuthStore(s => s.isLoading || s.isRestoring);
-
-export const useIsRestoring = () => useAuthStore(s => s.isRestoring);
 export const useUserRole = () => useAuthStore(s => s.session?.user.role);

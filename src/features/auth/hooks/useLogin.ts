@@ -1,28 +1,34 @@
 import { useMutation } from '@tanstack/react-query';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import type { LoginCredentials } from '../types';
 import { authService } from '../services/supabaseAuth.service';
 import { useAuthStore } from '../store/auth.store';
-import { queryClient } from '@/lib/queryClient';
-import type { LoginFormValues } from '../schemas/login.schema';
 
-export function useLogin() {
+const loginSchema = z.object({
+  email: z.string().email('Email invalide'),
+  password: z.string().min(6, 'Mot de passe trop court'),
+});
+
+export const useLogin = () => {
   const setLoading = useAuthStore(s => s.setLoading);
 
   return useMutation({
-    mutationFn: ({ email, password }: LoginFormValues) =>
+    mutationFn: ({ email, password }: LoginCredentials) =>
       authService.signInWithPassword(email, password),
     onMutate: async () => {
       setLoading(true);
-      await queryClient.cancelQueries({ queryKey: ['user'] });
     },
     onSuccess: session => {
       useAuthStore.getState().login(session);
-      queryClient.setQueryData(['user'], session.user);
     },
-    onError: () => {
+    onError: error => {
       setLoading(false);
+      return error;
     },
     onSettled: () => {
       setLoading(false);
     },
   });
-}
+};
