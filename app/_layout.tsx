@@ -56,16 +56,30 @@ function NavigationGuard() {
     return () => sub.remove();
   }, [loginAction, router]);
 
-  // Auth guard
+  // Auth guard — role-based routing
   useEffect(() => {
     if (isRestoring) return;
     const seg = segments[0] as string;
     const inAuth = seg === '(auth)';
+    const role = useAuthStore.getState().session?.user.role;
 
     if (!isAuthenticated && !inAuth) {
       router.replace('/(auth)/login' as any);
     } else if (isAuthenticated && inAuth) {
-      router.replace('/(parent-tabs)' as any);
+      if (role === 'collector') {
+        router.replace('/(collector-tabs)' as any);
+      } else {
+        router.replace('/(parent-tabs)' as any);
+      }
+    } else if (isAuthenticated && !inAuth) {
+      // Already in app — enforce correct tab group per role
+      const inParentTabs = seg === '(parent-tabs)';
+      const inCollectorTabs = seg === '(collector-tabs)';
+      if (role === 'collector' && inParentTabs) {
+        router.replace('/(collector-tabs)' as any);
+      } else if (role !== 'collector' && inCollectorTabs) {
+        router.replace('/(parent-tabs)' as any);
+      }
     }
   }, [isAuthenticated, isRestoring, segments, router]);
 

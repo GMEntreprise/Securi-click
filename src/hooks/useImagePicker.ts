@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase/client';
 
-type Bucket = 'profile-images' | 'children-images';
+type Bucket = 'profile-images' | 'children-images' | 'collector-avatars';
 
 interface UseImagePickerOptions {
   bucket: Bucket;
