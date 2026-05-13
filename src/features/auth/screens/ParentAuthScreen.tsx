@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  useColorScheme,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +15,7 @@ import { useRegisterParent } from '../hooks/useRegister';
 import { AuthBackButton, AuthTabToggle } from '../components/ui';
 import { ParentLoginForm } from './ParentLoginForm';
 import { ParentRegisterFormV2 } from './ParentRegisterFormV2';
+import { useTheme } from '@/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.34;
@@ -23,7 +23,7 @@ const HERO_HEIGHT = SCREEN_HEIGHT * 0.34;
 export const ParentAuthScreen: React.FC = memo(() => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const dark = useColorScheme() === 'dark';
+  const t = useTheme();
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
 
   const loginMutation = useLogin();
@@ -58,7 +58,7 @@ export const ParentAuthScreen: React.FC = memo(() => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1, backgroundColor: dark ? '#0d1117' : '#f9f5f0' }}
+      style={{ flex: 1, backgroundColor: t.bg }}
     >
       <AuthBackButton onPress={() => router.back()} light />
 
@@ -73,11 +73,11 @@ export const ParentAuthScreen: React.FC = memo(() => {
           resizeMode="cover"
         />
         <LinearGradient
-          colors={
-            dark
-              ? ['transparent', 'rgba(13,17,23,0.6)', '#0d1117']
-              : ['transparent', 'rgba(249,245,240,0.5)', '#f9f5f0']
-          }
+          colors={[
+            'transparent',
+            t.isDark ? 'rgba(13,17,23,0.6)' : 'rgba(249,245,240,0.5)',
+            t.bg,
+          ]}
           locations={[0.4, 0.75, 1]}
           style={{
             position: 'absolute',

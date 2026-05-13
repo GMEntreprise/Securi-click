@@ -1,11 +1,6 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  useColorScheme,
-} from 'react-native';
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { useTheme } from '@/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -68,26 +63,6 @@ const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'pending', label: 'Attente' },
   { id: 'failed', label: 'Échecs' },
 ];
-
-function useTheme() {
-  const scheme = useColorScheme();
-  const dark = scheme === 'dark';
-  return {
-    dark,
-    bg: dark ? '#0d1117' : '#f9f5f0',
-    card: dark ? '#161b22' : '#ffffff',
-    cardBorder: dark ? '#21262d' : '#f0ede8',
-    header: dark ? '#111111' : '#ffffff',
-    headerBorder: dark ? '#21262d' : '#f0ede8',
-    filterBg: dark ? '#161b22' : '#ffffff',
-    filterBorder: dark ? '#21262d' : '#f0ede8',
-    filterActiveBg: dark ? '#1e3a8a' : '#f97316',
-    text: dark ? '#f9fafb' : '#111827',
-    textSecondary: dark ? '#9ca3af' : '#6b7280',
-    textMuted: dark ? '#6b7280' : '#9ca3af',
-    accent: dark ? '#3b82f6' : '#f97316',
-  };
-}
 
 const STATUS_CONFIG = {
   completed: {
@@ -261,9 +236,9 @@ export default function HistoryScreen() {
       <Animated.View
         entering={FadeInDown.duration(400)}
         style={{
-          backgroundColor: theme.header,
+          backgroundColor: theme.card,
           borderBottomWidth: 1,
-          borderBottomColor: theme.headerBorder,
+          borderBottomColor: theme.cardBorder,
           paddingTop: insets.top + 16,
           paddingBottom: 16,
           paddingHorizontal: 20,
@@ -355,11 +330,9 @@ export default function HistoryScreen() {
                   paddingVertical: 7,
                   borderRadius: 12,
                   alignItems: 'center',
-                  backgroundColor: active
-                    ? theme.filterActiveBg
-                    : theme.filterBg,
+                  backgroundColor: active ? theme.accent : theme.card,
                   borderWidth: 1,
-                  borderColor: active ? 'transparent' : theme.filterBorder,
+                  borderColor: active ? 'transparent' : theme.cardBorder,
                 }}
               >
                 <Text

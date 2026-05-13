@@ -18,7 +18,6 @@ import {
   ScrollView,
   Text,
   View,
-  useColorScheme,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -36,6 +35,7 @@ import {
   AuthStepBar,
   AuthTabToggle,
 } from '../components/ui';
+import { useTheme } from '@/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.3;
@@ -64,23 +64,6 @@ const registerSchema = z.object({
 
 type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
-
-function useTheme() {
-  const dark = useColorScheme() === 'dark';
-  return {
-    dark,
-    bg: dark ? '#0d1117' : '#f9f5f0',
-    text: dark ? '#f9fafb' : '#111827',
-    textSecondary: dark ? '#9ca3af' : '#6b7280',
-    iconColor: dark ? '#4b5563' : '#9ca3af',
-    errorBg: dark ? 'rgba(239,68,68,0.1)' : '#fef2f2',
-    errorBorder: dark ? 'rgba(239,68,68,0.3)' : '#fecaca',
-    hintBg: dark ? 'rgba(245,158,11,0.1)' : '#fffbeb',
-    hintBorder: dark ? 'rgba(245,158,11,0.2)' : '#fde68a',
-    checkboxLabel: dark ? '#d1d5db' : '#374151',
-    gradientEnd: dark ? '#0d1117' : '#f9f5f0',
-  };
-}
 
 const SchoolLoginForm: React.FC<{
   onSubmit: (d: LoginValues) => void;
@@ -125,15 +108,15 @@ const SchoolLoginForm: React.FC<{
         <View
           style={{
             marginBottom: 16,
-            backgroundColor: t.errorBg,
+            backgroundColor: t.redBg,
             borderWidth: 1,
-            borderColor: t.errorBorder,
+            borderColor: t.red,
             borderRadius: 16,
             paddingHorizontal: 14,
             paddingVertical: 12,
           }}
         >
-          <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '600' }}>
+          <Text style={{ color: t.red, fontSize: 13, fontWeight: '600' }}>
             {error}
           </Text>
         </View>
@@ -144,7 +127,7 @@ const SchoolLoginForm: React.FC<{
         name="email"
         label="Email"
         placeholder="direction@etablissement.fr"
-        icon={<Mail size={18} color={t.iconColor} />}
+        icon={<Mail size={18} color={t.textMuted} />}
         error={errors.email?.message}
         keyboardType="email-address"
         autoCapitalize="none"
@@ -203,7 +186,7 @@ const SchoolRegisterForm: React.FC<{
 
   return (
     <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
-      <AuthStepBar currentStep={1} totalSteps={2} accentColor="#1e3a8a" />
+      <AuthStepBar currentStep={1} totalSteps={2} accentColor={t.primary} />
 
       <Text
         style={{
@@ -231,15 +214,15 @@ const SchoolRegisterForm: React.FC<{
         <View
           style={{
             marginBottom: 16,
-            backgroundColor: t.errorBg,
+            backgroundColor: t.redBg,
             borderWidth: 1,
-            borderColor: t.errorBorder,
+            borderColor: t.red,
             borderRadius: 16,
             paddingHorizontal: 14,
             paddingVertical: 12,
           }}
         >
-          <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '600' }}>
+          <Text style={{ color: t.red, fontSize: 13, fontWeight: '600' }}>
             {error}
           </Text>
         </View>
@@ -250,7 +233,7 @@ const SchoolRegisterForm: React.FC<{
         name="school_name"
         label="Nom de l'établissement"
         placeholder="ex: École du Centre"
-        icon={<Building2 size={18} color={t.iconColor} />}
+        icon={<Building2 size={18} color={t.textMuted} />}
         error={errors.school_name?.message}
       />
 
@@ -261,7 +244,7 @@ const SchoolRegisterForm: React.FC<{
             name="city"
             label="Ville"
             placeholder="Paris"
-            icon={<MapPin size={18} color={t.iconColor} />}
+            icon={<MapPin size={18} color={t.textMuted} />}
             error={errors.city?.message}
           />
         </View>
@@ -284,15 +267,15 @@ const SchoolRegisterForm: React.FC<{
           alignItems: 'flex-start',
           gap: 8,
           marginBottom: 16,
-          backgroundColor: t.hintBg,
+          backgroundColor: t.amberBg,
           borderWidth: 1,
-          borderColor: t.hintBorder,
+          borderColor: t.isDark ? 'rgba(245,158,11,0.2)' : '#fde68a',
           paddingHorizontal: 12,
           paddingVertical: 10,
           borderRadius: 14,
         }}
       >
-        <AlertCircle size={14} color="#f59e0b" style={{ marginTop: 2 }} />
+        <AlertCircle size={14} color={t.amber} style={{ marginTop: 2 }} />
         <Text
           style={{
             fontSize: 12,
@@ -314,7 +297,7 @@ const SchoolRegisterForm: React.FC<{
             name="manager_first_name"
             label="Prénom"
             placeholder=""
-            icon={<User size={18} color={t.iconColor} />}
+            icon={<User size={18} color={t.textMuted} />}
             error={errors.manager_first_name?.message}
           />
         </View>
@@ -341,7 +324,7 @@ const SchoolRegisterForm: React.FC<{
         name="email"
         label="Email"
         placeholder="direction@etablissement.fr"
-        icon={<Mail size={18} color={t.iconColor} />}
+        icon={<Mail size={18} color={t.textMuted} />}
         error={errors.email?.message}
         keyboardType="email-address"
         autoCapitalize="none"
@@ -351,7 +334,7 @@ const SchoolRegisterForm: React.FC<{
         name="phone"
         label="Téléphone"
         placeholder="01 23 45 67 89"
-        icon={<Phone size={18} color={t.iconColor} />}
+        icon={<Phone size={18} color={t.textMuted} />}
         error={errors.phone?.message}
         keyboardType="phone-pad"
       />
@@ -365,14 +348,14 @@ const SchoolRegisterForm: React.FC<{
       <AuthCheckbox
         control={control}
         name="accept_terms"
-        accentColor="#1e3a8a"
+        accentColor={t.primary}
         error={errors.accept_terms?.message}
         label={
           <Text
-            style={{ fontSize: 13, color: t.checkboxLabel, lineHeight: 18 }}
+            style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
           >
             J'accepte les{' '}
-            <Text style={{ color: '#1e3a8a', fontWeight: '700' }}>
+            <Text style={{ color: t.primary, fontWeight: '700' }}>
               Conditions Générales d'Utilisation
             </Text>{' '}
             professionnelles.
@@ -446,9 +429,9 @@ export const SchoolAuthScreen: React.FC = memo(() => {
         />
         <LinearGradient
           colors={[
-            t.dark ? 'rgba(0,0,0,0)' : 'transparent',
-            t.dark ? `rgba(13,17,23,0.6)` : 'rgba(249,245,240,0.5)',
-            t.gradientEnd,
+            'transparent',
+            t.isDark ? 'rgba(13,17,23,0.6)' : 'rgba(249,245,240,0.5)',
+            t.bg,
           ]}
           locations={[0.4, 0.75, 1]}
           style={{

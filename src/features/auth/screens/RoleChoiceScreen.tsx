@@ -15,7 +15,6 @@ import {
   ScrollView,
   Text,
   View,
-  useColorScheme,
 } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -26,6 +25,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthPrimaryButton } from '../components/ui';
+import { useTheme } from '@/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.36;
@@ -75,7 +75,7 @@ interface RoleCardProps {
 
 const RoleCard: React.FC<RoleCardProps> = memo(
   ({ item, selected, onPress, index }) => {
-    const dark = useColorScheme() === 'dark';
+    const t = useTheme();
     const scale = useSharedValue(1);
 
     const animatedStyle = useAnimatedStyle(() => ({
@@ -92,17 +92,8 @@ const RoleCard: React.FC<RoleCardProps> = memo(
 
     const { Icon } = item;
 
-    const cardBg = dark ? '#161b22' : '#ffffff';
-    const cardBorder = selected ? '#1e3a8a' : dark ? '#21262d' : '#f0ede8';
-    const iconBg = selected
-      ? dark
-        ? 'rgba(59,130,246,0.2)'
-        : 'rgba(30,58,138,0.1)'
-      : dark
-        ? '#1c2128'
-        : '#f3f4f6';
-    const titleColor = dark ? '#f9fafb' : '#111827';
-    const descColor = dark ? '#9ca3af' : '#6b7280';
+    const cardBorder = selected ? t.primary : t.cardBorder;
+    const iconBg = selected ? t.primaryBg : t.iconBg;
 
     return (
       <Animated.View
@@ -121,12 +112,18 @@ const RoleCard: React.FC<RoleCardProps> = memo(
               paddingHorizontal: 16,
               paddingVertical: 16,
               borderRadius: 24,
-              backgroundColor: cardBg,
+              backgroundColor: t.card,
               borderWidth: 2,
               borderColor: cardBorder,
-              shadowColor: selected ? '#1e3a8a' : '#000',
+              shadowColor: selected ? t.primary : '#000',
               shadowOffset: { width: 0, height: selected ? 4 : 1 },
-              shadowOpacity: selected ? (dark ? 0.3 : 0.12) : dark ? 0 : 0.04,
+              shadowOpacity: selected
+                ? t.isDark
+                  ? 0.3
+                  : 0.12
+                : t.isDark
+                  ? 0
+                  : 0.04,
               shadowRadius: selected ? 12 : 3,
               elevation: selected ? 6 : 1,
             }}
@@ -142,26 +139,26 @@ const RoleCard: React.FC<RoleCardProps> = memo(
                 marginRight: 14,
               }}
             >
-              <Icon size={24} color="#1e3a8a" strokeWidth={2} />
+              <Icon size={24} color={t.primary} strokeWidth={2} />
             </View>
             <View style={{ flex: 1 }}>
               <Text
                 style={{
                   fontSize: 16,
                   fontWeight: '700',
-                  color: titleColor,
+                  color: t.text,
                   marginBottom: 2,
                 }}
               >
                 {item.title}
               </Text>
-              <Text style={{ fontSize: 13, color: descColor }}>
+              <Text style={{ fontSize: 13, color: t.textSecondary }}>
                 {item.description}
               </Text>
             </View>
             {selected && (
               <Animated.View entering={FadeInUp.duration(200)}>
-                <CheckCircle2 size={22} color="#1e3a8a" strokeWidth={2} />
+                <CheckCircle2 size={22} color={t.primary} strokeWidth={2} />
               </Animated.View>
             )}
           </View>
@@ -176,7 +173,7 @@ RoleCard.displayName = 'RoleCard';
 export const RoleChoiceScreen: React.FC = memo(() => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const dark = useColorScheme() === 'dark';
+  const t = useTheme();
   const [selectedId, setSelectedId] = useState<RoleItem['id'] | null>(null);
 
   const selectedRoute = useMemo(
@@ -195,13 +192,8 @@ export const RoleChoiceScreen: React.FC = memo(() => {
     router.push(selectedRoute as any);
   }, [selectedRoute, router]);
 
-  const bgColor = dark ? '#0d1117' : '#f9f5f0';
-  const gradientEnd = dark ? '#0d1117' : '#f9f5f0';
-  const ctaBg = dark ? 'rgba(13,17,23,0.97)' : 'rgba(249,245,240,0.97)';
-  const ctaBorder = dark ? '#21262d' : 'rgba(0,0,0,0.06)';
-
   return (
-    <View style={{ flex: 1, backgroundColor: bgColor }}>
+    <View style={{ flex: 1, backgroundColor: t.bg }}>
       <View style={{ height: HERO_HEIGHT }}>
         <Image
           source={require('../../../../assets/images/icon.png')}
@@ -218,9 +210,9 @@ export const RoleChoiceScreen: React.FC = memo(() => {
         />
         <LinearGradient
           colors={[
-            dark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)',
-            dark ? 'rgba(13,17,23,0.6)' : 'rgba(249,245,240,0.5)',
-            gradientEnd,
+            t.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)',
+            t.isDark ? 'rgba(13,17,23,0.6)' : 'rgba(249,245,240,0.5)',
+            t.bg,
           ]}
           locations={[0, 0.65, 1]}
           style={{ position: 'absolute', inset: 0 }}
@@ -243,13 +235,13 @@ export const RoleChoiceScreen: React.FC = memo(() => {
                 fontSize: 28,
                 fontWeight: '800',
                 letterSpacing: -0.5,
-                color: dark ? '#f9fafb' : '#111827',
+                color: t.text,
                 marginBottom: 6,
               }}
             >
               Choisissez votre rôle
             </Text>
-            <Text style={{ fontSize: 15, color: dark ? '#9ca3af' : '#6b7280' }}>
+            <Text style={{ fontSize: 15, color: t.textSecondary }}>
               Pour une expérience personnalisée
             </Text>
           </Animated.View>
@@ -276,9 +268,9 @@ export const RoleChoiceScreen: React.FC = memo(() => {
           paddingBottom: insets.bottom + 16,
           paddingHorizontal: 24,
           paddingTop: 16,
-          backgroundColor: ctaBg,
+          backgroundColor: t.ctaBg,
           borderTopWidth: 1,
-          borderTopColor: ctaBorder,
+          borderTopColor: t.ctaBorder,
         }}
       >
         <AuthPrimaryButton
@@ -291,7 +283,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
         <Text
           style={{
             textAlign: 'center',
-            color: dark ? '#4b5563' : '#9ca3af',
+            color: t.textMuted,
             fontSize: 10,
             letterSpacing: 2,
             marginTop: 10,

@@ -1,30 +1,25 @@
 import React, { useCallback } from 'react';
 import { Tabs } from 'expo-router';
-import { useColorScheme } from 'react-native';
 import { Home, Users, QrCode, Clock, User } from 'lucide-react-native';
 import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
-
-const LIGHT_GRADIENTS = ['#f97316', '#ea580c'] as const;
-const DARK_GRADIENTS = ['#1e3a8a', '#1d4ed8'] as const;
+import { useTheme } from '@/theme';
 
 const ICON_SIZE = 22;
 
 function ThemedCurvedTabBar(
   props: BottomTabBarProps & CurvedTabBarNavigationProps
 ) {
-  const scheme = useColorScheme();
-  const gradients =
-    scheme === 'dark' ? [...DARK_GRADIENTS] : [...LIGHT_GRADIENTS];
+  const t = useTheme();
 
   return (
     <CurvedBottomTabs
       {...props}
-      gradients={gradients}
+      gradients={[...t.tabGradient]}
       activeColor="#ffffff"
-      inactiveColor={scheme === 'dark' ? '#6b7280' : '#9ca3af'}
-      labelColor={scheme === 'dark' ? '#6b7280' : '#9ca3af'}
+      inactiveColor={t.textMuted}
+      labelColor={t.textMuted}
       barHeight={9}
       buttonScale={6}
       textSize={11}

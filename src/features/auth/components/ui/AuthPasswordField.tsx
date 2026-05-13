@@ -1,7 +1,8 @@
 import { Eye, EyeOff, Lock } from 'lucide-react-native';
 import React, { memo, useCallback, useState } from 'react';
-import { Pressable, Text, TextInput, View, useColorScheme } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
+import { useTheme } from '@/theme';
 
 interface AuthPasswordFieldProps<T extends FieldValues> {
   control: Control<T>;
@@ -24,13 +25,8 @@ function AuthPasswordFieldInner<T extends FieldValues>({
 }: AuthPasswordFieldProps<T>) {
   const [visible, setVisible] = useState(false);
   const toggle = useCallback(() => setVisible(v => !v), []);
-  const dark = useColorScheme() === 'dark';
-
-  const inputBg = dark ? '#161b22' : '#ffffff';
-  const inputBorder = error ? '#f87171' : dark ? '#333333' : '#e5e7eb';
-  const textColor = dark ? '#f9fafb' : '#111827';
-  const labelColor = dark ? '#9ca3af' : '#6b7280';
-  const iconColor = dark ? '#4b5563' : '#9ca3af';
+  const t = useTheme();
+  const borderColor = error ? t.red : t.inputBorder;
 
   return (
     <View style={{ marginBottom: 16 }}>
@@ -46,7 +42,7 @@ function AuthPasswordFieldInner<T extends FieldValues>({
           style={{
             fontSize: 11,
             fontWeight: '700',
-            color: labelColor,
+            color: t.textSecondary,
             textTransform: 'uppercase',
             letterSpacing: 1,
           }}
@@ -63,28 +59,28 @@ function AuthPasswordFieldInner<T extends FieldValues>({
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: inputBg,
+              backgroundColor: t.input,
               borderRadius: 16,
               paddingHorizontal: 16,
               borderWidth: 1.5,
-              borderColor: inputBorder,
+              borderColor,
               minHeight: 56,
               opacity: disabled ? 0.5 : 1,
             }}
           >
-            <Lock size={18} color={iconColor} style={{ marginRight: 10 }} />
+            <Lock size={18} color={t.textMuted} style={{ marginRight: 10 }} />
             <TextInput
               style={{
                 flex: 1,
                 fontSize: 15,
-                color: textColor,
+                color: t.text,
                 paddingVertical: 16,
               }}
               value={value as string}
               onChangeText={onChange}
               onBlur={onBlur}
               placeholder={placeholder}
-              placeholderTextColor={dark ? '#4b5563' : '#9ca3af'}
+              placeholderTextColor={t.placeholder}
               secureTextEntry={!visible}
               editable={!disabled}
               autoCapitalize="none"
@@ -92,9 +88,9 @@ function AuthPasswordFieldInner<T extends FieldValues>({
             />
             <Pressable onPress={toggle} hitSlop={12} disabled={disabled}>
               {visible ? (
-                <EyeOff size={20} color={iconColor} />
+                <EyeOff size={20} color={t.textMuted} />
               ) : (
-                <Eye size={20} color={iconColor} />
+                <Eye size={20} color={t.textMuted} />
               )}
             </Pressable>
           </View>
@@ -102,12 +98,7 @@ function AuthPasswordFieldInner<T extends FieldValues>({
       />
       {error && (
         <Text
-          style={{
-            color: '#f87171',
-            fontSize: 12,
-            marginTop: 4,
-            marginLeft: 4,
-          }}
+          style={{ color: t.red, fontSize: 12, marginTop: 4, marginLeft: 4 }}
         >
           {error}
         </Text>

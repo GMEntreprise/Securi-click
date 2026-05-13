@@ -7,7 +7,6 @@ import {
   ScrollView,
   Text,
   View,
-  useColorScheme,
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +19,7 @@ import {
   AuthPasswordField,
   AuthPrimaryButton,
 } from '../components/ui';
+import { useTheme } from '@/theme';
 
 const activationSchema = z.object({
   email: z.string().email(),
@@ -33,20 +33,12 @@ const activationSchema = z.object({
 type ActivationValues = z.infer<typeof activationSchema>;
 
 function PasswordRule({ met, label }: { met: boolean; label: string }) {
-  const dark = useColorScheme() === 'dark';
-  const color = met ? '#10b981' : dark ? '#4b5563' : '#d1d5db';
+  const t = useTheme();
+  const color = met ? t.green : t.textMuted;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
       <CheckCircle2 size={14} color={color} strokeWidth={2.5} />
-      <Text
-        style={{
-          fontSize: 12,
-          fontWeight: '600',
-          color: met ? '#10b981' : dark ? '#6b7280' : '#9ca3af',
-        }}
-      >
-        {label}
-      </Text>
+      <Text style={{ fontSize: 12, fontWeight: '600', color }}>{label}</Text>
     </View>
   );
 }
@@ -54,7 +46,7 @@ function PasswordRule({ met, label }: { met: boolean; label: string }) {
 export const CollectorAuthScreen: React.FC = memo(() => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const dark = useColorScheme() === 'dark';
+  const t = useTheme();
   const params = useLocalSearchParams<{
     token?: string;
     email?: string;
@@ -108,22 +100,10 @@ export const CollectorAuthScreen: React.FC = memo(() => {
 
   const fullName = firstName && lastName ? `${firstName} ${lastName}` : 'vous';
 
-  const bg = dark ? '#0d1117' : '#f9f5f0';
-  const badgeBg = dark ? 'rgba(249,115,22,0.15)' : '#fff3e8';
-  const cardBg = dark ? '#161b22' : '#ffffff';
-  const cardBorder = dark ? '#21262d' : '#f0ede8';
-  const text = dark ? '#f9fafb' : '#111827';
-  const textSecondary = dark ? '#9ca3af' : '#6b7280';
-  const lockedEmailBg = dark ? '#1e1e1e' : '#f3f4f6';
-  const lockedEmailBorder = dark ? '#333333' : '#e5e7eb';
-  const lockedEmailText = dark ? '#9ca3af' : '#6b7280';
-  const labelColor = dark ? '#9ca3af' : '#6b7280';
-  const footerText = dark ? '#4b5563' : '#9ca3af';
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1, backgroundColor: bg }}
+      style={{ flex: 1, backgroundColor: t.bg }}
     >
       <AuthBackButton onPress={() => router.back()} light />
 
@@ -137,23 +117,22 @@ export const CollectorAuthScreen: React.FC = memo(() => {
             entering={FadeInDown.duration(400)}
             style={{ alignItems: 'center', marginBottom: 24 }}
           >
-            {/* Badge */}
             <View
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 6,
-                backgroundColor: badgeBg,
+                backgroundColor: t.isDark ? 'rgba(249,115,22,0.15)' : '#fff3e8',
                 paddingHorizontal: 14,
                 paddingVertical: 7,
                 borderRadius: 20,
                 marginBottom: 24,
               }}
             >
-              <ShieldCheck size={13} color="#f97316" strokeWidth={2.5} />
+              <ShieldCheck size={13} color={t.accent} strokeWidth={2.5} />
               <Text
                 style={{
-                  color: '#f97316',
+                  color: t.accent,
                   fontSize: 11,
                   fontWeight: '800',
                   letterSpacing: 1.5,
@@ -163,29 +142,28 @@ export const CollectorAuthScreen: React.FC = memo(() => {
               </Text>
             </View>
 
-            {/* Icon card */}
             <View
               style={{
                 width: '100%',
                 borderRadius: 24,
-                backgroundColor: cardBg,
+                backgroundColor: t.card,
                 borderWidth: 1,
-                borderColor: cardBorder,
+                borderColor: t.cardBorder,
                 height: 140,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: 24,
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: dark ? 0.3 : 0.06,
+                shadowOpacity: t.isDark ? 0.3 : 0.06,
                 shadowRadius: 12,
                 elevation: 4,
               }}
             >
-              <ShieldCheck size={44} color="#1e3a8a" strokeWidth={1.5} />
+              <ShieldCheck size={44} color={t.primary} strokeWidth={1.5} />
               <Text
                 style={{
-                  color: textSecondary,
+                  color: t.textSecondary,
                   fontSize: 13,
                   fontWeight: '600',
                   marginTop: 8,
@@ -200,7 +178,7 @@ export const CollectorAuthScreen: React.FC = memo(() => {
                 fontSize: 24,
                 fontWeight: '800',
                 letterSpacing: -0.5,
-                color: text,
+                color: t.text,
                 textAlign: 'center',
                 marginBottom: 8,
               }}
@@ -210,14 +188,14 @@ export const CollectorAuthScreen: React.FC = memo(() => {
             {childName.length > 0 && (
               <Text
                 style={{
-                  color: textSecondary,
+                  color: t.textSecondary,
                   textAlign: 'center',
                   fontSize: 14,
                   lineHeight: 20,
                 }}
               >
                 Finalisez votre accès sécurisé à l'espace de{' '}
-                <Text style={{ fontWeight: '700', color: text }}>
+                <Text style={{ fontWeight: '700', color: t.text }}>
                   {childName}
                 </Text>
                 .
@@ -226,13 +204,12 @@ export const CollectorAuthScreen: React.FC = memo(() => {
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(120).duration(400)}>
-            {/* Locked email field */}
             <View style={{ marginBottom: 16 }}>
               <Text
                 style={{
                   fontSize: 11,
                   fontWeight: '700',
-                  color: labelColor,
+                  color: t.textSecondary,
                   textTransform: 'uppercase',
                   letterSpacing: 1,
                   marginBottom: 8,
@@ -244,25 +221,25 @@ export const CollectorAuthScreen: React.FC = memo(() => {
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: lockedEmailBg,
+                  backgroundColor: t.iconBg,
                   borderRadius: 16,
                   paddingHorizontal: 16,
                   borderWidth: 1.5,
-                  borderColor: lockedEmailBorder,
+                  borderColor: t.inputBorder,
                   minHeight: 56,
                 }}
               >
                 <Text
                   style={{
                     flex: 1,
-                    color: lockedEmailText,
+                    color: t.textSecondary,
                     fontSize: 15,
                     paddingVertical: 16,
                   }}
                 >
                   {prefillEmail || 'Non renseigné'}
                 </Text>
-                <Lock size={16} color={dark ? '#4b5563' : '#9ca3af'} />
+                <Lock size={16} color={t.textMuted} />
               </View>
             </View>
 
@@ -308,10 +285,10 @@ export const CollectorAuthScreen: React.FC = memo(() => {
                 gap: 6,
               }}
             >
-              <Lock size={11} color={footerText} />
+              <Lock size={11} color={t.textMuted} />
               <Text
                 style={{
-                  color: footerText,
+                  color: t.textMuted,
                   fontSize: 10,
                   letterSpacing: 1.5,
                   textTransform: 'uppercase',

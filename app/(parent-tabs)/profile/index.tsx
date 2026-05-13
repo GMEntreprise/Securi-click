@@ -6,8 +6,8 @@ import {
   ScrollView,
   Switch,
   Alert,
-  useColorScheme,
 } from 'react-native';
+import { useTheme } from '@/theme';
 import { useRouter } from 'expo-router';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -33,26 +33,6 @@ const mockProfile = {
   biometricAuth: true,
   darkMode: false,
 };
-
-function useTheme() {
-  const scheme = useColorScheme();
-  const dark = scheme === 'dark';
-  return {
-    dark,
-    bg: dark ? '#0d1117' : '#f9f5f0',
-    card: dark ? '#161b22' : '#ffffff',
-    cardBorder: dark ? '#21262d' : '#f0ede8',
-    text: dark ? '#f9fafb' : '#111827',
-    textSecondary: dark ? '#9ca3af' : '#6b7280',
-    textMuted: dark ? '#6b7280' : '#9ca3af',
-    accent: dark ? '#3b82f6' : '#f97316',
-    accentBg: dark ? 'rgba(59,130,246,0.12)' : 'rgba(249,115,22,0.1)',
-    primary: '#1e3a8a',
-    separator: dark ? '#21262d' : '#f3f4f6',
-    rowBg: dark ? '#161b22' : '#ffffff',
-    switchTrackOn: dark ? '#3b82f6' : '#f97316',
-  };
-}
 
 interface RowItem {
   icon: React.ReactNode;
@@ -123,11 +103,11 @@ function SettingRow({ item, isLast }: { item: RowItem; isLast: boolean }) {
             item.onToggle?.(v);
           }}
           trackColor={{
-            false: theme.dark ? '#30363d' : '#e5e7eb',
+            false: theme.isDark ? '#30363d' : '#e5e7eb',
             true: theme.switchTrackOn,
           }}
           thumbColor="#ffffff"
-          ios_backgroundColor={theme.dark ? '#30363d' : '#e5e7eb'}
+          ios_backgroundColor={theme.isDark ? '#30363d' : '#e5e7eb'}
         />
       ) : (
         <ChevronRight size={16} color={theme.textMuted} />
@@ -314,7 +294,7 @@ export default function ProfileScreen() {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
               }
               style={{
-                backgroundColor: theme.dark ? '#21262d' : '#f3f4f6',
+                backgroundColor: theme.isDark ? '#21262d' : '#f3f4f6',
                 borderRadius: 12,
                 paddingVertical: 10,
                 alignItems: 'center',

@@ -1,6 +1,6 @@
 import { ChevronRight, Mail, Phone } from 'lucide-react-native';
 import React, { memo, useCallback } from 'react';
-import { Text, View, useColorScheme } from 'react-native';
+import { Text, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -13,6 +13,7 @@ import {
   PasswordStrengthBar,
 } from '../components/ui';
 import type { RegisterParentData } from '../types';
+import { useTheme } from '@/theme';
 
 const step1Schema = z.object({
   first_name: z.string().min(2, 'Prénom requis'),
@@ -47,7 +48,7 @@ interface ParentRegisterFormV2Props {
 
 export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
   ({ onSubmit, isLoading, error }) => {
-    const dark = useColorScheme() === 'dark';
+    const t = useTheme();
     const {
       control,
       handleSubmit,
@@ -79,26 +80,16 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
       [onSubmit]
     );
 
-    const textPrimary = dark ? '#f9fafb' : '#111827';
-    const textSecondary = dark ? '#9ca3af' : '#6b7280';
-    const iconColor = dark ? '#4b5563' : '#9ca3af';
-    const errorBg = dark ? 'rgba(239,68,68,0.1)' : '#fef2f2';
-    const errorBorder = dark ? 'rgba(239,68,68,0.3)' : '#fecaca';
-    const quoteCardBg = dark ? '#161b22' : '#fef9f5';
-    const quoteCardBorder = dark ? '#21262d' : '#fde8d4';
-    const quoteText = dark ? '#9ca3af' : '#6b7280';
-    const checkboxLabelColor = dark ? '#d1d5db' : '#374151';
-
     return (
       <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
-        <AuthStepBar currentStep={1} totalSteps={2} accentColor="#f97316" />
+        <AuthStepBar currentStep={1} totalSteps={2} accentColor={t.accent} />
 
         <Text
           style={{
             fontSize: 26,
             fontWeight: '800',
             letterSpacing: -0.5,
-            color: textPrimary,
+            color: t.text,
             marginBottom: 6,
           }}
         >
@@ -107,7 +98,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
         <Text
           style={{
             fontSize: 14,
-            color: textSecondary,
+            color: t.textSecondary,
             marginBottom: 24,
             lineHeight: 20,
           }}
@@ -119,15 +110,15 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
           <View
             style={{
               marginBottom: 16,
-              backgroundColor: errorBg,
+              backgroundColor: t.redBg,
               borderWidth: 1,
-              borderColor: errorBorder,
+              borderColor: t.red,
               borderRadius: 16,
               paddingHorizontal: 14,
               paddingVertical: 12,
             }}
           >
-            <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '600' }}>
+            <Text style={{ color: t.red, fontSize: 13, fontWeight: '600' }}>
               {error}
             </Text>
           </View>
@@ -161,7 +152,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
           name="email"
           label="Email"
           placeholder="jean.dupont@exemple.fr"
-          icon={<Mail size={18} color={iconColor} />}
+          icon={<Mail size={18} color={t.textMuted} />}
           error={errors.email?.message}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -173,7 +164,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
           name="phone"
           label="Téléphone mobile"
           placeholder="06 12 34 56 78"
-          icon={<Phone size={18} color={iconColor} />}
+          icon={<Phone size={18} color={t.textMuted} />}
           error={errors.phone?.message}
           keyboardType="phone-pad"
         />
@@ -194,18 +185,14 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
         <AuthCheckbox
           control={control}
           name="accept_terms"
-          accentColor="#f97316"
+          accentColor={t.accent}
           error={errors.accept_terms?.message}
           label={
             <Text
-              style={{
-                fontSize: 13,
-                color: checkboxLabelColor,
-                lineHeight: 18,
-              }}
+              style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
             >
               J'accepte les{' '}
-              <Text style={{ color: '#f97316', fontWeight: '700' }}>
+              <Text style={{ color: t.accent, fontWeight: '700' }}>
                 Conditions Générales d'Utilisation
               </Text>{' '}
               de Securi'Click.
@@ -216,18 +203,14 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
         <AuthCheckbox
           control={control}
           name="accept_privacy"
-          accentColor="#f97316"
+          accentColor={t.accent}
           error={errors.accept_privacy?.message}
           label={
             <Text
-              style={{
-                fontSize: 13,
-                color: checkboxLabelColor,
-                lineHeight: 18,
-              }}
+              style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
             >
               Je reconnais avoir pris connaissance de la{' '}
-              <Text style={{ color: '#f97316', fontWeight: '700' }}>
+              <Text style={{ color: t.accent, fontWeight: '700' }}>
                 Politique de Confidentialité
               </Text>
               .
@@ -251,15 +234,15 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
             marginTop: 20,
             borderRadius: 16,
             padding: 16,
-            backgroundColor: quoteCardBg,
+            backgroundColor: t.isDark ? t.card : '#fef9f5',
             borderWidth: 1,
-            borderColor: quoteCardBorder,
+            borderColor: t.isDark ? t.cardBorder : '#fde8d4',
           }}
         >
           <Text
             style={{
               textAlign: 'center',
-              color: quoteText,
+              color: t.textSecondary,
               fontSize: 12,
               fontStyle: 'italic',
               lineHeight: 18,

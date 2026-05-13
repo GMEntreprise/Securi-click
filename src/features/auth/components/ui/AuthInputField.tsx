@@ -1,12 +1,7 @@
 import React, { memo } from 'react';
-import {
-  Text,
-  TextInput,
-  TextInputProps,
-  View,
-  useColorScheme,
-} from 'react-native';
+import { Text, TextInput, TextInputProps, View } from 'react-native';
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
+import { useTheme } from '@/theme';
 
 interface AuthInputFieldProps<T extends FieldValues> extends TextInputProps {
   control: Control<T>;
@@ -26,12 +21,8 @@ function AuthInputFieldInner<T extends FieldValues>({
   error,
   ...textInputProps
 }: AuthInputFieldProps<T>) {
-  const dark = useColorScheme() === 'dark';
-
-  const inputBg = dark ? '#161b22' : '#ffffff';
-  const inputBorder = error ? '#f87171' : dark ? '#333333' : '#e5e7eb';
-  const textColor = dark ? '#f9fafb' : '#111827';
-  const labelColor = dark ? '#9ca3af' : '#6b7280';
+  const t = useTheme();
+  const borderColor = error ? t.red : t.inputBorder;
 
   return (
     <View style={{ marginBottom: 16 }}>
@@ -39,7 +30,7 @@ function AuthInputFieldInner<T extends FieldValues>({
         style={{
           fontSize: 11,
           fontWeight: '700',
-          color: labelColor,
+          color: t.textSecondary,
           textTransform: 'uppercase',
           letterSpacing: 1,
           marginBottom: 8,
@@ -55,11 +46,11 @@ function AuthInputFieldInner<T extends FieldValues>({
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: inputBg,
+              backgroundColor: t.input,
               borderRadius: 16,
               paddingHorizontal: 16,
               borderWidth: 1.5,
-              borderColor: inputBorder,
+              borderColor,
               minHeight: 56,
             }}
           >
@@ -68,13 +59,13 @@ function AuthInputFieldInner<T extends FieldValues>({
               style={{
                 flex: 1,
                 fontSize: 15,
-                color: textColor,
+                color: t.text,
                 paddingVertical: 16,
               }}
               value={value as string}
               onChangeText={onChange}
               onBlur={onBlur}
-              placeholderTextColor={dark ? '#4b5563' : '#9ca3af'}
+              placeholderTextColor={t.placeholder}
               {...textInputProps}
             />
             {rightElement && (
@@ -85,12 +76,7 @@ function AuthInputFieldInner<T extends FieldValues>({
       />
       {error && (
         <Text
-          style={{
-            color: '#f87171',
-            fontSize: 12,
-            marginTop: 4,
-            marginLeft: 4,
-          }}
+          style={{ color: t.red, fontSize: 12, marginTop: 4, marginLeft: 4 }}
         >
           {error}
         </Text>

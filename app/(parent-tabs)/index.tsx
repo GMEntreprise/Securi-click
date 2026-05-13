@@ -1,11 +1,6 @@
 import React, { useMemo } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  useColorScheme,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { useTheme } from '@/theme';
 import { router } from 'expo-router';
 import Animated, {
   FadeInDown,
@@ -53,25 +48,6 @@ const mockRecentActivity = [
     collector: 'Jean Dupont',
   },
 ];
-
-function useTheme() {
-  const scheme = useColorScheme();
-  const dark = scheme === 'dark';
-  return {
-    dark,
-    bg: dark ? '#0d1117' : '#f9f5f0',
-    card: dark ? '#161b22' : '#ffffff',
-    cardBorder: dark ? '#21262d' : '#f0ede8',
-    text: dark ? '#f9fafb' : '#111827',
-    textSecondary: dark ? '#9ca3af' : '#6b7280',
-    textMuted: dark ? '#6b7280' : '#9ca3af',
-    accent: dark ? '#3b82f6' : '#f97316',
-    accentBg: dark ? 'rgba(59,130,246,0.12)' : 'rgba(249,115,22,0.1)',
-    primary: '#1e3a8a',
-    primaryBg: 'rgba(30,58,138,0.1)',
-    separator: dark ? '#21262d' : '#f0ede8',
-  };
-}
 
 interface QuickAction {
   id: string;

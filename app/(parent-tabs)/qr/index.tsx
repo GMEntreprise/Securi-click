@@ -1,11 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  useColorScheme,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { useTheme } from '@/theme';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -49,24 +44,6 @@ const mockScans = [
     location: 'Portail principal',
   },
 ];
-
-function useTheme() {
-  const scheme = useColorScheme();
-  const dark = scheme === 'dark';
-  return {
-    dark,
-    bg: dark ? '#0d1117' : '#f9f5f0',
-    card: dark ? '#161b22' : '#ffffff',
-    cardBorder: dark ? '#21262d' : '#f0ede8',
-    text: dark ? '#f9fafb' : '#111827',
-    textSecondary: dark ? '#9ca3af' : '#6b7280',
-    textMuted: dark ? '#6b7280' : '#9ca3af',
-    accent: dark ? '#3b82f6' : '#f97316',
-    accentBg: dark ? 'rgba(59,130,246,0.12)' : 'rgba(249,115,22,0.1)',
-    primary: '#1e3a8a',
-    separator: dark ? '#21262d' : '#f0ede8',
-  };
-}
 
 export default function QRScreen() {
   const insets = useSafeAreaInsets();
@@ -226,7 +203,7 @@ export default function QRScreen() {
                     width: 64,
                     height: 64,
                     borderRadius: 22,
-                    backgroundColor: theme.dark ? '#21262d' : '#f3f4f6',
+                    backgroundColor: theme.isDark ? '#21262d' : '#f3f4f6',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
@@ -287,7 +264,7 @@ export default function QRScreen() {
             style={{
               backgroundColor: unlocked
                 ? theme.accent
-                : theme.dark
+                : theme.isDark
                   ? '#21262d'
                   : '#f3f4f6',
               borderRadius: 18,

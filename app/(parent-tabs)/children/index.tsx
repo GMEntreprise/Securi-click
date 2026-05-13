@@ -1,11 +1,6 @@
 import React, { useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  useColorScheme,
-} from 'react-native';
+import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import { useTheme } from '@/theme';
 import { router } from 'expo-router';
 import Animated, {
   FadeInDown,
@@ -40,37 +35,20 @@ const mockChildren = [
   },
 ];
 
-function useTheme() {
-  const scheme = useColorScheme();
-  const dark = scheme === 'dark';
-  return {
-    dark,
-    bg: dark ? '#0d1117' : '#f9f5f0',
-    card: dark ? '#161b22' : '#ffffff',
-    cardBorder: dark ? '#21262d' : '#f0ede8',
-    header: dark ? '#111111' : '#ffffff',
-    headerBorder: dark ? '#21262d' : '#f0ede8',
-    text: dark ? '#f9fafb' : '#111827',
-    textSecondary: dark ? '#9ca3af' : '#6b7280',
-    textMuted: dark ? '#6b7280' : '#9ca3af',
-    accent: dark ? '#3b82f6' : '#f97316',
-    separator: dark ? '#21262d' : '#f0ede8',
-  };
-}
-
-function Avatar({ initials, dark }: { initials: string; dark: boolean }) {
+function Avatar({ initials }: { initials: string }) {
+  const t = useTheme();
   return (
     <View
       style={{
         width: 56,
         height: 56,
         borderRadius: 18,
-        backgroundColor: dark ? 'rgba(30,58,138,0.3)' : 'rgba(30,58,138,0.1)',
+        backgroundColor: t.primaryBg,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <Text style={{ color: '#1e3a8a', fontSize: 18, fontWeight: '800' }}>
+      <Text style={{ color: t.primary, fontSize: 18, fontWeight: '800' }}>
         {initials}
       </Text>
     </View>
@@ -123,7 +101,7 @@ function ChildCard({
           ]}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Avatar initials={initials} dark={theme.dark} />
+            <Avatar initials={initials} />
             <View style={{ flex: 1, marginLeft: 14 }}>
               <Text
                 style={{ color: theme.text, fontSize: 17, fontWeight: '700' }}
@@ -240,9 +218,9 @@ export default function ChildrenList() {
       <Animated.View
         entering={FadeInDown.duration(400)}
         style={{
-          backgroundColor: theme.header,
+          backgroundColor: theme.card,
           borderBottomWidth: 1,
-          borderBottomColor: theme.headerBorder,
+          borderBottomColor: theme.cardBorder,
           paddingTop: insets.top + 16,
           paddingBottom: 16,
           paddingHorizontal: 20,

@@ -1,6 +1,6 @@
 import { ArrowRight, CheckCircle, Mail } from 'lucide-react-native';
 import React, { memo, useCallback } from 'react';
-import { Pressable, Text, View, useColorScheme } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,6 +9,7 @@ import {
   AuthPasswordField,
   AuthPrimaryButton,
 } from '../components/ui';
+import { useTheme } from '@/theme';
 
 const loginSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -26,7 +27,7 @@ interface ParentLoginFormProps {
 
 export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
   ({ onSubmit, isLoading, error, onForgotPassword }) => {
-    const dark = useColorScheme() === 'dark';
+    const t = useTheme();
     const {
       control,
       handleSubmit,
@@ -41,11 +42,6 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
       [onSubmit]
     );
 
-    const textPrimary = dark ? '#f9fafb' : '#111827';
-    const textSecondary = dark ? '#9ca3af' : '#6b7280';
-    const errorBg = dark ? 'rgba(239,68,68,0.1)' : '#fef2f2';
-    const errorBorder = dark ? 'rgba(239,68,68,0.3)' : '#fecaca';
-
     return (
       <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
         <Text
@@ -53,7 +49,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
             fontSize: 26,
             fontWeight: '800',
             letterSpacing: -0.5,
-            color: textPrimary,
+            color: t.text,
             marginBottom: 6,
           }}
         >
@@ -62,7 +58,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
         <Text
           style={{
             fontSize: 14,
-            color: textSecondary,
+            color: t.textSecondary,
             marginBottom: 24,
             lineHeight: 20,
           }}
@@ -74,15 +70,15 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
           <View
             style={{
               marginBottom: 16,
-              backgroundColor: errorBg,
+              backgroundColor: t.redBg,
               borderWidth: 1,
-              borderColor: errorBorder,
+              borderColor: t.red,
               borderRadius: 16,
               paddingHorizontal: 14,
               paddingVertical: 12,
             }}
           >
-            <Text style={{ color: '#ef4444', fontSize: 13, fontWeight: '600' }}>
+            <Text style={{ color: t.red, fontSize: 13, fontWeight: '600' }}>
               {error}
             </Text>
           </View>
@@ -93,7 +89,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
           name="email"
           label="Email"
           placeholder="jean.dupont@exemple.fr"
-          icon={<Mail size={18} color={dark ? '#4b5563' : '#9ca3af'} />}
+          icon={<Mail size={18} color={t.textMuted} />}
           error={errors.email?.message}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -108,7 +104,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
           rightLabel={
             <Pressable onPress={onForgotPassword} hitSlop={8}>
               <Text
-                style={{ fontSize: 12, fontWeight: '700', color: '#f97316' }}
+                style={{ fontSize: 12, fontWeight: '700', color: t.accent }}
               >
                 Oublié ?
               </Text>
@@ -124,8 +120,8 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
             marginBottom: 24,
           }}
         >
-          <CheckCircle size={16} color="#10b981" strokeWidth={2} />
-          <Text style={{ fontSize: 13, color: '#10b981', fontWeight: '600' }}>
+          <CheckCircle size={16} color={t.green} strokeWidth={2} />
+          <Text style={{ fontSize: 13, color: t.green, fontWeight: '600' }}>
             Protégez vos enfants en 2 min
           </Text>
         </View>
