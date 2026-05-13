@@ -101,6 +101,10 @@ export default function ParentTabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="authorized-persons"
+        options={{ href: null, tabBarButton: () => null }}
+      />
     </Tabs>
   );
 }

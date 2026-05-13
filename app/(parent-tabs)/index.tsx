@@ -67,7 +67,7 @@ const QuickActionCard = React.memo(function QuickActionCard({
           {
             backgroundColor: theme.card,
             borderRadius: 20,
-            padding: 16,
+            padding: 18,
             alignItems: 'center',
             borderWidth: 1,
             borderColor: theme.cardBorder,
@@ -369,9 +369,11 @@ export default function ParentDashboard() {
           >
             Actions rapides
           </Text>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {quickActions.map(a => (
-              <QuickActionCard key={a.id} action={a} />
+              <View key={a.id} style={{ width: '47.5%' }}>
+                <QuickActionCard action={a} />
+              </View>
             ))}
           </View>
         </Animated.View>

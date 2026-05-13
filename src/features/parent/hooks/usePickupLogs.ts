@@ -23,7 +23,7 @@ export function usePickupLogs(limit = 50) {
   useEffect(() => {
     if (!parentId) return;
     const channel = supabase
-      .channel(`pickup-logs-${parentId}`)
+      .channel(`pickup-logs-${parentId}-${Math.random().toString(36).slice(2)}`)
       .on(
         'postgres_changes',
         {
