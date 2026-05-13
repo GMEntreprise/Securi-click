@@ -439,9 +439,14 @@ export const CurvedBottomTabs: React.FC<
     }) => {
       const visibleRoutes = state.routes
         .map((route, index) => ({ route, index }))
-        .filter(
-          ({ route }) => (descriptors[route.key].options as any).href !== null
-        );
+        .filter(({ route }) => {
+          const opts = descriptors[route.key].options as any;
+          // exclude routes explicitly hidden via href:null or no tabBarIcon
+          if (opts.href === null) return false;
+          if (opts.tabBarItemStyle?.display === 'none') return false;
+          if (!opts.tabBarIcon && !opts.title) return false;
+          return true;
+        });
 
       const tabs: Tab[] = visibleRoutes.map(({ route, index }) => {
         const { options } = descriptors[route.key];

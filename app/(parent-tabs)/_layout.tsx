@@ -101,7 +101,10 @@ export default function ParentTabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="authorized-persons" options={{ href: null }} />
+      <Tabs.Screen
+        name="authorized-persons"
+        options={{ href: null, tabBarItemStyle: { display: 'none' } }}
+      />
     </Tabs>
   );
 }

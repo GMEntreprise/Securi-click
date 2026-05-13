@@ -63,6 +63,20 @@ export function useUpdateProfile() {
   });
 }
 
+export function useUpdateAvatar() {
+  const session = useSession();
+  const userId = session?.user.id ?? '';
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (avatarUrl: string) =>
+      parentService.updateAvatar(userId, avatarUrl),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PARENT_PROFILE_KEY(userId) });
+    },
+  });
+}
+
 export function useChangePassword() {
   return useMutation({
     mutationFn: (newPassword: string) =>

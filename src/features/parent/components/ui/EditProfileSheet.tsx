@@ -2,6 +2,7 @@ import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -31,6 +32,7 @@ import { AuthPasswordField } from '@/features/auth/components/ui/AuthPasswordFie
 import { PasswordStrengthBar } from '@/features/auth/components/ui/PasswordStrengthBar';
 import {
   useUpdateProfile,
+  useUpdateAvatar,
   useChangePassword,
 } from '../../hooks/useParentProfile';
 import { useUploadImage } from '../../hooks/useUploadImage';
@@ -86,6 +88,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
   const [avatarUri, setAvatarUri] = useState<string | null>(profile.avatar_url);
 
   const updateProfile = useUpdateProfile();
+  const updateAvatar = useUpdateAvatar();
   const changePassword = useChangePassword();
   const { pickFromGallery, takePhoto, isUploading } = useUploadImage({
     bucket: 'profile-images',
@@ -131,24 +134,20 @@ export const EditProfileSheet = memo(function EditProfileSheet({
   );
 
   const handlePickPhoto = useCallback(() => {
+    const upload = async (
+      picker: () => Promise<{ signedUrl: string; filePath: string } | null>
+    ) => {
+      const result = await picker();
+      if (!result) return;
+      setAvatarUri(result.signedUrl);
+      await updateAvatar.mutateAsync(result.signedUrl);
+    };
     Alert.alert('Photo de profil', 'Choisir une source', [
-      {
-        text: 'Caméra',
-        onPress: async () => {
-          const result = await takePhoto();
-          if (result) setAvatarUri(result.signedUrl);
-        },
-      },
-      {
-        text: 'Galerie',
-        onPress: async () => {
-          const result = await pickFromGallery();
-          if (result) setAvatarUri(result.signedUrl);
-        },
-      },
+      { text: 'Caméra', onPress: () => upload(takePhoto) },
+      { text: 'Galerie', onPress: () => upload(pickFromGallery) },
       { text: 'Annuler', style: 'cancel' },
     ]);
-  }, [takePhoto, pickFromGallery]);
+  }, [takePhoto, pickFromGallery, updateAvatar]);
 
   const initials =
     `${profile.first_name[0] ?? '?'}${profile.last_name[0] ?? ''}`.toUpperCase();
@@ -200,7 +199,10 @@ export const EditProfileSheet = memo(function EditProfileSheet({
         entering={FadeInDown.duration(300)}
         style={{ alignItems: 'center', paddingVertical: 20 }}
       >
-        <TouchableOpacity onPress={handlePickPhoto} disabled={isUploading}>
+        <TouchableOpacity
+          onPress={handlePickPhoto}
+          disabled={isUploading || updateAvatar.isPending}
+        >
           <View
             style={{
               width: 88,
@@ -209,10 +211,17 @@ export const EditProfileSheet = memo(function EditProfileSheet({
               backgroundColor: theme.accentBg,
               alignItems: 'center',
               justifyContent: 'center',
+              overflow: 'hidden',
             }}
           >
-            {isUploading ? (
+            {isUploading || updateAvatar.isPending ? (
               <ActivityIndicator color={theme.accent} />
+            ) : avatarUri ? (
+              <Image
+                source={{ uri: avatarUri }}
+                style={{ width: 88, height: 88 }}
+                resizeMode="cover"
+              />
             ) : (
               <Text
                 style={{ color: theme.accent, fontSize: 30, fontWeight: '800' }}
