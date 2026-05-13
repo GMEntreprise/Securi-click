@@ -49,8 +49,8 @@ export const AuthTabToggle: React.FC<AuthTabToggleProps> = memo(
       [onToggle, containerWidth, pillX]
     );
 
-    const trackBg = dark ? '#1a1a1a' : '#f3f4f6';
-    const pillBg = dark ? '#2a2a2a' : '#ffffff';
+    const trackBg = dark ? '#161b22' : '#f3f4f6';
+    const pillBg = dark ? '#21262d' : '#ffffff';
     const activeText = dark ? '#60a5fa' : '#1e3a8a';
     const inactiveText = dark ? '#6b7280' : '#9ca3af';
 

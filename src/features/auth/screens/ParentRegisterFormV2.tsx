@@ -84,8 +84,8 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
     const iconColor = dark ? '#4b5563' : '#9ca3af';
     const errorBg = dark ? 'rgba(239,68,68,0.1)' : '#fef2f2';
     const errorBorder = dark ? 'rgba(239,68,68,0.3)' : '#fecaca';
-    const quoteCardBg = dark ? '#1a1a1a' : '#fef9f5';
-    const quoteCardBorder = dark ? '#2a2a2a' : '#fde8d4';
+    const quoteCardBg = dark ? '#161b22' : '#fef9f5';
+    const quoteCardBorder = dark ? '#21262d' : '#fde8d4';
     const quoteText = dark ? '#9ca3af' : '#6b7280';
     const checkboxLabelColor = dark ? '#d1d5db' : '#374151';
 

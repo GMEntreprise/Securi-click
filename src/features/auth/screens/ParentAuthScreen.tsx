@@ -58,7 +58,7 @@ export const ParentAuthScreen: React.FC = memo(() => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1, backgroundColor: dark ? '#0f0f0f' : '#f9f5f0' }}
+      style={{ flex: 1, backgroundColor: dark ? '#0d1117' : '#f9f5f0' }}
     >
       <AuthBackButton onPress={() => router.back()} light />
 
@@ -75,7 +75,7 @@ export const ParentAuthScreen: React.FC = memo(() => {
         <LinearGradient
           colors={
             dark
-              ? ['transparent', 'rgba(15,15,15,0.6)', '#0f0f0f']
+              ? ['transparent', 'rgba(13,17,23,0.6)', '#0d1117']
               : ['transparent', 'rgba(249,245,240,0.5)', '#f9f5f0']
           }
           locations={[0.4, 0.75, 1]}

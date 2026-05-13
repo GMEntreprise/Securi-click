@@ -5,7 +5,7 @@ import {
   useIsLoading,
   useAuthStore,
 } from '@/features/auth/store/auth.store';
-import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { LoadingScreen } from '../../components/ui/LoadingScreen';
 
 export default function AppLayout() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function AppLayout() {
     if (!isAuthenticated && !isLoading && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (isAuthenticated && !isLoading && inAuthGroup) {
-      router.replace('/(app)/dashboard');
+      router.replace('/(app)/dashboard' as any);
     }
   }, [isAuthenticated, isLoading, segments, router]);
 

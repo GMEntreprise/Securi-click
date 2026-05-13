@@ -28,7 +28,7 @@ function AuthInputFieldInner<T extends FieldValues>({
 }: AuthInputFieldProps<T>) {
   const dark = useColorScheme() === 'dark';
 
-  const inputBg = dark ? '#1e1e1e' : '#ffffff';
+  const inputBg = dark ? '#161b22' : '#ffffff';
   const inputBorder = error ? '#f87171' : dark ? '#333333' : '#e5e7eb';
   const textColor = dark ? '#f9fafb' : '#111827';
   const labelColor = dark ? '#9ca3af' : '#6b7280';

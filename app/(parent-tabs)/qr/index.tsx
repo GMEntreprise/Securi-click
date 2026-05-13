@@ -55,16 +55,16 @@ function useTheme() {
   const dark = scheme === 'dark';
   return {
     dark,
-    bg: dark ? '#0f0f0f' : '#f9f5f0',
-    card: dark ? '#1a1a1a' : '#ffffff',
-    cardBorder: dark ? '#2a2a2a' : '#f0ede8',
+    bg: dark ? '#0d1117' : '#f9f5f0',
+    card: dark ? '#161b22' : '#ffffff',
+    cardBorder: dark ? '#21262d' : '#f0ede8',
     text: dark ? '#f9fafb' : '#111827',
     textSecondary: dark ? '#9ca3af' : '#6b7280',
     textMuted: dark ? '#6b7280' : '#9ca3af',
     accent: dark ? '#3b82f6' : '#f97316',
     accentBg: dark ? 'rgba(59,130,246,0.12)' : 'rgba(249,115,22,0.1)',
     primary: '#1e3a8a',
-    separator: dark ? '#2a2a2a' : '#f0ede8',
+    separator: dark ? '#21262d' : '#f0ede8',
   };
 }
 
@@ -226,7 +226,7 @@ export default function QRScreen() {
                     width: 64,
                     height: 64,
                     borderRadius: 22,
-                    backgroundColor: theme.dark ? '#2a2a2a' : '#f3f4f6',
+                    backgroundColor: theme.dark ? '#21262d' : '#f3f4f6',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
@@ -288,7 +288,7 @@ export default function QRScreen() {
               backgroundColor: unlocked
                 ? theme.accent
                 : theme.dark
-                  ? '#2a2a2a'
+                  ? '#21262d'
                   : '#f3f4f6',
               borderRadius: 18,
               paddingVertical: 16,

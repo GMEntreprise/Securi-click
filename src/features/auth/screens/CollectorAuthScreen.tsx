@@ -108,10 +108,10 @@ export const CollectorAuthScreen: React.FC = memo(() => {
 
   const fullName = firstName && lastName ? `${firstName} ${lastName}` : 'vous';
 
-  const bg = dark ? '#0f0f0f' : '#f9f5f0';
+  const bg = dark ? '#0d1117' : '#f9f5f0';
   const badgeBg = dark ? 'rgba(249,115,22,0.15)' : '#fff3e8';
-  const cardBg = dark ? '#1a1a1a' : '#ffffff';
-  const cardBorder = dark ? '#2a2a2a' : '#f0ede8';
+  const cardBg = dark ? '#161b22' : '#ffffff';
+  const cardBorder = dark ? '#21262d' : '#f0ede8';
   const text = dark ? '#f9fafb' : '#111827';
   const textSecondary = dark ? '#9ca3af' : '#6b7280';
   const lockedEmailBg = dark ? '#1e1e1e' : '#f3f4f6';

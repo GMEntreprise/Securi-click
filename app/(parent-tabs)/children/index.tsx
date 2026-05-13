@@ -45,16 +45,16 @@ function useTheme() {
   const dark = scheme === 'dark';
   return {
     dark,
-    bg: dark ? '#0f0f0f' : '#f9f5f0',
-    card: dark ? '#1a1a1a' : '#ffffff',
-    cardBorder: dark ? '#2a2a2a' : '#f0ede8',
+    bg: dark ? '#0d1117' : '#f9f5f0',
+    card: dark ? '#161b22' : '#ffffff',
+    cardBorder: dark ? '#21262d' : '#f0ede8',
     header: dark ? '#111111' : '#ffffff',
-    headerBorder: dark ? '#2a2a2a' : '#f0ede8',
+    headerBorder: dark ? '#21262d' : '#f0ede8',
     text: dark ? '#f9fafb' : '#111827',
     textSecondary: dark ? '#9ca3af' : '#6b7280',
     textMuted: dark ? '#6b7280' : '#9ca3af',
     accent: dark ? '#3b82f6' : '#f97316',
-    separator: dark ? '#2a2a2a' : '#f0ede8',
+    separator: dark ? '#21262d' : '#f0ede8',
   };
 }
 

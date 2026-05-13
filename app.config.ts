@@ -41,6 +41,20 @@ const config: ExpoConfig = {
     },
     predictiveBackGestureEnabled: false,
     package: 'com.shavod.securiclick',
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        data: [
+          {
+            scheme: 'securiclick',
+            host: 'auth',
+            pathPrefix: '/callback',
+          },
+        ],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
+    ],
     permissions: [
       'android.permission.CAMERA',
       'android.permission.RECORD_AUDIO',

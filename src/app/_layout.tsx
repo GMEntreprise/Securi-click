@@ -34,7 +34,7 @@ function RootNavigation() {
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: colorScheme === 'dark' ? '#000' : '#fff',
+            backgroundColor: colorScheme === 'dark' ? '#0d1117' : '#f9f5f0',
           }}
         >
           <ActivityIndicator size="large" color="#208AEF" />

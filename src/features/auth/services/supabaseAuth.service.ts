@@ -49,21 +49,7 @@ async function signInWithPassword(
     throw new Error('Aucune session retournée');
   }
 
-  // Fetch user profile with role
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('*')
-    .eq('user_id', session.user.id)
-    .single();
-
-  return mapSupabaseSessionToAuthSession({
-    ...session,
-    user: {
-      ...session.user,
-      profile: profile || undefined,
-      role: profile?.role as User['role'],
-    },
-  });
+  return mapSupabaseSessionToAuthSession(session);
 }
 
 async function registerParent(data: RegisterParentData): Promise<User> {
@@ -71,6 +57,7 @@ async function registerParent(data: RegisterParentData): Promise<User> {
     email: data.email,
     password: data.password,
     options: {
+      emailRedirectTo: 'securiclick://auth/callback',
       data: {
         first_name: data.first_name,
         last_name: data.last_name,
@@ -106,8 +93,10 @@ async function registerParent(data: RegisterParentData): Promise<User> {
   }
 
   return {
-    ...authData.user,
+    id: authData.user.id,
+    email: authData.user.email ?? data.email,
     role: 'parent',
+    authUser: authData.user,
   };
 }
 
@@ -116,6 +105,7 @@ async function registerSchool(data: RegisterSchoolData): Promise<User> {
     email: data.email,
     password: data.password,
     options: {
+      emailRedirectTo: 'securiclick://auth/callback',
       data: {
         school_name: data.school_name,
         school_type: data.school_type,
@@ -180,8 +170,10 @@ async function registerSchool(data: RegisterSchoolData): Promise<User> {
   }
 
   return {
-    ...authData.user,
+    id: authData.user.id,
+    email: authData.user.email ?? data.email,
     role: 'school_admin',
+    authUser: authData.user,
   };
 }
 
@@ -202,6 +194,7 @@ async function registerCollector(data: RegisterCollectorData): Promise<User> {
     email: data.email,
     password: data.password,
     options: {
+      emailRedirectTo: 'securiclick://auth/callback',
       data: {
         role: 'collector',
         invited_by: inviteData.parent_id,
@@ -241,8 +234,10 @@ async function registerCollector(data: RegisterCollectorData): Promise<User> {
   }
 
   return {
-    ...authData.user,
+    id: authData.user.id,
+    email: authData.user.email ?? data.email,
     role: 'collector',
+    authUser: authData.user,
   };
 }
 

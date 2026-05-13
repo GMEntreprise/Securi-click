@@ -92,14 +92,14 @@ const RoleCard: React.FC<RoleCardProps> = memo(
 
     const { Icon } = item;
 
-    const cardBg = dark ? '#1a1a1a' : '#ffffff';
-    const cardBorder = selected ? '#1e3a8a' : dark ? '#2a2a2a' : '#f0ede8';
+    const cardBg = dark ? '#161b22' : '#ffffff';
+    const cardBorder = selected ? '#1e3a8a' : dark ? '#21262d' : '#f0ede8';
     const iconBg = selected
       ? dark
         ? 'rgba(59,130,246,0.2)'
         : 'rgba(30,58,138,0.1)'
       : dark
-        ? '#252525'
+        ? '#1c2128'
         : '#f3f4f6';
     const titleColor = dark ? '#f9fafb' : '#111827';
     const descColor = dark ? '#9ca3af' : '#6b7280';
@@ -195,10 +195,10 @@ export const RoleChoiceScreen: React.FC = memo(() => {
     router.push(selectedRoute as any);
   }, [selectedRoute, router]);
 
-  const bgColor = dark ? '#0f0f0f' : '#f9f5f0';
-  const gradientEnd = dark ? '#0f0f0f' : '#f9f5f0';
-  const ctaBg = dark ? 'rgba(15,15,15,0.97)' : 'rgba(249,245,240,0.97)';
-  const ctaBorder = dark ? '#2a2a2a' : 'rgba(0,0,0,0.06)';
+  const bgColor = dark ? '#0d1117' : '#f9f5f0';
+  const gradientEnd = dark ? '#0d1117' : '#f9f5f0';
+  const ctaBg = dark ? 'rgba(13,17,23,0.97)' : 'rgba(249,245,240,0.97)';
+  const ctaBorder = dark ? '#21262d' : 'rgba(0,0,0,0.06)';
 
   return (
     <View style={{ flex: 1, backgroundColor: bgColor }}>
@@ -219,7 +219,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
         <LinearGradient
           colors={[
             dark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)',
-            dark ? 'rgba(15,15,15,0.6)' : 'rgba(249,245,240,0.5)',
+            dark ? 'rgba(13,17,23,0.6)' : 'rgba(249,245,240,0.5)',
             gradientEnd,
           ]}
           locations={[0, 0.65, 1]}

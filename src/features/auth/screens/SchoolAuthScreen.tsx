@@ -69,7 +69,7 @@ function useTheme() {
   const dark = useColorScheme() === 'dark';
   return {
     dark,
-    bg: dark ? '#0f0f0f' : '#f9f5f0',
+    bg: dark ? '#0d1117' : '#f9f5f0',
     text: dark ? '#f9fafb' : '#111827',
     textSecondary: dark ? '#9ca3af' : '#6b7280',
     iconColor: dark ? '#4b5563' : '#9ca3af',
@@ -78,7 +78,7 @@ function useTheme() {
     hintBg: dark ? 'rgba(245,158,11,0.1)' : '#fffbeb',
     hintBorder: dark ? 'rgba(245,158,11,0.2)' : '#fde68a',
     checkboxLabel: dark ? '#d1d5db' : '#374151',
-    gradientEnd: dark ? '#0f0f0f' : '#f9f5f0',
+    gradientEnd: dark ? '#0d1117' : '#f9f5f0',
   };
 }
 
@@ -447,7 +447,7 @@ export const SchoolAuthScreen: React.FC = memo(() => {
         <LinearGradient
           colors={[
             t.dark ? 'rgba(0,0,0,0)' : 'transparent',
-            t.dark ? `rgba(15,15,15,0.6)` : 'rgba(249,245,240,0.5)',
+            t.dark ? `rgba(13,17,23,0.6)` : 'rgba(249,245,240,0.5)',
             t.gradientEnd,
           ]}
           locations={[0.4, 0.75, 1]}
