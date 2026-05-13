@@ -40,10 +40,12 @@ export function useChildren() {
               (prev ?? []).filter(c => c.id !== payload.old.id)
             );
           } else if (payload.eventType === 'INSERT') {
-            queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev => [
-              payload.new as Child,
-              ...(prev ?? []),
-            ]);
+            queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev => {
+              const existing = prev ?? [];
+              if (existing.some(c => c.id === (payload.new as Child).id))
+                return existing;
+              return [payload.new as Child, ...existing];
+            });
           } else {
             queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev =>
               (prev ?? []).map(c =>

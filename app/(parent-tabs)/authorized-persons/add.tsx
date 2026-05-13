@@ -9,6 +9,7 @@ import {
   Switch,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -54,6 +55,7 @@ type FormData = z.infer<typeof schema>;
 export default function AddGuardianScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
   const session = useSession();
   const { childId } = useLocalSearchParams<{ childId: string }>();
@@ -190,7 +192,7 @@ export default function AddGuardianScreen() {
       <ScrollView
         contentContainerStyle={{
           padding: 20,
-          paddingBottom: insets.bottom + 120,
+          paddingBottom: tabBarHeight + 120,
         }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -392,7 +394,7 @@ export default function AddGuardianScreen() {
       <View
         style={{
           paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 16,
+          paddingBottom: tabBarHeight + 8,
           paddingTop: 12,
           backgroundColor: theme.ctaBg,
           borderTopWidth: 1,
