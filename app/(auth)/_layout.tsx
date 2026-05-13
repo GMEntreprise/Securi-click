@@ -1,9 +1,9 @@
-import { Stack } from 'expo-router';
 import {
   useIsAuthenticated,
   useIsLoading,
 } from '@/features/auth/store/auth.store';
-import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { Stack } from 'expo-router';
+import { LoadingScreen } from '../../components/ui/LoadingScreen';
 
 export default function AuthLayout() {
   const isAuthenticated = useIsAuthenticated();
@@ -23,6 +23,9 @@ export default function AuthLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
+      <Stack.Screen name="parent" options={{ headerShown: false }} />
+      <Stack.Screen name="school" options={{ headerShown: false }} />
+      <Stack.Screen name="collector" options={{ headerShown: false }} />
       <Stack.Screen name="register" options={{ headerShown: false }} />
     </Stack>
   );

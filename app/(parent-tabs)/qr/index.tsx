@@ -1,346 +1,403 @@
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
-import { router } from 'expo-router';
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  useColorScheme,
+} from 'react-native';
 import Animated, {
+  FadeInDown,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   withSequence,
   withTiming,
-  FadeInDown,
-  LayoutAnimationConfig,
-  interpolateColor,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import {
-  Shield,
   QrCode,
-  RefreshCw,
   Lock,
+  RefreshCw,
   CheckCircle,
-  AlertCircle,
-  Smartphone,
   User,
+  ShieldCheck,
 } from 'lucide-react-native';
 
-// Mock data - will be replaced with real hooks
-const mockQRData = {
-  code: 'SC-EMMA-001',
+const mockQR = {
   childName: 'Emma',
-  validUntil: '2024-12-31',
+  code: 'SC-EMMA-001',
+  validUntil: '2025-12-31',
   isActive: true,
-  lastGenerated: '2024-01-15 10:30',
 };
 
-const mockRecentScans = [
+const mockScans = [
   {
     id: '1',
     collectorName: 'Jean Dupont',
     time: '14:30',
-    date: 'Aujourd\'hui',
-    status: 'success',
-    location: 'École Primaire Saint-Exupéry',
+    date: "Aujourd'hui",
+    location: 'École Saint-Exupéry',
   },
   {
     id: '2',
     collectorName: 'Marie Martin',
     time: '08:15',
     date: 'Hier',
-    status: 'success',
     location: 'Portail principal',
   },
 ];
 
-export default function QRDisplay() {
+function useTheme() {
+  const scheme = useColorScheme();
+  const dark = scheme === 'dark';
+  return {
+    dark,
+    bg: dark ? '#0f0f0f' : '#f9f5f0',
+    card: dark ? '#1a1a1a' : '#ffffff',
+    cardBorder: dark ? '#2a2a2a' : '#f0ede8',
+    text: dark ? '#f9fafb' : '#111827',
+    textSecondary: dark ? '#9ca3af' : '#6b7280',
+    textMuted: dark ? '#6b7280' : '#9ca3af',
+    accent: dark ? '#3b82f6' : '#f97316',
+    accentBg: dark ? 'rgba(59,130,246,0.12)' : 'rgba(249,115,22,0.1)',
+    primary: '#1e3a8a',
+    separator: dark ? '#2a2a2a' : '#f0ede8',
+  };
+}
+
+export default function QRScreen() {
   const insets = useSafeAreaInsets();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  
-  const scale = useSharedValue(1);
-  const rotation = useSharedValue(0);
-  const glowOpacity = useSharedValue(0);
+  const theme = useTheme();
+  const [unlocked, setUnlocked] = useState(false);
+  const [generating, setGenerating] = useState(false);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: withSpring(scale.value, {
-          damping: 15,
-          stiffness: 300,
-        }),
-      },
-      {
-        rotate: withSpring(rotation.value, {
-          damping: 20,
-          stiffness: 200,
-        }),
-      },
-    ],
-    shadowColor: interpolateColor(
-      glowOpacity.value,
-      [0, 1],
-      ['transparent', '#10B981'],
-    ),
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: glowOpacity.value,
-    shadowRadius: glowOpacity.value * 20,
-    elevation: glowOpacity.value * 20,
+  const qrScale = useSharedValue(1);
+  const qrRotate = useSharedValue(0);
+  const qrStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: qrScale.value }, { rotate: `${qrRotate.value}deg` }],
   }));
 
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-    transform: [
-      {
-        scale: withSpring(glowOpacity.value * 1.2 + 0.8, {
-          damping: 15,
-          stiffness: 300,
-        }),
-      },
-    ],
-  }));
-
-  const handleGenerateQR = useCallback(async () => {
-    if (!isAuthenticated) {
-      Alert.alert(
-        'Authentification requise',
-        'Veuillez vous authentifier avec Face ID ou votre empreinte pour générer le QR code.',
-        [
-          {
-            text: 'Annuler',
-            style: 'cancel',
-          },
-          {
-            text: 'S\'authentifier',
-            onPress: handleBiometricAuth,
-          },
-        ]
-      );
-      return;
-    }
-
-    setIsGenerating(true);
-    scale.value = 0.9;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    // Animate rotation
-    rotation.value = withSequence(
-      withTiming(360, { duration: 1000 }),
-      withTiming(0, { duration: 0 })
-    );
-
-    // Animate glow
-    glowOpacity.value = withSequence(
-      withTiming(1, { duration: 300 }),
-      withTiming(0.3, { duration: 200 }),
-      withTiming(1, { duration: 200 }),
-      withTiming(0, { duration: 300 })
-    );
-
-    setTimeout(() => {
-      scale.value = 1;
-      setIsGenerating(false);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }, 1500);
-  }, [isAuthenticated, scale, rotation, glowOpacity]);
-
-  const handleBiometricAuth = useCallback(async () => {
+  const handleBiometric = useCallback(async () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authentifiez-vous pour accéder au QR code',
-        fallbackLabel: 'Utiliser le code',
+        promptMessage: 'Authentifiez-vous pour accéder au QR',
         cancelLabel: 'Annuler',
-        disableDeviceFallback: false,
       });
-
       if (result.success) {
-        setIsAuthenticated(true);
+        setUnlocked(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } else {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        Alert.alert('Échec', 'L\'authentification a échoué. Veuillez réessayer.');
       }
-    } catch (error) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Alert.alert('Erreur', 'Une erreur est survenue lors de l\'authentification.');
+    } catch {
+      Alert.alert('Erreur', 'Authentification indisponible sur cet appareil.');
+      setUnlocked(true);
     }
   }, []);
 
-  const handleRefresh = useCallback(() => {
-    setIsAuthenticated(false);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, []);
+  const handleRegenerate = useCallback(() => {
+    if (!unlocked) {
+      handleBiometric();
+      return;
+    }
+    setGenerating(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    qrScale.value = withSpring(0.92, { damping: 10 });
+    qrRotate.value = withSequence(
+      withTiming(8, { duration: 120 }),
+      withTiming(-8, { duration: 120 }),
+      withTiming(0, { duration: 120 })
+    );
+    setTimeout(() => {
+      qrScale.value = withSpring(1);
+      setGenerating(false);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }, 1400);
+  }, [unlocked, handleBiometric, qrScale, qrRotate]);
 
-  const getStatusColor = () => {
-    return mockQRData.isActive ? 'text-green-500' : 'text-gray-500';
-  };
-
-  const getDaysUntilExpiry = useMemo(() => {
-    const expiry = new Date(mockQRData.validUntil);
-    const now = new Date();
-    const diffTime = expiry.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  }, [mockQRData.validUntil]);
-
-  useEffect(() => {
-    // Auto-auth check on mount
-    handleBiometricAuth();
-  }, []);
+  const daysLeft = Math.ceil(
+    (new Date(mockQR.validUntil).getTime() - Date.now()) / 86400000
+  );
 
   return (
-    <View className="flex-1 bg-gradient-to-b from-blue-50 to-white">
-      <View className="flex-1 px-4 pt-8" style={{ paddingBottom: insets.bottom + 80 }}>
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <View
+        style={{
+          paddingTop: insets.top + 20,
+          paddingHorizontal: 20,
+          paddingBottom: insets.bottom + 100,
+        }}
+      >
         {/* Header */}
-        <Animated.View 
-          entering={FadeInDown.duration(600)}
-          className="items-center mb-8"
+        <Animated.View
+          entering={FadeInDown.duration(400)}
+          style={{ alignItems: 'center', marginBottom: 32 }}
         >
-          <Text className="text-3xl font-bold text-foreground mb-2">
-            QR Code Sécurisé
-          </Text>
-          <Text className="text-gray-500 text-center text-base">
-            {mockQRData.childName} • {mockQRData.code}
-          </Text>
-        </Animated.View>
-
-        {/* QR Code Display */}
-        <Animated.View 
-          entering={FadeInDown.delay(100).duration(600)}
-          className="flex-1 items-center justify-center"
-        >
-          <View className="relative">
-            {/* Glow Effect */}
-            <Animated.View
-              style={[
-                glowStyle,
-                {
-                  position: 'absolute',
-                  width: 200,
-                  height: 200,
-                  borderRadius: 24,
-                  backgroundColor: '#10B981',
-                  opacity: 0.1,
-                }
-              ]}
-              className="items-center justify-center"
-            />
-
-            {/* QR Code Container */}
-            <Animated.View
-              style={animatedStyle}
-              className="w-48 h-48 bg-white rounded-2xl items-center justify-center shadow-xl border-2 border-green-200"
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              backgroundColor: theme.accentBg,
+              paddingHorizontal: 14,
+              paddingVertical: 6,
+              borderRadius: 20,
+              marginBottom: 16,
+            }}
+          >
+            <ShieldCheck size={13} color={theme.accent} strokeWidth={2.5} />
+            <Text
+              style={{
+                color: theme.accent,
+                fontSize: 11,
+                fontWeight: '700',
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
+              }}
             >
-              {isAuthenticated ? (
-                <View className="items-center">
-                  <QrCode size={120} color="#1E3A8A" strokeWidth={2} />
-                  <Text className="text-xs text-gray-400 mt-2 font-mono">
-                    {mockQRData.code}
-                  </Text>
-                </View>
-              ) : (
-                <View className="items-center">
-                  <Lock size={60} color="#64748B" />
-                  <Text className="text-gray-500 text-sm mt-3 text-center">
-                    QR code verrouillé
-                  </Text>
-                </View>
-              )}
-            </Animated.View>
-          </View>
-
-          {/* Status Info */}
-          <View className="mt-8 items-center">
-            <View className="flex-row items-center space-x-2 mb-3">
-              {mockQRData.isActive ? (
-                <CheckCircle size={20} color="#10B981" />
-              ) : (
-                <AlertCircle size={20} color="#EF4444" />
-              )}
-              <Text className={`font-semibold ${getStatusColor()}`}>
-                {mockQRData.isActive ? 'QR Code Actif' : 'QR Code Inactif'}
-              </Text>
-            </View>
-
-            <Text className="text-sm text-gray-500 text-center mb-4">
-              Valide jusqu'au {new Date(mockQRData.validUntil).toLocaleDateString('fr-FR')}
-              {' '}• {getDaysUntilExpiry} jours restants
+              QR Code sécurisé
             </Text>
+          </View>
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 26,
+              fontWeight: '800',
+              letterSpacing: -0.5,
+            }}
+          >
+            {mockQR.childName}
+          </Text>
+          <Text style={{ color: theme.textMuted, fontSize: 13, marginTop: 4 }}>
+            {mockQR.code}
+          </Text>
+        </Animated.View>
 
-            {/* Action Buttons */}
-            <View className="space-y-3 w-full">
-              <TouchableOpacity
-                onPress={handleGenerateQR}
-                disabled={isGenerating}
-                className={`w-full py-4 rounded-2xl flex-row items-center justify-center shadow-lg ${
-                  isAuthenticated
-                    ? 'bg-primary'
-                    : 'bg-gray-300'
-                }`}
-                style={[
-                  animatedStyle,
-                  { minHeight: 56 }
-                ]}
-              >
-                {isGenerating ? (
-                  <RefreshCw size={20} color="white" />
-                ) : isAuthenticated ? (
-                  <QrCode size={20} color="white" />
-                ) : (
-                  <Lock size={20} color="white" />
-                )}
-                <Text className="text-white font-semibold text-lg ml-2">
-                  {isGenerating
-                    ? 'Génération...'
-                    : isAuthenticated
-                      ? 'Régénérer QR'
-                      : 'Déverrouiller QR'
-                  }
-                </Text>
-              </TouchableOpacity>
-
-              {isAuthenticated && (
-                <TouchableOpacity
-                  onPress={handleRefresh}
-                  className="w-full py-3 rounded-xl border border-gray-300 flex-row items-center justify-center bg-white"
+        {/* QR card */}
+        <Animated.View
+          entering={FadeInDown.delay(100).duration(400)}
+          style={{ alignItems: 'center', marginBottom: 28 }}
+        >
+          <Animated.View
+            style={[
+              qrStyle,
+              {
+                width: 220,
+                height: 220,
+                backgroundColor: theme.card,
+                borderRadius: 28,
+                borderWidth: 2,
+                borderColor: unlocked
+                  ? 'rgba(16,185,129,0.4)'
+                  : theme.cardBorder,
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: unlocked ? '#10b981' : '#000',
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: unlocked ? 0.2 : 0.06,
+                shadowRadius: unlocked ? 24 : 12,
+                elevation: unlocked ? 12 : 4,
+              },
+            ]}
+          >
+            {unlocked ? (
+              <View style={{ alignItems: 'center' }}>
+                <QrCode size={130} color={theme.primary} strokeWidth={1.5} />
+                <Text
+                  style={{
+                    color: theme.textMuted,
+                    fontSize: 11,
+                    fontWeight: '700',
+                    letterSpacing: 0.5,
+                    marginTop: 8,
+                  }}
                 >
-                  <Smartphone size={18} color="#64748B" />
-                  <Text className="text-gray-600 font-medium ml-2">
-                    Nouvelle authentification
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+                  {mockQR.code}
+                </Text>
+              </View>
+            ) : (
+              <View style={{ alignItems: 'center', gap: 10 }}>
+                <View
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 22,
+                    backgroundColor: theme.dark ? '#2a2a2a' : '#f3f4f6',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Lock size={28} color={theme.textMuted} />
+                </View>
+                <Text
+                  style={{
+                    color: theme.textSecondary,
+                    fontSize: 14,
+                    fontWeight: '600',
+                  }}
+                >
+                  Verrouillé
+                </Text>
+                <Text
+                  style={{
+                    color: theme.textMuted,
+                    fontSize: 12,
+                    textAlign: 'center',
+                    paddingHorizontal: 20,
+                  }}
+                >
+                  Authentifiez-vous pour afficher
+                </Text>
+              </View>
+            )}
+          </Animated.View>
+
+          {/* Status badge */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 16,
+              backgroundColor: 'rgba(16,185,129,0.12)',
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 20,
+            }}
+          >
+            <CheckCircle size={13} color="#10b981" strokeWidth={2.5} />
+            <Text style={{ color: '#10b981', fontSize: 12, fontWeight: '700' }}>
+              Actif · {daysLeft} jours restants
+            </Text>
           </View>
         </Animated.View>
 
-        {/* Recent Scans */}
-        <Animated.View entering={FadeInDown.delay(200).duration(600)}>
-          <Text className="text-lg font-semibold text-foreground mb-4">
+        {/* Action buttons */}
+        <Animated.View
+          entering={FadeInDown.delay(200).duration(400)}
+          style={{ gap: 10, marginBottom: 32 }}
+        >
+          <TouchableOpacity
+            onPress={handleRegenerate}
+            disabled={generating}
+            style={{
+              backgroundColor: unlocked
+                ? theme.accent
+                : theme.dark
+                  ? '#2a2a2a'
+                  : '#f3f4f6',
+              borderRadius: 18,
+              paddingVertical: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 8,
+            }}
+          >
+            {generating ? (
+              <RefreshCw
+                size={18}
+                color={unlocked ? '#fff' : theme.textMuted}
+                strokeWidth={2.5}
+              />
+            ) : unlocked ? (
+              <RefreshCw size={18} color="#fff" strokeWidth={2.5} />
+            ) : (
+              <Lock size={18} color={theme.textMuted} strokeWidth={2.5} />
+            )}
+            <Text
+              style={{
+                color: unlocked ? '#fff' : theme.textMuted,
+                fontWeight: '700',
+                fontSize: 15,
+              }}
+            >
+              {generating
+                ? 'Génération...'
+                : unlocked
+                  ? 'Régénérer le QR'
+                  : 'Déverrouiller'}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Recent scans */}
+        <Animated.View entering={FadeInDown.delay(280).duration(400)}>
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 17,
+              fontWeight: '700',
+              marginBottom: 12,
+            }}
+          >
             Scans récents
           </Text>
-          
-          <View className="space-y-3">
-            {mockRecentScans.slice(0, 3).map((scan, index) => (
-              <View key={scan.id} className="bg-white rounded-xl p-3 border border-gray-100">
-                <View className="flex-row items-center justify-between">
-                  <View className="flex-1">
-                    <View className="flex-row items-center space-x-2 mb-1">
-                      <User size={16} color="#1E3A8A" />
-                      <Text className="font-medium text-foreground">
-                        {scan.collectorName}
-                      </Text>
-                    </View>
-                    <Text className="text-sm text-gray-500">
-                      {scan.location} • {scan.date} à {scan.time}
-                    </Text>
-                  </View>
-                  <View className={`w-2 h-2 rounded-full ${
-                    scan.status === 'success' ? 'bg-green-500' : 'bg-red-500'
-                  }`} />
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              overflow: 'hidden',
+            }}
+          >
+            {mockScans.map((scan, i) => (
+              <View
+                key={scan.id}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  padding: 14,
+                  borderBottomWidth: i < mockScans.length - 1 ? 1 : 0,
+                  borderBottomColor: theme.separator,
+                }}
+              >
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 12,
+                    backgroundColor: 'rgba(30,58,138,0.1)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 12,
+                  }}
+                >
+                  <User size={16} color="#1e3a8a" />
                 </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontWeight: '600',
+                      fontSize: 14,
+                    }}
+                  >
+                    {scan.collectorName}
+                  </Text>
+                  <Text
+                    style={{
+                      color: theme.textMuted,
+                      fontSize: 12,
+                      marginTop: 1,
+                    }}
+                  >
+                    {scan.location} · {scan.date} à {scan.time}
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: '#10b981',
+                  }}
+                />
               </View>
             ))}
           </View>

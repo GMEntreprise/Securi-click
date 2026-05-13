@@ -1,10 +1,16 @@
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 
-export type UserRole = 'parent' | 'staff' | 'school_admin' | 'super_admin';
+export type UserRole =
+  | 'parent'
+  | 'collector'
+  | 'staff'
+  | 'school_admin'
+  | 'super_admin';
 
 export interface UserProfile {
   id: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
   phone?: string;
   school_id?: string;
   role?: UserRole;

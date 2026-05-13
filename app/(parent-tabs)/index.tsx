@@ -1,13 +1,17 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  useColorScheme,
+} from 'react-native';
 import { router } from 'expo-router';
 import Animated, {
+  FadeInDown,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  FadeInDown,
-  FadeIn,
-  LayoutAnimationConfig,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -16,23 +20,19 @@ import {
   Users,
   QrCode,
   Clock,
-  AlertCircle,
   CheckCircle,
   TrendingUp,
 } from 'lucide-react-native';
 
-// Mock data - will be replaced with real hooks
 const mockStats = {
   activeAuthorizations: 3,
   todayPickups: 2,
-  pendingRequests: 1,
   childrenCount: 2,
 };
 
 const mockRecentActivity = [
   {
     id: '1',
-    type: 'pickup',
     childName: 'Emma',
     time: '14:30',
     status: 'completed',
@@ -40,250 +40,388 @@ const mockRecentActivity = [
   },
   {
     id: '2',
-    type: 'authorization',
     childName: 'Lucas',
     time: '09:15',
     status: 'pending',
     collector: 'Marie Martin',
   },
+  {
+    id: '3',
+    childName: 'Emma',
+    time: '16:45',
+    status: 'completed',
+    collector: 'Jean Dupont',
+  },
 ];
 
-interface StatCardProps {
+function useTheme() {
+  const scheme = useColorScheme();
+  const dark = scheme === 'dark';
+  return {
+    dark,
+    bg: dark ? '#0f0f0f' : '#f9f5f0',
+    card: dark ? '#1a1a1a' : '#ffffff',
+    cardBorder: dark ? '#2a2a2a' : '#f0ede8',
+    text: dark ? '#f9fafb' : '#111827',
+    textSecondary: dark ? '#9ca3af' : '#6b7280',
+    textMuted: dark ? '#6b7280' : '#9ca3af',
+    accent: dark ? '#3b82f6' : '#f97316',
+    accentBg: dark ? 'rgba(59,130,246,0.12)' : 'rgba(249,115,22,0.1)',
+    primary: '#1e3a8a',
+    primaryBg: 'rgba(30,58,138,0.1)',
+    separator: dark ? '#2a2a2a' : '#f0ede8',
+  };
+}
+
+interface QuickAction {
+  id: string;
   icon: React.ReactNode;
-  title: string;
-  value: string | number;
-  color: string;
+  label: string;
+  accent: string;
+  accentBg: string;
   onPress: () => void;
 }
 
-const StatCard = React.memo(
-  ({ icon, title, value, color, onPress }: StatCardProps) => {
-    const scale = useSharedValue(1);
+function QuickActionCard({ action }: { action: QuickAction }) {
+  const scale = useSharedValue(1);
+  const theme = useTheme();
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [
-        {
-          scale: withSpring(scale.value, {
-            damping: 15,
-            stiffness: 300,
-          }),
-        },
-      ],
-    }));
-
-    const handlePress = () => {
-      scale.value = 0.95;
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      setTimeout(() => {
-        scale.value = 1;
-        onPress();
-      }, 100);
-    };
-
-    return (
-      <TouchableOpacity
-        onPress={handlePress}
-        className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
-        style={animatedStyle}
+  return (
+    <TouchableOpacity
+      onPress={() => {
+        scale.value = withSpring(0.93, { damping: 12, stiffness: 300 });
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setTimeout(() => {
+          scale.value = withSpring(1);
+          action.onPress();
+        }, 100);
+      }}
+      style={{ flex: 1 }}
+    >
+      <Animated.View
+        style={[
+          animStyle,
+          {
+            backgroundColor: theme.card,
+            borderRadius: 20,
+            padding: 16,
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: theme.cardBorder,
+          },
+        ]}
       >
-        <View className="flex-row items-center space-x-3">
-          <View
-            className={`w-12 h-12 rounded-xl items-center justify-center`}
-            style={{ backgroundColor: `${color}15` }}
-          >
-            {icon}
-          </View>
-          <View className="flex-1">
-            <Text className="text-gray-500 text-sm font-medium">{title}</Text>
-            <Text className="text-foreground text-xl font-bold">{value}</Text>
-          </View>
+        <View
+          style={{
+            width: 48,
+            height: 48,
+            borderRadius: 16,
+            backgroundColor: action.accentBg,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 8,
+          }}
+        >
+          {action.icon}
         </View>
-      </TouchableOpacity>
-    );
-  }
-);
-
-StatCard.displayName = 'StatCard';
-
-interface ActivityItemProps {
-  item: any;
-  index: number;
+        <Text
+          style={{
+            color: theme.text,
+            fontSize: 12,
+            fontWeight: '600',
+            textAlign: 'center',
+          }}
+        >
+          {action.label}
+        </Text>
+      </Animated.View>
+    </TouchableOpacity>
+  );
 }
 
-const ActivityItem = React.memo(({ item, index }: ActivityItemProps) => {
-  const getStatusIcon = () => {
-    switch (item.status) {
-      case 'completed':
-        return <CheckCircle size={16} color="#10B981" />;
-      case 'pending':
-        return <Clock size={16} color="#F59E0B" />;
-      default:
-        return <AlertCircle size={16} color="#64748B" />;
-    }
-  };
-
-  const getStatusColor = () => {
-    switch (item.status) {
-      case 'completed':
-        return 'text-green-500';
-      case 'pending':
-        return 'text-amber-500';
-      default:
-        return 'text-gray-500';
-    }
-  };
+function ActivityRow({
+  item,
+  index,
+}: {
+  item: (typeof mockRecentActivity)[0];
+  index: number;
+}) {
+  const theme = useTheme();
+  const isSuccess = item.status === 'completed';
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 50).duration(400)}
-      className="bg-white rounded-xl p-4 mb-3 border border-gray-100"
+      entering={FadeInDown.delay(index * 60).duration(350)}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: 16,
+        borderBottomWidth: index < mockRecentActivity.length - 1 ? 1 : 0,
+        borderBottomColor: theme.separator,
+      }}
     >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1">
-          <View className="flex-row items-center space-x-2 mb-1">
-            {getStatusIcon()}
-            <Text className="font-semibold text-foreground">
-              {item.childName}
-            </Text>
-          </View>
-          <Text className="text-sm text-gray-500">
-            {item.type === 'pickup' ? 'Récupération' : 'Autorisation'} •{' '}
-            {item.time}
-          </Text>
-          {item.collector && (
-            <Text className="text-xs text-gray-400 mt-1">
-              Par {item.collector}
-            </Text>
-          )}
-        </View>
-        <View className={`text-xs font-medium ${getStatusColor()}`}>
-          {item.status === 'completed' ? 'Terminé' : 'En attente'}
-        </View>
+      <View
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 12,
+          backgroundColor: isSuccess
+            ? 'rgba(16,185,129,0.12)'
+            : 'rgba(245,158,11,0.12)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: 12,
+        }}
+      >
+        {isSuccess ? (
+          <CheckCircle size={18} color="#10b981" strokeWidth={2} />
+        ) : (
+          <Clock size={18} color="#f59e0b" strokeWidth={2} />
+        )}
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}>
+          {item.childName}
+        </Text>
+        <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+          {item.collector} · {item.time}
+        </Text>
+      </View>
+      <View
+        style={{
+          paddingHorizontal: 8,
+          paddingVertical: 3,
+          borderRadius: 20,
+          backgroundColor: isSuccess
+            ? 'rgba(16,185,129,0.12)'
+            : 'rgba(245,158,11,0.12)',
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 11,
+            fontWeight: '700',
+            color: isSuccess ? '#10b981' : '#f59e0b',
+          }}
+        >
+          {isSuccess ? 'OK' : 'Attente'}
+        </Text>
       </View>
     </Animated.View>
   );
-});
-
-ActivityItem.displayName = 'ActivityItem';
+}
 
 export default function ParentDashboard() {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
 
-  const handleQuickActions = useMemo(
+  const quickActions = useMemo<QuickAction[]>(
     () => [
       {
         id: 'qr',
-        icon: <QrCode size={24} color="white" />,
-        label: 'Scanner QR',
-        color: '#1E3A8A',
-        onPress: () => router.push('/(parent-tabs)/qr'),
+        icon: <QrCode size={22} color={theme.accent} strokeWidth={2} />,
+        label: 'QR Code',
+        accent: theme.accent,
+        accentBg: theme.accentBg,
+        onPress: () => router.push('/(parent-tabs)/qr' as any),
       },
       {
-        id: 'add-child',
-        icon: <Users size={24} color="white" />,
-        label: 'Ajouter enfant',
-        color: '#10B981',
-        onPress: () => router.push('/(parent-tabs)/children/add'),
+        id: 'children',
+        icon: <Users size={22} color="#1e3a8a" strokeWidth={2} />,
+        label: 'Enfants',
+        accent: '#1e3a8a',
+        accentBg: 'rgba(30,58,138,0.1)',
+        onPress: () => router.push('/(parent-tabs)/children' as any),
       },
       {
         id: 'history',
-        icon: <Clock size={24} color="white" />,
+        icon: <Clock size={22} color="#10b981" strokeWidth={2} />,
         label: 'Historique',
-        color: '#6366F1',
-        onPress: () => router.push('/(parent-tabs)/history'),
+        accent: '#10b981',
+        accentBg: 'rgba(16,185,129,0.1)',
+        onPress: () => router.push('/(parent-tabs)/history' as any),
       },
     ],
-    []
+    [theme.accent, theme.accentBg]
   );
 
   return (
     <ScrollView
-      className="flex-1 bg-gray-50"
-      contentContainerStyle={{ flexGrow: 1 }}
+      style={{ flex: 1, backgroundColor: theme.bg }}
+      contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       showsVerticalScrollIndicator={false}
     >
-      <View
-        className="flex-1 px-4 pt-4"
-        style={{ paddingBottom: insets.bottom + 80 }}
-      >
+      <View style={{ paddingTop: insets.top + 20, paddingHorizontal: 20 }}>
         {/* Header */}
-        <Animated.View entering={FadeInDown.duration(600)} className="mb-6">
-          <Text className="text-3xl font-bold text-foreground mb-2">
-            Bonjour Parent 👋
+        <Animated.View
+          entering={FadeInDown.duration(400)}
+          style={{ marginBottom: 24 }}
+        >
+          <Text
+            style={{
+              color: theme.textMuted,
+              fontSize: 13,
+              fontWeight: '600',
+              letterSpacing: 1,
+              textTransform: 'uppercase',
+              marginBottom: 4,
+            }}
+          >
+            Tableau de bord
           </Text>
-          <Text className="text-gray-500 text-base">
-            Voici un aperçu de la sécurité de vos enfants
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 28,
+              fontWeight: '800',
+              letterSpacing: -0.5,
+            }}
+          >
+            Bonjour 👋
+          </Text>
+          <Text
+            style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}
+          >
+            Voici l'état de sécurité de vos enfants
           </Text>
         </Animated.View>
 
-        {/* Quick Stats */}
+        {/* Stats row */}
         <Animated.View
-          entering={FadeInDown.delay(100).duration(600)}
-          className="mb-6"
+          entering={FadeInDown.delay(80).duration(400)}
+          style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}
         >
-          <View className="flex-row justify-between space-x-3">
-            <StatCard
-              icon={<Shield size={20} color="#1E3A8A" />}
-              title="Autorisations actives"
-              value={mockStats.activeAuthorizations}
-              color="#1E3A8A"
-              onPress={() => router.push('/(parent-tabs)/children')}
-            />
-            <StatCard
-              icon={<TrendingUp size={20} color="#10B981" />}
-              title="Récupérations aujourd'hui"
-              value={mockStats.todayPickups}
-              color="#10B981"
-              onPress={() => router.push('/(parent-tabs)/history')}
-            />
-          </View>
+          {[
+            {
+              icon: <Shield size={18} color={theme.accent} />,
+              label: 'Autorisations',
+              value: mockStats.activeAuthorizations,
+              bg: theme.accentBg,
+              color: theme.accent,
+            },
+            {
+              icon: <TrendingUp size={18} color="#10b981" />,
+              label: 'Récupérations',
+              value: mockStats.todayPickups,
+              bg: 'rgba(16,185,129,0.1)',
+              color: '#10b981',
+            },
+            {
+              icon: <Users size={18} color="#1e3a8a" />,
+              label: 'Enfants',
+              value: mockStats.childrenCount,
+              bg: 'rgba(30,58,138,0.1)',
+              color: '#1e3a8a',
+            },
+          ].map((stat, i) => (
+            <View
+              key={i}
+              style={{
+                flex: 1,
+                backgroundColor: theme.card,
+                borderRadius: 18,
+                padding: 14,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+                alignItems: 'center',
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  backgroundColor: stat.bg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 8,
+                }}
+              >
+                {stat.icon}
+              </View>
+              <Text
+                style={{ color: theme.text, fontSize: 22, fontWeight: '800' }}
+              >
+                {stat.value}
+              </Text>
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontSize: 11,
+                  fontWeight: '600',
+                  textAlign: 'center',
+                  marginTop: 2,
+                }}
+              >
+                {stat.label}
+              </Text>
+            </View>
+          ))}
         </Animated.View>
 
-        {/* Quick Actions */}
+        {/* Quick actions */}
         <Animated.View
-          entering={FadeInDown.delay(200).duration(600)}
-          className="mb-6"
+          entering={FadeInDown.delay(160).duration(400)}
+          style={{ marginBottom: 24 }}
         >
-          <Text className="text-lg font-semibold text-foreground mb-4">
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 17,
+              fontWeight: '700',
+              marginBottom: 14,
+            }}
+          >
             Actions rapides
           </Text>
-          <View className="flex-row space-x-3">
-            {handleQuickActions.map((action, index) => (
-              <TouchableOpacity
-                key={action.id}
-                onPress={action.onPress}
-                className="flex-1 h-24 rounded-2xl items-center justify-center shadow-sm"
-                style={{ backgroundColor: action.color }}
-              >
-                <View className="items-center">
-                  {action.icon}
-                  <Text className="text-white text-sm font-medium mt-2">
-                    {action.label}
-                  </Text>
-                </View>
-              </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            {quickActions.map(a => (
+              <QuickActionCard key={a.id} action={a} />
             ))}
           </View>
         </Animated.View>
 
-        {/* Recent Activity */}
-        <Animated.View entering={FadeInDown.delay(300).duration(600)}>
-          <View className="flex-row items-center justify-between mb-4">
-            <Text className="text-lg font-semibold text-foreground">
+        {/* Recent activity */}
+        <Animated.View entering={FadeInDown.delay(240).duration(400)}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+            }}
+          >
+            <Text
+              style={{ color: theme.text, fontSize: 17, fontWeight: '700' }}
+            >
               Activité récente
             </Text>
             <TouchableOpacity
-              onPress={() => router.push('/(parent-tabs)/history')}
+              onPress={() => router.push('/(parent-tabs)/history' as any)}
             >
-              <Text className="text-primary text-sm font-medium">
+              <Text
+                style={{ color: theme.accent, fontSize: 13, fontWeight: '600' }}
+              >
                 Voir tout
               </Text>
             </TouchableOpacity>
           </View>
 
-          <View>
-            {mockRecentActivity.slice(0, 3).map((item, index) => (
-              <ActivityItem key={item.id} item={item} index={index} />
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 20,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              overflow: 'hidden',
+            }}
+          >
+            {mockRecentActivity.map((item, i) => (
+              <ActivityRow key={item.id} item={item} index={i} />
             ))}
           </View>
         </Animated.View>

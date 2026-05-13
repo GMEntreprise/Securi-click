@@ -1,219 +1,308 @@
-import React, { useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import React, { useCallback } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  useColorScheme,
+} from 'react-native';
 import { router } from 'expo-router';
 import Animated, {
+  FadeInDown,
   useSharedValue,
   useAnimatedStyle,
   withSpring,
-  FadeInDown,
-  LayoutAnimationConfig,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { 
-  UserPlus, 
-  Shield, 
-  Clock, 
-  ChevronRight,
-  User,
-} from 'lucide-react-native';
+import { UserPlus, Shield, Clock, ChevronRight } from 'lucide-react-native';
 
-// Mock data - will be replaced with real hooks
 const mockChildren = [
   {
     id: '1',
-    name: 'Emma',
+    firstName: 'Emma',
+    lastName: 'Dupont',
     age: 8,
     school: 'École Primaire Saint-Exupéry',
     grade: 'CE2',
-    avatar: '👧',
     activeAuthorizations: 2,
     todayPickups: 1,
-    status: 'active',
   },
   {
     id: '2',
-    name: 'Lucas',
+    firstName: 'Lucas',
+    lastName: 'Dupont',
     age: 6,
     school: 'École Maternelle Les Petits Loups',
     grade: 'CP',
-    avatar: '👦',
     activeAuthorizations: 1,
     todayPickups: 0,
-    status: 'active',
   },
 ];
 
-interface ChildCardProps {
-  item: any;
-  index: number;
-  onPress: (child: any) => void;
+function useTheme() {
+  const scheme = useColorScheme();
+  const dark = scheme === 'dark';
+  return {
+    dark,
+    bg: dark ? '#0f0f0f' : '#f9f5f0',
+    card: dark ? '#1a1a1a' : '#ffffff',
+    cardBorder: dark ? '#2a2a2a' : '#f0ede8',
+    header: dark ? '#111111' : '#ffffff',
+    headerBorder: dark ? '#2a2a2a' : '#f0ede8',
+    text: dark ? '#f9fafb' : '#111827',
+    textSecondary: dark ? '#9ca3af' : '#6b7280',
+    textMuted: dark ? '#6b7280' : '#9ca3af',
+    accent: dark ? '#3b82f6' : '#f97316',
+    separator: dark ? '#2a2a2a' : '#f0ede8',
+  };
 }
 
-const ChildCard = React.memo(({ item, index, onPress }: ChildCardProps) => {
+function Avatar({ initials, dark }: { initials: string; dark: boolean }) {
+  return (
+    <View
+      style={{
+        width: 56,
+        height: 56,
+        borderRadius: 18,
+        backgroundColor: dark ? 'rgba(30,58,138,0.3)' : 'rgba(30,58,138,0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Text style={{ color: '#1e3a8a', fontSize: 18, fontWeight: '800' }}>
+        {initials}
+      </Text>
+    </View>
+  );
+}
+
+function ChildCard({
+  item,
+  index,
+  onPress,
+}: {
+  item: (typeof mockChildren)[0];
+  index: number;
+  onPress: (c: (typeof mockChildren)[0]) => void;
+}) {
+  const theme = useTheme();
   const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: withSpring(scale.value, {
-          damping: 15,
-          stiffness: 300,
-        }),
-      },
-    ],
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
   }));
-
-  const handlePress = useCallback(() => {
-    scale.value = 0.95;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTimeout(() => {
-      scale.value = 1;
-      onPress(item);
-    }, 100);
-  }, [item, onPress]);
-
-  const getStatusColor = () => {
-    switch (item.status) {
-      case 'active':
-        return 'bg-green-50 border-green-200';
-      case 'inactive':
-        return 'bg-gray-50 border-gray-200';
-      default:
-        return 'bg-blue-50 border-blue-200';
-    }
-  };
-
-  const getStatusBadgeColor = () => {
-    switch (item.status) {
-      case 'active':
-        return 'bg-green-500';
-      case 'inactive':
-        return 'bg-gray-500';
-      default:
-        return 'bg-blue-500';
-    }
-  };
+  const initials = `${item.firstName[0]}${item.lastName[0]}`;
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 50).duration(400)}
-      className="mb-4"
+      entering={FadeInDown.delay(index * 80).duration(400)}
+      style={{ marginBottom: 12 }}
     >
       <TouchableOpacity
-        onPress={handlePress}
-        className={`bg-white rounded-2xl p-4 border ${getStatusColor()} shadow-sm`}
-        style={animatedStyle}
+        onPress={() => {
+          scale.value = withSpring(0.97, { damping: 12, stiffness: 300 });
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          setTimeout(() => {
+            scale.value = withSpring(1);
+            onPress(item);
+          }, 100);
+        }}
+        activeOpacity={1}
       >
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center space-x-4 flex-1">
-            <View className="w-16 h-16 bg-primary rounded-2xl items-center justify-center">
-              <Text className="text-3xl">{item.avatar}</Text>
-            </View>
-            
-            <View className="flex-1">
-              <View className="flex-row items-center space-x-2 mb-1">
-                <Text className="text-lg font-bold text-foreground">
-                  {item.name}
-                </Text>
-                <View className={`w-2 h-2 rounded-full ${getStatusBadgeColor()}`} />
-              </View>
-              
-              <Text className="text-sm text-gray-500 mb-2">
-                {item.age} ans • {item.grade}
+        <Animated.View
+          style={[
+            animStyle,
+            {
+              backgroundColor: theme.card,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              padding: 16,
+              overflow: 'hidden',
+            },
+          ]}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Avatar initials={initials} dark={theme.dark} />
+            <View style={{ flex: 1, marginLeft: 14 }}>
+              <Text
+                style={{ color: theme.text, fontSize: 17, fontWeight: '700' }}
+              >
+                {item.firstName} {item.lastName}
               </Text>
-              
-              <Text className="text-xs text-gray-400" numberOfLines={1}>
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 13,
+                  marginTop: 2,
+                }}
+              >
+                {item.age} ans · {item.grade}
+              </Text>
+              <Text
+                style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}
+                numberOfLines={1}
+              >
                 {item.school}
               </Text>
             </View>
+            <ChevronRight size={18} color={theme.textMuted} />
           </View>
-          
-          <ChevronRight size={20} color="#64748B" />
-        </View>
-        
-        <View className="flex-row space-x-4 mt-4 pt-3 border-t border-gray-100">
-          <View className="flex-1 items-center">
-            <Shield size={16} color="#1E3A8A" />
-            <Text className="text-xs text-gray-500 mt-1">
-              {item.activeAuthorizations} autorisations
-            </Text>
+
+          <View
+            style={{
+              flexDirection: 'row',
+              marginTop: 14,
+              paddingTop: 12,
+              borderTopWidth: 1,
+              borderTopColor: theme.separator,
+              gap: 12,
+            }}
+          >
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <View
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 9,
+                  backgroundColor: 'rgba(30,58,138,0.1)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Shield size={14} color="#1e3a8a" />
+              </View>
+              <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
+                {item.activeAuthorizations} autorisation
+                {item.activeAuthorizations > 1 ? 's' : ''}
+              </Text>
+            </View>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <View
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 9,
+                  backgroundColor: 'rgba(16,185,129,0.1)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Clock size={14} color="#10b981" />
+              </View>
+              <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
+                {item.todayPickups} aujourd'hui
+              </Text>
+            </View>
           </View>
-          
-          <View className="flex-1 items-center">
-            <Clock size={16} color="#10B981" />
-            <Text className="text-xs text-gray-500 mt-1">
-              {item.todayPickups} aujourd'hui
-            </Text>
-          </View>
-        </View>
+        </Animated.View>
       </TouchableOpacity>
     </Animated.View>
   );
-});
-
-ChildCard.displayName = 'ChildCard';
+}
 
 export default function ChildrenList() {
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
 
-  const handleChildPress = useCallback((child: any) => {
-    router.push(`/children/${child.id}`);
+  const handleChildPress = useCallback((child: (typeof mockChildren)[0]) => {
+    router.push(`/(parent-tabs)/children/${child.id}` as any);
   }, []);
 
   const handleAddChild = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/children/add');
+    router.push('/(parent-tabs)/children/add' as any);
   }, []);
 
-  const renderChild = useCallback(({ item, index }: any) => (
-    <ChildCard 
-      item={item} 
-      index={index} 
-      onPress={handleChildPress}
-    />
-  ), [handleChildPress]);
-
-  const keyExtractor = useCallback((item: any) => item.id, []);
+  const renderChild = useCallback(
+    ({ item, index }: { item: (typeof mockChildren)[0]; index: number }) => (
+      <ChildCard item={item} index={index} onPress={handleChildPress} />
+    ),
+    [handleChildPress]
+  );
 
   return (
-    <View className="flex-1 bg-gray-50">
-      {/* Header */}
-      <Animated.View 
-        entering={FadeInDown.duration(600)}
-        className="bg-white border-b border-gray-200 px-4 py-4"
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
+      <Animated.View
+        entering={FadeInDown.duration(400)}
+        style={{
+          backgroundColor: theme.header,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.headerBorder,
+          paddingTop: insets.top + 16,
+          paddingBottom: 16,
+          paddingHorizontal: 20,
+          flexDirection: 'row',
+          alignItems: 'flex-end',
+          justifyContent: 'space-between',
+        }}
       >
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="text-2xl font-bold text-foreground mb-1">
-              Mes Enfants
-            </Text>
-            <Text className="text-sm text-gray-500">
-              {mockChildren.length} enfant{mockChildren.length > 1 ? 's' : ''}
-            </Text>
-          </View>
-          
-          <TouchableOpacity
-            onPress={handleAddChild}
-            className="bg-primary rounded-xl px-4 py-2 flex-row items-center space-x-2"
+        <View>
+          <Text
+            style={{
+              color: theme.textMuted,
+              fontSize: 11,
+              fontWeight: '700',
+              letterSpacing: 1.2,
+              textTransform: 'uppercase',
+              marginBottom: 4,
+            }}
           >
-            <UserPlus size={18} color="white" />
-            <Text className="text-white font-medium">Ajouter</Text>
-          </TouchableOpacity>
+            Mes enfants
+          </Text>
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 26,
+              fontWeight: '800',
+              letterSpacing: -0.5,
+            }}
+          >
+            {mockChildren.length} enfant{mockChildren.length > 1 ? 's' : ''}
+          </Text>
         </View>
+        <TouchableOpacity
+          onPress={handleAddChild}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            backgroundColor: theme.accent,
+            borderRadius: 14,
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+          }}
+        >
+          <UserPlus size={16} color="#fff" strokeWidth={2.5} />
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>
+            Ajouter
+          </Text>
+        </TouchableOpacity>
       </Animated.View>
 
-      {/* Children List */}
       <FlatList
         data={mockChildren}
         renderItem={renderChild}
-        keyExtractor={keyExtractor}
-        contentContainerStyle={{ 
+        keyExtractor={item => item.id}
+        contentContainerStyle={{
           padding: 16,
-          paddingBottom: 100, // Space for tab bar
+          paddingBottom: insets.bottom + 100,
         }}
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={{ height: 0 }} />}
       />
     </View>
   );

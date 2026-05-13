@@ -228,6 +228,9 @@ async function registerCollector(data: RegisterCollectorData): Promise<User> {
     .from('user_profiles')
     .insert({
       user_id: authData.user.id,
+      first_name: inviteData.first_name ?? '',
+      last_name: inviteData.last_name ?? '',
+      phone: inviteData.phone ?? null,
       role: 'collector',
     })
     .select()

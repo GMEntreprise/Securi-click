@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
+import { Animated, Text, TouchableOpacity, View } from 'react-native';
 import {
   useAnimatedStyle,
   useSharedValue,
@@ -51,8 +51,19 @@ export const RoleCard: React.FC<Props> = memo(
         className="flex-1 mx-2"
       >
         <Animated.View
-          style={animatedStyle}
-          className={`rounded-3xl p-6 ${color} shadow-lg`}
+          style={[
+            animatedStyle,
+            {
+              borderRadius: 24,
+              padding: 24,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.25,
+              shadowRadius: 3.84,
+              elevation: 5,
+            },
+          ]}
+          className={color}
         >
           <View className="items-center mb-4">
             <Text className="text-6xl mb-3">{icon}</Text>

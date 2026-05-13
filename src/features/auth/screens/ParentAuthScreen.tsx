@@ -1,62 +1,122 @@
-import React, { memo, useState } from 'react';
-import { View, Text, Image } from 'react-native';
-import { PremiumAuthForm } from '../components/PremiumAuthForm';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import React, { memo, useCallback, useState } from 'react';
+import {
+  Dimensions,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useColorScheme,
+} from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLogin } from '../hooks/useLogin';
 import { useRegisterParent } from '../hooks/useRegister';
+import { AuthBackButton, AuthTabToggle } from '../components/ui';
+import { ParentLoginForm } from './ParentLoginForm';
+import { ParentRegisterFormV2 } from './ParentRegisterFormV2';
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const HERO_HEIGHT = SCREEN_HEIGHT * 0.34;
 
 export const ParentAuthScreen: React.FC = memo(() => {
   const router = useRouter();
-  const [isLogin, setIsLogin] = useState(true);
+  const insets = useSafeAreaInsets();
+  const dark = useColorScheme() === 'dark';
+  const [activeTab, setActiveTab] = useState<0 | 1>(0);
+
+  const loginMutation = useLogin();
   const registerMutation = useRegisterParent();
 
-  const handleSubmit = (data: any) => {
-    if (isLogin) {
-      // Handle login - redirect to login screen
-      router.push('/(auth)/login');
-    } else {
-      // Handle registration
-      registerMutation.mutate(data, {
-        onSuccess: () => {
-          router.replace('/(app)/dashboard');
-        },
+  const handleLogin = useCallback(
+    (data: { email: string; password: string }) => {
+      loginMutation.mutate(data, {
+        onSuccess: () => router.replace('/(parent-tabs)' as any),
       });
-    }
-  };
+    },
+    [loginMutation, router]
+  );
 
-  const handleToggle = (newIsLogin: boolean) => {
-    setIsLogin(newIsLogin);
-    if (newIsLogin) {
-      router.push('/(auth)/login');
-    }
-  };
+  const handleRegister = useCallback(
+    (data: any) => {
+      registerMutation.mutate(data, {
+        onSuccess: () => router.replace('/(parent-tabs)' as any),
+      });
+    },
+    [registerMutation, router]
+  );
+
+  const handleForgotPassword = useCallback(() => {
+    router.push('/(auth)/login');
+  }, [router]);
+
+  const handleTabToggle = useCallback((index: 0 | 1) => {
+    setActiveTab(index);
+  }, []);
 
   return (
-    <View className="flex-1 bg-background">
-      {/* Header Image */}
-      <View className="items-center pt-12 pb-6">
-        <View className="w-32 h-32 bg-blue-100 dark:bg-blue-900/20 rounded-3xl items-center justify-center mb-4">
-          <Text className="text-5xl">👨‍👩‍👧‍👦</Text>
-        </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1, backgroundColor: dark ? '#0f0f0f' : '#f9f5f0' }}
+    >
+      <AuthBackButton onPress={() => router.back()} light />
 
-        <Text className="text-2xl font-bold text-foreground mb-2 text-center">
-          {isLogin ? 'Espace Parent' : 'Créer un compte Parent'}
-        </Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+      >
+        <Image
+          source={require('../../../../assets/images/icon.png')}
+          style={{ width: '100%', height: HERO_HEIGHT }}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          colors={
+            dark
+              ? ['transparent', 'rgba(15,15,15,0.6)', '#0f0f0f']
+              : ['transparent', 'rgba(249,245,240,0.5)', '#f9f5f0']
+          }
+          locations={[0.4, 0.75, 1]}
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: HERO_HEIGHT,
+          }}
+          pointerEvents="none"
+        />
 
-        <Text className="text-muted-foreground text-center text-sm leading-relaxed">
-          {isLogin
-            ? 'Protégez vos enfants en toute sécurité'
-            : 'Gérez vos enfants et leurs autorisations en quelques minutes'}
-        </Text>
-      </View>
+        <Animated.View entering={FadeInDown.duration(400)}>
+          <AuthTabToggle
+            leftLabel="Se connecter"
+            rightLabel="Créer un compte"
+            activeIndex={activeTab}
+            onToggle={handleTabToggle}
+          />
+        </Animated.View>
 
-      {/* Form */}
-      <PremiumAuthForm
-        role="parent"
-        isLogin={isLogin}
-        onSubmit={handleSubmit}
-        isLoading={registerMutation.isPending}
-        error={registerMutation.error?.message}
-      />
-    </View>
+        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+          {activeTab === 0 ? (
+            <ParentLoginForm
+              onSubmit={handleLogin}
+              isLoading={loginMutation.isPending}
+              error={loginMutation.error?.message}
+              onForgotPassword={handleForgotPassword}
+            />
+          ) : (
+            <ParentRegisterFormV2
+              onSubmit={handleRegister}
+              isLoading={registerMutation.isPending}
+              error={registerMutation.error?.message}
+            />
+          )}
+        </Animated.View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 });
+
+ParentAuthScreen.displayName = 'ParentAuthScreen';

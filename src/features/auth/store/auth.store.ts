@@ -45,4 +45,6 @@ export const useSession = () => useAuthStore(s => s.session);
 export const useIsAuthenticated = () => useAuthStore(s => !!s.session);
 export const useIsLoading = () =>
   useAuthStore(s => s.isLoading || s.isRestoring);
+export const useAuthLoading = useIsLoading;
+export const useIsRestoring = () => useAuthStore(s => s.isRestoring);
 export const useUserRole = () => useAuthStore(s => s.session?.user.role);

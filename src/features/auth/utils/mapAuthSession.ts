@@ -9,6 +9,7 @@ function resolveRole(
   const fromProfile = profile?.role;
   if (
     fromProfile === 'parent' ||
+    fromProfile === 'collector' ||
     fromProfile === 'staff' ||
     fromProfile === 'school_admin' ||
     fromProfile === 'super_admin'
@@ -18,11 +19,12 @@ function resolveRole(
   const metaRole = metadata?.role;
   if (
     metaRole === 'parent' ||
+    metaRole === 'collector' ||
     metaRole === 'staff' ||
     metaRole === 'school_admin' ||
     metaRole === 'super_admin'
   ) {
-    return metaRole;
+    return metaRole as UserRole;
   }
   return 'parent';
 }
@@ -37,14 +39,15 @@ export async function mapSupabaseSessionToAuthSession(
 
   const { data, error } = await supabase
     .from('user_profiles')
-    .select('id, full_name, phone, school_id, role')
+    .select('id, first_name, last_name, phone, school_id, role')
     .eq('user_id', authUser.id)
     .maybeSingle();
 
   if (!error && data) {
     profile = {
       id: String(data.id),
-      full_name: String(data.full_name ?? ''),
+      first_name: String(data.first_name ?? ''),
+      last_name: String(data.last_name ?? ''),
       phone: data.phone ? String(data.phone) : undefined,
       school_id: data.school_id ? String(data.school_id) : undefined,
       role: data.role as UserProfile['role'],

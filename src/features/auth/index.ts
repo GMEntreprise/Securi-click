@@ -1,4 +1,8 @@
 export { LoginForm } from './components/LoginForm';
+export { RoleChoiceScreen } from './screens/RoleChoiceScreen';
+export { ParentAuthScreen } from './screens/ParentAuthScreen';
+export { SchoolAuthScreen } from './screens/SchoolAuthScreen';
+export { CollectorAuthScreen } from './screens/CollectorAuthScreen';
 export { useLogin } from './hooks/useLogin';
 export {
   useAuthStore,

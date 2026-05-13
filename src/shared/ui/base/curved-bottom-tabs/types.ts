@@ -89,6 +89,13 @@ interface NavigationDescriptor {
 }
 interface CurvedTabBarNavigationProps {
   gradients?: string[];
+  activeColor?: string;
+  inactiveColor?: string;
+  labelColor?: string;
+  barHeight?: number;
+  buttonScale?: number;
+  textSize?: number;
+  animation?: AnimationConfig;
 }
 
 export type {

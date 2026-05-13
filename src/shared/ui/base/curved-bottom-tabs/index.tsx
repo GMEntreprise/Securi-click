@@ -429,6 +429,13 @@ export const CurvedBottomTabs: React.FC<
       descriptors,
       navigation,
       gradients = ['#121212', '#1A1A1A'],
+      activeColor,
+      inactiveColor,
+      labelColor,
+      barHeight,
+      buttonScale,
+      textSize,
+      animation,
     }) => {
       const tabs: Tab[] = state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
@@ -476,6 +483,13 @@ export const CurvedBottomTabs: React.FC<
           currentIndex={state.index}
           onPress={handlePress}
           gradient={gradients}
+          {...(activeColor !== undefined && { activeColor })}
+          {...(inactiveColor !== undefined && { inactiveColor })}
+          {...(labelColor !== undefined && { labelColor })}
+          {...(barHeight !== undefined && { barHeight })}
+          {...(buttonScale !== undefined && { buttonScale })}
+          {...(textSize !== undefined && { textSize })}
+          {...(animation !== undefined && { animation })}
         />
       );
     }

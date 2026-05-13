@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text } from 'react-native';
 import { useSession, useUserRole } from '@/features/auth/store/auth.store';
+import React from 'react';
+import { Text, View } from 'react-native';
 
 export default function DashboardScreen() {
   const session = useSession();
@@ -29,7 +29,8 @@ export default function DashboardScreen() {
           {session?.user.profile && (
             <>
               <Text className="text-muted-foreground">
-                Nom: {session.user.profile.full_name}
+                Nom: {session.user.profile.first_name}{' '}
+                {session.user.profile.last_name}
               </Text>
               {session.user.profile.phone && (
                 <Text className="text-muted-foreground">

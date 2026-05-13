@@ -1,6 +1,7 @@
 import {
   useAuthStore,
   useIsAuthenticated,
+  useIsRestoring,
 } from '@/features/auth/store/auth.store';
 import { QueryProvider, SupabaseProvider } from '@/providers';
 import {
@@ -13,7 +14,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ActivityIndicator, useColorScheme, View } from 'react-native';
 import '../../global.css';
-import { useIsRestoring } from '../features/auth';
 
 function RootNavigation() {
   const initialize = useAuthStore(s => s.initialize);

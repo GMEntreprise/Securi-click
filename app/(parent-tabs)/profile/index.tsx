@@ -1,13 +1,15 @@
-import React, { useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Switch, Alert } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Switch,
+  Alert,
+  useColorScheme,
+} from 'react-native';
 import { useRouter } from 'expo-router';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  FadeInDown,
-  LayoutAnimationConfig,
-} from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
@@ -15,334 +17,380 @@ import {
   Bell,
   Shield,
   Smartphone,
-  Moon,
-  Sun,
   LogOut,
   ChevronRight,
-  Settings,
   HelpCircle,
   FileText,
   Lock,
 } from 'lucide-react-native';
 
-// Mock data - will be replaced with real hooks
 const mockProfile = {
-  name: 'Parent User',
+  firstName: 'Parent',
+  lastName: 'Utilisateur',
   email: 'parent@securiclick.fr',
   phone: '06 12 34 56 78',
-  avatar: '👨‍👩‍👧‍👦',
   notifications: true,
   biometricAuth: true,
   darkMode: false,
-  twoFactorAuth: true,
 };
 
-interface SettingItemProps {
-  icon: React.ReactNode;
-  title: string;
-  subtitle?: string;
-  value?: boolean;
-  onPress: () => void;
-  showToggle?: boolean;
-  onToggle?: (value: boolean) => void;
+function useTheme() {
+  const scheme = useColorScheme();
+  const dark = scheme === 'dark';
+  return {
+    dark,
+    bg: dark ? '#0f0f0f' : '#f9f5f0',
+    card: dark ? '#1a1a1a' : '#ffffff',
+    cardBorder: dark ? '#2a2a2a' : '#f0ede8',
+    text: dark ? '#f9fafb' : '#111827',
+    textSecondary: dark ? '#9ca3af' : '#6b7280',
+    textMuted: dark ? '#6b7280' : '#9ca3af',
+    accent: dark ? '#3b82f6' : '#f97316',
+    accentBg: dark ? 'rgba(59,130,246,0.12)' : 'rgba(249,115,22,0.1)',
+    primary: '#1e3a8a',
+    separator: dark ? '#2a2a2a' : '#f3f4f6',
+    rowBg: dark ? '#1a1a1a' : '#ffffff',
+    switchTrackOn: dark ? '#3b82f6' : '#f97316',
+  };
 }
 
-const SettingItem = React.memo(({ 
-  icon, 
-  title, 
-  subtitle, 
-  value, 
-  onPress, 
-  showToggle, 
-  onToggle 
-}: SettingItemProps) => {
-  const scale = useSharedValue(1);
+interface RowItem {
+  icon: React.ReactNode;
+  iconBg: string;
+  title: string;
+  subtitle?: string;
+  toggle?: boolean;
+  value?: boolean;
+  onToggle?: (v: boolean) => void;
+  onPress: () => void;
+  destructive?: boolean;
+}
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: withSpring(scale.value, {
-          damping: 15,
-          stiffness: 300,
-        }),
-      },
-    ],
-  }));
-
-  const handlePress = useCallback(() => {
-    scale.value = 0.95;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTimeout(() => {
-      scale.value = 1;
-      onPress();
-    }, 100);
-  }, [onPress]);
-
-  const handleToggle = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    onToggle?.(!value!);
-  }, [value, onToggle]);
-
+function SettingRow({ item, isLast }: { item: RowItem; isLast: boolean }) {
+  const theme = useTheme();
   return (
     <TouchableOpacity
-      onPress={handlePress}
-      className="bg-white rounded-xl p-4 mb-3 border border-gray-100"
-      style={animatedStyle}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        item.onPress();
+      }}
+      activeOpacity={item.toggle ? 1 : 0.7}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 13,
+        paddingHorizontal: 16,
+        borderBottomWidth: isLast ? 0 : 1,
+        borderBottomColor: theme.separator,
+      }}
     >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center space-x-3 flex-1">
-          <View className="w-10 h-10 bg-primary rounded-lg items-center justify-center">
-            {icon}
-          </View>
-          
-          <View className="flex-1">
-            <Text className="font-semibold text-foreground mb-1">
-              {title}
-            </Text>
-            {subtitle && (
-              <Text className="text-sm text-gray-500">
-                {subtitle}
-              </Text>
-            )}
-          </View>
-        </View>
-        
-        <View className="flex-row items-center space-x-2">
-          {showToggle && (
-            <Switch
-              value={value}
-              onValueChange={handleToggle}
-              trackColor={{ false: '#E5E7EB', true: '#10B981' }}
-              thumbColor={value ? '#FFFFFF' : '#FFFFFF'}
-              ios_backgroundColor={value ? '#10B981' : '#E5E7EB'}
-            />
-          )}
-          
-          <ChevronRight size={20} color="#64748B" />
-        </View>
+      <View
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: 11,
+          backgroundColor: item.destructive
+            ? 'rgba(239,68,68,0.1)'
+            : item.iconBg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: 12,
+        }}
+      >
+        {item.icon}
       </View>
+      <View style={{ flex: 1 }}>
+        <Text
+          style={{
+            color: item.destructive ? '#ef4444' : theme.text,
+            fontSize: 15,
+            fontWeight: '600',
+          }}
+        >
+          {item.title}
+        </Text>
+        {item.subtitle && (
+          <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+            {item.subtitle}
+          </Text>
+        )}
+      </View>
+      {item.toggle ? (
+        <Switch
+          value={item.value}
+          onValueChange={v => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            item.onToggle?.(v);
+          }}
+          trackColor={{
+            false: theme.dark ? '#3a3a3a' : '#e5e7eb',
+            true: theme.switchTrackOn,
+          }}
+          thumbColor="#ffffff"
+          ios_backgroundColor={theme.dark ? '#3a3a3a' : '#e5e7eb'}
+        />
+      ) : (
+        <ChevronRight size={16} color={theme.textMuted} />
+      )}
     </TouchableOpacity>
   );
-});
-
-SettingItem.displayName = 'SettingItem';
+}
 
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [profile, setProfile] = React.useState(mockProfile);
+  const theme = useTheme();
+  const [prefs, setPrefs] = useState({
+    notifications: mockProfile.notifications,
+    biometricAuth: mockProfile.biometricAuth,
+  });
 
-  const scale = useSharedValue(1);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: withSpring(scale.value, {
-          damping: 15,
-          stiffness: 300,
-        }),
-      },
-    ],
-  }));
-
-  const handleLogout = useCallback(() => {
-    scale.value = 0.95;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
-    setTimeout(() => {
-      scale.value = 1;
-      Alert.alert(
-        'Déconnexion',
-        'Êtes-vous sûr de vouloir vous déconnecter ?',
-        [
-          {
-            text: 'Annuler',
-            style: 'cancel',
-            onPress: () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            },
-          },
-          {
-            text: 'Se déconnecter',
-            style: 'destructive',
-            onPress: () => {
-              // TODO: Implement logout logic
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-              router.replace('/(auth)/login');
-            },
-          },
-        ]
-      );
-    }, 100);
-  }, [router]);
-
-  const handleSettingToggle = useCallback((setting: string, value: boolean) => {
-    setProfile(prev => ({ ...prev, [setting]: value }));
+  const toggle = useCallback((key: keyof typeof prefs, value: boolean) => {
+    setPrefs(p => ({ ...p, [key]: value }));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   }, []);
 
-  const sections = useMemo(() => [
-    {
-      title: 'Compte',
-      items: [
-        {
-          icon: <User size={18} color="white" />,
-          title: 'Informations personnelles',
-          subtitle: 'Nom, email, téléphone',
-          onPress: () => {
-            // TODO: Navigate to personal info
+  const handleLogout = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Déconnecter',
+        style: 'destructive',
+        onPress: () => {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          router.replace('/(auth)/login' as any);
+        },
+      },
+    ]);
+  }, [router]);
+
+  const sections = useMemo(
+    () => [
+      {
+        title: 'Compte',
+        items: [
+          {
+            icon: <User size={16} color="#1e3a8a" strokeWidth={2.5} />,
+            iconBg: 'rgba(30,58,138,0.1)',
+            title: 'Informations personnelles',
+            subtitle: 'Nom, email, téléphone',
+            onPress: () => {},
           },
-        },
-        {
-          icon: <Shield size={18} color="white" />,
-          title: 'Sécurité',
-          subtitle: 'Mot de passe, authentification',
-          onPress: () => {
-            // TODO: Navigate to security settings
+          {
+            icon: <Shield size={16} color="#f97316" strokeWidth={2.5} />,
+            iconBg: 'rgba(249,115,22,0.1)',
+            title: 'Sécurité',
+            subtitle: 'Mot de passe, 2FA',
+            onPress: () => {},
           },
-        },
-      ],
-    },
-    {
-      title: 'Préférences',
-      items: [
-        {
-          icon: <Bell size={18} color="white" />,
-          title: 'Notifications',
-          subtitle: 'Alertes push, emails',
-          showToggle: true,
-          value: profile.notifications,
-          onToggle: (value) => handleSettingToggle('notifications', value),
-          onPress: () => {},
-        },
-        {
-          icon: <Smartphone size={18} color="white" />,
-          title: 'Authentification biométrique',
-          subtitle: 'Face ID, empreinte',
-          showToggle: true,
-          value: profile.biometricAuth,
-          onToggle: (value) => handleSettingToggle('biometricAuth', value),
-          onPress: () => {},
-        },
-        {
-          icon: profile.darkMode ? <Moon size={18} color="white" /> : <Sun size={18} color="white" />,
-          title: 'Mode sombre',
-          subtitle: 'Thème de l\'application',
-          showToggle: true,
-          value: profile.darkMode,
-          onToggle: (value) => handleSettingToggle('darkMode', value),
-          onPress: () => {},
-        },
-      ],
-    },
-    {
-      title: 'Support',
-      items: [
-        {
-          icon: <HelpCircle size={18} color="white" />,
-          title: 'Aide & FAQ',
-          subtitle: 'Questions fréquentes',
-          onPress: () => {
-            // TODO: Open help
+        ] as RowItem[],
+      },
+      {
+        title: 'Préférences',
+        items: [
+          {
+            icon: <Bell size={16} color="#10b981" strokeWidth={2.5} />,
+            iconBg: 'rgba(16,185,129,0.1)',
+            title: 'Notifications',
+            subtitle: 'Alertes push et emails',
+            toggle: true,
+            value: prefs.notifications,
+            onToggle: (v: boolean) => toggle('notifications', v),
+            onPress: () => {},
           },
-        },
-        {
-          icon: <FileText size={18} color="white" />,
-          title: 'Conditions d\'utilisation',
-          subtitle: 'Mentions légales',
-          onPress: () => {
-            // TODO: Open terms
+          {
+            icon: <Smartphone size={16} color="#6366f1" strokeWidth={2.5} />,
+            iconBg: 'rgba(99,102,241,0.1)',
+            title: 'Authentification biométrique',
+            subtitle: 'Face ID, empreinte',
+            toggle: true,
+            value: prefs.biometricAuth,
+            onToggle: (v: boolean) => toggle('biometricAuth', v),
+            onPress: () => {},
           },
-        },
-        {
-          icon: <Lock size={18} color="white" />,
-          title: 'Politique de confidentialité',
-          subtitle: 'Vos données sont protégées',
-          onPress: () => {
-            // TODO: Open privacy policy
+        ] as RowItem[],
+      },
+      {
+        title: 'Support',
+        items: [
+          {
+            icon: <HelpCircle size={16} color="#f59e0b" strokeWidth={2.5} />,
+            iconBg: 'rgba(245,158,11,0.1)',
+            title: 'Aide & FAQ',
+            onPress: () => {},
           },
-        },
-      ],
-    },
-  ], [profile.darkMode]);
+          {
+            icon: <FileText size={16} color="#6b7280" strokeWidth={2.5} />,
+            iconBg: 'rgba(107,114,128,0.1)',
+            title: "Conditions d'utilisation",
+            onPress: () => {},
+          },
+          {
+            icon: <Lock size={16} color="#6b7280" strokeWidth={2.5} />,
+            iconBg: 'rgba(107,114,128,0.1)',
+            title: 'Confidentialité',
+            onPress: () => {},
+          },
+        ] as RowItem[],
+      },
+    ],
+    [prefs, toggle]
+  );
+
+  const initials = `${mockProfile.firstName[0]}${mockProfile.lastName[0]}`;
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-4 pt-4" style={{ paddingBottom: insets.bottom + 80 }}>
-          {/* Profile Header */}
-          <Animated.View 
-            entering={FadeInDown.duration(600)}
-            className="bg-white rounded-2xl p-6 mb-6 shadow-sm border border-gray-100"
+        <View style={{ paddingTop: insets.top + 20, paddingHorizontal: 20 }}>
+          {/* Profile card */}
+          <Animated.View
+            entering={FadeInDown.duration(400)}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 24,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              padding: 20,
+              marginBottom: 24,
+            }}
           >
-            <View className="flex-row items-center space-x-4 mb-4">
-              <View className="w-20 h-20 bg-primary rounded-2xl items-center justify-center">
-                <Text className="text-3xl">{profile.avatar}</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <View
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 22,
+                  backgroundColor: theme.accentBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 16,
+                }}
+              >
+                <Text
+                  style={{
+                    color: theme.accent,
+                    fontSize: 22,
+                    fontWeight: '800',
+                  }}
+                >
+                  {initials}
+                </Text>
               </View>
-              
-              <View className="flex-1">
-                <Text className="text-xl font-bold text-foreground mb-1">
-                  {profile.name}
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}
+                >
+                  {mockProfile.firstName} {mockProfile.lastName}
                 </Text>
-                <Text className="text-sm text-gray-500 mb-1">
-                  {profile.email}
+                <Text
+                  style={{
+                    color: theme.textSecondary,
+                    fontSize: 13,
+                    marginTop: 2,
+                  }}
+                >
+                  {mockProfile.email}
                 </Text>
-                <Text className="text-sm text-gray-500">
-                  {profile.phone}
+                <Text
+                  style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
+                >
+                  {mockProfile.phone}
                 </Text>
               </View>
             </View>
-            
             <TouchableOpacity
-              className="bg-gray-100 rounded-lg px-4 py-2"
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                // TODO: Edit profile
+              onPress={() =>
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              }
+              style={{
+                backgroundColor: theme.dark ? '#2a2a2a' : '#f3f4f6',
+                borderRadius: 12,
+                paddingVertical: 10,
+                alignItems: 'center',
               }}
             >
-              <Text className="text-gray-700 font-medium">
-                Modifier
+              <Text
+                style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
+              >
+                Modifier le profil
               </Text>
             </TouchableOpacity>
           </Animated.View>
 
-          {/* Settings Sections */}
-          {sections.map((section, sectionIndex) => (
+          {/* Sections */}
+          {sections.map((section, si) => (
             <Animated.View
               key={section.title}
-              entering={FadeInDown.delay(sectionIndex * 100).duration(600)}
-              className="mb-6"
+              entering={FadeInDown.delay(si * 80).duration(400)}
+              style={{ marginBottom: 20 }}
             >
-              <Text className="text-lg font-semibold text-foreground mb-3">
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontSize: 11,
+                  fontWeight: '700',
+                  letterSpacing: 1.2,
+                  textTransform: 'uppercase',
+                  marginBottom: 8,
+                  marginLeft: 4,
+                }}
+              >
                 {section.title}
               </Text>
-              
-              <View className="bg-white rounded-2xl border border-gray-100">
-                {section.items.map((item, itemIndex) => (
-                  <SettingItem
+              <View
+                style={{
+                  backgroundColor: theme.card,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  borderColor: theme.cardBorder,
+                  overflow: 'hidden',
+                }}
+              >
+                {section.items.map((item, ii) => (
+                  <SettingRow
                     key={item.title}
-                    {...item}
+                    item={item}
+                    isLast={ii === section.items.length - 1}
                   />
                 ))}
               </View>
             </Animated.View>
           ))}
 
-          {/* Logout Button */}
-          <Animated.View 
-            entering={FadeInDown.delay(300).duration(600)}
-            className="mb-6"
+          {/* Logout */}
+          <Animated.View
+            entering={FadeInDown.delay(320).duration(400)}
+            style={{ marginBottom: 8 }}
           >
             <TouchableOpacity
               onPress={handleLogout}
-              className="bg-red-50 border border-red-200 rounded-2xl p-4 flex-row items-center justify-center"
-              style={animatedStyle}
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: 'rgba(239,68,68,0.2)',
+                padding: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
             >
-              <LogOut size={20} color="#EF4444" />
-              <Text className="text-red-600 font-semibold text-lg ml-2">
+              <LogOut size={18} color="#ef4444" strokeWidth={2.5} />
+              <Text
+                style={{ color: '#ef4444', fontWeight: '700', fontSize: 15 }}
+              >
                 Se déconnecter
               </Text>
             </TouchableOpacity>

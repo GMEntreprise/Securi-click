@@ -1,318 +1,398 @@
-import React, { useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  FadeInDown,
-  LayoutAnimationConfig,
-} from 'react-native-reanimated';
+import React, { useState, useMemo, useCallback } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  useColorScheme,
+} from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
-  Filter,
-  Calendar,
-  MapPin,
-  User,
   CheckCircle,
   Clock,
   AlertCircle,
-  Shield,
+  MapPin,
+  Calendar,
 } from 'lucide-react-native';
 
-// Mock data - will be replaced with real hooks
 const mockHistory = [
   {
     id: '1',
-    type: 'pickup',
     childName: 'Emma',
     collectorName: 'Jean Dupont',
     time: '14:30',
-    date: '2024-01-15',
-    location: 'École Primaire Saint-Exupéry',
+    date: '2025-01-15',
+    location: 'École Saint-Exupéry',
     status: 'completed',
-    qrCode: 'SC-EMMA-001',
+    type: 'pickup',
   },
   {
     id: '2',
-    type: 'authorization',
     childName: 'Lucas',
     collectorName: 'Marie Martin',
     time: '09:15',
-    date: '2024-01-15',
+    date: '2025-01-15',
     location: 'Portail principal',
     status: 'pending',
-    qrCode: 'SC-LUCAS-002',
+    type: 'authorization',
   },
   {
     id: '3',
-    type: 'pickup',
     childName: 'Emma',
     collectorName: 'Jean Dupont',
     time: '16:45',
-    date: '2024-01-14',
-    location: 'École Primaire Saint-Exupéry',
+    date: '2025-01-14',
+    location: 'École Saint-Exupéry',
     status: 'completed',
-    qrCode: 'SC-EMMA-001',
+    type: 'pickup',
   },
   {
     id: '4',
-    type: 'failed_pickup',
     childName: 'Lucas',
     collectorName: 'Inconnu',
     time: '12:00',
-    date: '2024-01-14',
+    date: '2025-01-14',
     location: 'Portail secondaire',
     status: 'failed',
-    qrCode: 'INVALID-QR',
+    type: 'pickup',
   },
 ];
 
-const filterOptions = [
-  { id: 'all', label: 'Tout', icon: <Clock size={16} color="#64748B" /> },
-  { id: 'pickup', label: 'Récupérations', icon: <CheckCircle size={16} color="#10B981" /> },
-  { id: 'authorization', label: 'Autorisations', icon: <Shield size={16} color="#1E3A8A" /> },
-  { id: 'failed', label: 'Échecs', icon: <AlertCircle size={16} color="#EF4444" /> },
+type FilterId = 'all' | 'completed' | 'pending' | 'failed';
+
+const FILTERS: { id: FilterId; label: string }[] = [
+  { id: 'all', label: 'Tout' },
+  { id: 'completed', label: 'Succès' },
+  { id: 'pending', label: 'Attente' },
+  { id: 'failed', label: 'Échecs' },
 ];
 
-interface HistoryItemProps {
-  item: any;
-  index: number;
+function useTheme() {
+  const scheme = useColorScheme();
+  const dark = scheme === 'dark';
+  return {
+    dark,
+    bg: dark ? '#0f0f0f' : '#f9f5f0',
+    card: dark ? '#1a1a1a' : '#ffffff',
+    cardBorder: dark ? '#2a2a2a' : '#f0ede8',
+    header: dark ? '#111111' : '#ffffff',
+    headerBorder: dark ? '#2a2a2a' : '#f0ede8',
+    filterBg: dark ? '#1a1a1a' : '#ffffff',
+    filterBorder: dark ? '#2a2a2a' : '#f0ede8',
+    filterActiveBg: dark ? '#1e3a8a' : '#f97316',
+    text: dark ? '#f9fafb' : '#111827',
+    textSecondary: dark ? '#9ca3af' : '#6b7280',
+    textMuted: dark ? '#6b7280' : '#9ca3af',
+    accent: dark ? '#3b82f6' : '#f97316',
+  };
 }
 
-const HistoryItem = React.memo(({ item, index }: HistoryItemProps) => {
-  const scale = useSharedValue(1);
+const STATUS_CONFIG = {
+  completed: {
+    color: '#10b981',
+    bg: 'rgba(16,185,129,0.12)',
+    label: 'Succès',
+    Icon: CheckCircle,
+  },
+  pending: {
+    color: '#f59e0b',
+    bg: 'rgba(245,158,11,0.12)',
+    label: 'Attente',
+    Icon: Clock,
+  },
+  failed: {
+    color: '#ef4444',
+    bg: 'rgba(239,68,68,0.12)',
+    label: 'Échec',
+    Icon: AlertCircle,
+  },
+};
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: withSpring(scale.value, {
-          damping: 15,
-          stiffness: 300,
-        }),
-      },
-    ],
-  }));
-
-  const handlePress = useCallback(() => {
-    scale.value = 0.95;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTimeout(() => {
-      scale.value = 1;
-      // TODO: Navigate to details
-    }, 100);
-  }, []);
-
-  const getTypeIcon = () => {
-    switch (item.type) {
-      case 'pickup':
-        return <CheckCircle size={20} color="#10B981" />;
-      case 'authorization':
-        return <Shield size={20} color="#1E3A8A" />;
-      case 'failed_pickup':
-        return <AlertCircle size={20} color="#EF4444" />;
-      default:
-        return <Clock size={20} color="#64748B" />;
-    }
-  };
-
-  const getStatusColor = () => {
-    switch (item.status) {
-      case 'completed':
-        return 'text-green-500 bg-green-50 border-green-200';
-      case 'pending':
-        return 'text-amber-500 bg-amber-50 border-amber-200';
-      case 'failed':
-        return 'text-red-500 bg-red-50 border-red-200';
-      default:
-        return 'text-gray-500 bg-gray-50 border-gray-200';
-    }
-  };
-
-  const getStatusBadge = () => {
-    switch (item.status) {
-      case 'completed':
-        return 'Succès';
-      case 'pending':
-        return 'En attente';
-      case 'failed':
-        return 'Échec';
-      default:
-        return 'Inconnu';
-    }
-  };
+function HistoryItem({
+  item,
+  index,
+}: {
+  item: (typeof mockHistory)[0];
+  index: number;
+}) {
+  const theme = useTheme();
+  const cfg =
+    STATUS_CONFIG[item.status as keyof typeof STATUS_CONFIG] ??
+    STATUS_CONFIG.pending;
+  const { Icon } = cfg;
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 50).duration(400)}
-      className="mb-3"
+      entering={FadeInDown.delay(index * 60).duration(350)}
+      style={{
+        backgroundColor: theme.card,
+        borderRadius: 20,
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: theme.cardBorder,
+        overflow: 'hidden',
+      }}
     >
-      <TouchableOpacity
-        onPress={handlePress}
-        className={`bg-white rounded-xl p-4 border ${getStatusColor()} shadow-sm`}
-        style={animatedStyle}
-      >
-        <View className="flex-row items-start justify-between">
-          <View className="flex-row items-start space-x-3 flex-1">
-            <View className="mt-1">
-              {getTypeIcon()}
-            </View>
-            
-            <View className="flex-1">
-              <View className="flex-row items-center space-x-2 mb-1">
-                <Text className="font-semibold text-foreground">
-                  {item.childName}
-                </Text>
-                <View className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor()}`}>
-                  {getStatusBadge()}
-                </View>
+      <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+        <View style={{ width: 4, backgroundColor: cfg.color }} />
+        <View style={{ flex: 1, padding: 14 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 8,
+            }}
+          >
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+            >
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  backgroundColor: cfg.bg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Icon size={16} color={cfg.color} strokeWidth={2.5} />
               </View>
-              
-              <Text className="text-sm text-gray-600 mb-1">
-                {item.type === 'pickup' ? 'Récupéré par' : 'Autorisation pour'} {item.collectorName}
+              <Text
+                style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
+              >
+                {item.childName}
               </Text>
-              
-              <View className="flex-row items-center space-x-2">
-                <Calendar size={14} color="#64748B" />
-                <Text className="text-xs text-gray-500">
-                  {new Date(item.date).toLocaleDateString('fr-FR')} • {item.time}
-                </Text>
-              </View>
-              
-              <View className="flex-row items-center space-x-2 mt-1">
-                <MapPin size={14} color="#64748B" />
-                <Text className="text-xs text-gray-500" numberOfLines={1}>
-                  {item.location}
-                </Text>
-              </View>
+            </View>
+            <View
+              style={{
+                backgroundColor: cfg.bg,
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: 10,
+              }}
+            >
+              <Text
+                style={{ color: cfg.color, fontSize: 11, fontWeight: '700' }}
+              >
+                {cfg.label}
+              </Text>
             </View>
           </View>
-          
-          <View className="items-center">
-            <Text className="text-xs text-gray-400 font-mono bg-gray-50 px-2 py-1 rounded">
-              {item.qrCode}
+
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 13,
+              marginBottom: 6,
+            }}
+          >
+            {item.type === 'pickup' ? 'Récupéré par' : 'Autorisation pour'}{' '}
+            <Text style={{ fontWeight: '600', color: theme.text }}>
+              {item.collectorName}
             </Text>
+          </Text>
+
+          <View style={{ flexDirection: 'row', gap: 14 }}>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+            >
+              <Calendar size={12} color={theme.textMuted} />
+              <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+                {new Date(item.date).toLocaleDateString('fr-FR')} · {item.time}
+              </Text>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+                flex: 1,
+              }}
+            >
+              <MapPin size={12} color={theme.textMuted} />
+              <Text
+                style={{ color: theme.textMuted, fontSize: 12 }}
+                numberOfLines={1}
+              >
+                {item.location}
+              </Text>
+            </View>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
     </Animated.View>
   );
-});
+}
 
-HistoryItem.displayName = 'HistoryItem';
-
-export default function HistoryList() {
+export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
-  const [selectedFilter, setSelectedFilter] = React.useState('all');
+  const theme = useTheme();
+  const [filter, setFilter] = useState<FilterId>('all');
 
-  const filteredHistory = useMemo(() => {
-    if (selectedFilter === 'all') return mockHistory;
-    if (selectedFilter === 'failed') {
-      return mockHistory.filter(item => item.status === 'failed');
-    }
-    return mockHistory.filter(item => item.type === selectedFilter);
-  }, [selectedFilter]);
+  const stats = useMemo(
+    () => ({
+      completed: mockHistory.filter(i => i.status === 'completed').length,
+      pending: mockHistory.filter(i => i.status === 'pending').length,
+      failed: mockHistory.filter(i => i.status === 'failed').length,
+    }),
+    []
+  );
 
-  const stats = useMemo(() => ({
-    total: mockHistory.length,
-    completed: mockHistory.filter(item => item.status === 'completed').length,
-    pending: mockHistory.filter(item => item.status === 'pending').length,
-    failed: mockHistory.filter(item => item.status === 'failed').length,
-  }), []);
+  const filtered = useMemo(
+    () =>
+      filter === 'all'
+        ? mockHistory
+        : mockHistory.filter(i => i.status === filter),
+    [filter]
+  );
 
-  const handleFilterPress = useCallback((filterId: string) => {
+  const handleFilter = useCallback((id: FilterId) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedFilter(filterId);
+    setFilter(id);
   }, []);
 
-  const renderHistoryItem = useCallback(({ item, index }: any) => (
-    <HistoryItem item={item} index={index} />
-  ), []);
-
-  const keyExtractor = useCallback((item: any) => item.id, []);
-
   return (
-    <View className="flex-1 bg-gray-50">
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Header */}
-      <Animated.View 
-        entering={FadeInDown.duration(600)}
-        className="bg-white border-b border-gray-200 px-4 py-4"
+      <Animated.View
+        entering={FadeInDown.duration(400)}
+        style={{
+          backgroundColor: theme.header,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.headerBorder,
+          paddingTop: insets.top + 16,
+          paddingBottom: 16,
+          paddingHorizontal: 20,
+        }}
       >
-        <View>
-          <Text className="text-2xl font-bold text-foreground mb-3">
-            Historique
-          </Text>
-          
-          {/* Stats */}
-          <View className="flex-row space-x-4 mb-4">
-            <View className="flex-1 bg-green-50 rounded-xl p-3 border border-green-200">
-              <Text className="text-green-600 text-xl font-bold">
-                {stats.completed}
+        <Text
+          style={{
+            color: theme.textMuted,
+            fontSize: 11,
+            fontWeight: '700',
+            letterSpacing: 1.2,
+            textTransform: 'uppercase',
+            marginBottom: 4,
+          }}
+        >
+          Activité
+        </Text>
+        <Text
+          style={{
+            color: theme.text,
+            fontSize: 26,
+            fontWeight: '800',
+            letterSpacing: -0.5,
+            marginBottom: 16,
+          }}
+        >
+          Historique
+        </Text>
+
+        {/* Stats */}
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14 }}>
+          {[
+            {
+              value: stats.completed,
+              label: 'Succès',
+              color: '#10b981',
+              bg: 'rgba(16,185,129,0.1)',
+            },
+            {
+              value: stats.pending,
+              label: 'Attente',
+              color: '#f59e0b',
+              bg: 'rgba(245,158,11,0.1)',
+            },
+            {
+              value: stats.failed,
+              label: 'Échecs',
+              color: '#ef4444',
+              bg: 'rgba(239,68,68,0.1)',
+            },
+          ].map(s => (
+            <View
+              key={s.label}
+              style={{
+                flex: 1,
+                backgroundColor: s.bg,
+                borderRadius: 14,
+                padding: 10,
+                alignItems: 'center',
+              }}
+            >
+              <Text style={{ color: s.color, fontSize: 20, fontWeight: '800' }}>
+                {s.value}
               </Text>
-              <Text className="text-green-600 text-xs">
-                Succès
-              </Text>
-            </View>
-            
-            <View className="flex-1 bg-amber-50 rounded-xl p-3 border border-amber-200">
-              <Text className="text-amber-600 text-xl font-bold">
-                {stats.pending}
-              </Text>
-              <Text className="text-amber-600 text-xs">
-                En attente
-              </Text>
-            </View>
-            
-            <View className="flex-1 bg-red-50 rounded-xl p-3 border border-red-200">
-              <Text className="text-red-600 text-xl font-bold">
-                {stats.failed}
-              </Text>
-              <Text className="text-red-600 text-xs">
-                Échecs
-              </Text>
-            </View>
-          </View>
-          
-          {/* Filters */}
-          <View className="flex-row space-x-2">
-            {filterOptions.map((filter) => (
-              <TouchableOpacity
-                key={filter.id}
-                onPress={() => handleFilterPress(filter.id)}
-                className={`flex-1 py-2 px-3 rounded-xl flex-row items-center justify-center space-x-2 ${
-                  selectedFilter === filter.id
-                    ? 'bg-primary border-primary'
-                    : 'bg-gray-100 border-gray-200'
-                } border`}
+              <Text
+                style={{
+                  color: s.color,
+                  fontSize: 11,
+                  fontWeight: '600',
+                  marginTop: 1,
+                }}
               >
-                {filter.icon}
-                <Text className={`text-sm font-medium ${
-                  selectedFilter === filter.id ? 'text-white' : 'text-gray-600'
-                }`}>
-                  {filter.label}
+                {s.label}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Filters */}
+        <View style={{ flexDirection: 'row', gap: 6 }}>
+          {FILTERS.map(f => {
+            const active = filter === f.id;
+            return (
+              <TouchableOpacity
+                key={f.id}
+                onPress={() => handleFilter(f.id)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 7,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  backgroundColor: active
+                    ? theme.filterActiveBg
+                    : theme.filterBg,
+                  borderWidth: 1,
+                  borderColor: active ? 'transparent' : theme.filterBorder,
+                }}
+              >
+                <Text
+                  style={{
+                    color: active ? '#fff' : theme.textSecondary,
+                    fontSize: 12,
+                    fontWeight: '700',
+                  }}
+                >
+                  {f.label}
                 </Text>
               </TouchableOpacity>
-            ))}
-          </View>
+            );
+          })}
         </View>
       </Animated.View>
 
-      {/* History List */}
       <FlatList
-        data={filteredHistory}
-        renderItem={renderHistoryItem}
-        keyExtractor={keyExtractor}
-        contentContainerStyle={{ 
+        data={filtered}
+        keyExtractor={i => i.id}
+        renderItem={({ item, index }) => (
+          <HistoryItem item={item} index={index} />
+        )}
+        contentContainerStyle={{
           padding: 16,
-          paddingBottom: 100, // Space for tab bar
+          paddingBottom: insets.bottom + 100,
         }}
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => <View style={{ height: 0 }} />}
         ListEmptyComponent={() => (
-          <View className="flex-1 items-center justify-center py-12">
-            <Clock size={48} color="#64748B" />
-            <Text className="text-gray-500 text-center mt-4">
-              Aucune activité trouvée pour ce filtre
+          <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
+            <Clock size={40} color={theme.textMuted} strokeWidth={1.5} />
+            <Text style={{ color: theme.textMuted, fontSize: 15 }}>
+              Aucune activité
             </Text>
           </View>
         )}
