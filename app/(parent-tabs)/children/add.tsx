@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   View,
   Text,
@@ -7,15 +7,13 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '@/theme';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  FadeInDown,
-} from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
@@ -25,13 +23,14 @@ import {
   AlertCircle,
   Save,
   Camera,
-  ImageIcon,
 } from 'lucide-react-native';
+import { useSession } from '@/features/auth/store/auth.store';
+import { useAddChild } from '@/features/parent/hooks/useChildren';
+import { useUploadImage } from '@/features/parent/hooks/useUploadImage';
 
 interface FormData {
   firstName: string;
   lastName: string;
-  age: string;
   school: string;
   grade: string;
 }
@@ -59,7 +58,6 @@ function InputField({
   value,
   onChangeText,
   placeholder,
-  keyboardType = 'default',
   error,
   autoCapitalize = 'sentences',
 }: {
@@ -67,7 +65,6 @@ function InputField({
   value: string;
   onChangeText: (v: string) => void;
   placeholder: string;
-  keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
   error?: string;
   autoCapitalize?: 'none' | 'sentences' | 'words';
 }) {
@@ -89,7 +86,6 @@ function InputField({
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={theme.placeholder}
-        keyboardType={keyboardType}
         autoCapitalize={autoCapitalize}
         style={{
           backgroundColor: theme.input,
@@ -123,25 +119,24 @@ export default function AddChild() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const session = useSession();
+  const userId = session?.user.id ?? '';
+
+  const addChild = useAddChild();
+  const { pickFromGallery, takePhoto, isUploading } = useUploadImage({
+    bucket: 'children-images',
+    userId,
+  });
 
   const [form, setForm] = useState<FormData>({
     firstName: '',
     lastName: '',
-    age: '',
     school: '',
     grade: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
-
-  const btnScale = useSharedValue(1);
-  const btnStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: btnScale.value }],
-  }));
-
-  const handleBack = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
-  }, [router]);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [photoUrl, setPhotoUrl] = useState<string | null>(null);
 
   const setField = useCallback(
     (field: keyof FormData) => (value: string) => {
@@ -155,25 +150,57 @@ export default function AddChild() {
     const next: FormErrors = {};
     if (!form.firstName.trim()) next.firstName = 'Prénom requis';
     if (!form.lastName.trim()) next.lastName = 'Nom requis';
-    if (!form.age.trim() || isNaN(Number(form.age)) || Number(form.age) < 1)
-      next.age = 'Âge invalide';
     if (!form.school.trim()) next.school = 'École requise';
     if (!form.grade.trim()) next.grade = 'Classe requise';
     setErrors(next);
     return Object.keys(next).length === 0;
   }, [form]);
 
-  const handleSave = useCallback(() => {
-    btnScale.value = withSpring(0.95, { damping: 12 });
+  const handlePickPhoto = useCallback(() => {
+    Alert.alert("Photo de l'enfant", 'Choisir une source', [
+      {
+        text: 'Caméra',
+        onPress: async () => {
+          const result = await takePhoto();
+          if (result) {
+            setPhotoUri(result.signedUrl);
+            setPhotoUrl(result.signedUrl);
+          }
+        },
+      },
+      {
+        text: 'Galerie',
+        onPress: async () => {
+          const result = await pickFromGallery();
+          if (result) {
+            setPhotoUri(result.signedUrl);
+            setPhotoUrl(result.signedUrl);
+          }
+        },
+      },
+      { text: 'Annuler', style: 'cancel' },
+    ]);
+  }, [takePhoto, pickFromGallery]);
+
+  const handleSave = useCallback(async () => {
+    if (!validate()) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setTimeout(() => {
-      btnScale.value = withSpring(1);
-      if (validate()) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        router.back();
-      }
-    }, 100);
-  }, [validate, btnScale, router]);
+    await addChild.mutateAsync({
+      first_name: form.firstName.trim(),
+      last_name: form.lastName.trim(),
+      date_of_birth: null,
+      grade: form.grade,
+      school_name: form.school.trim(),
+      photo_url: photoUrl,
+    });
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    router.back();
+  }, [validate, addChild, form, photoUrl, router]);
+
+  const isBusy = addChild.isPending || isUploading;
 
   return (
     <KeyboardAvoidingView
@@ -201,7 +228,10 @@ export default function AddChild() {
           }}
         >
           <TouchableOpacity
-            onPress={handleBack}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.back();
+            }}
             style={{
               width: 40,
               height: 40,
@@ -263,14 +293,23 @@ export default function AddChild() {
             >
               Photo
             </Text>
+
+            {photoUri ? (
+              <View style={{ alignItems: 'center', marginBottom: 12 }}>
+                <Image
+                  source={{ uri: photoUri }}
+                  style={{ width: 88, height: 88, borderRadius: 22 }}
+                />
+              </View>
+            ) : null}
+
             <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
-                onPress={() =>
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                }
+                onPress={handlePickPhoto}
+                disabled={isUploading}
                 style={{
                   flex: 1,
-                  height: 80,
+                  height: 72,
                   backgroundColor: theme.iconBg,
                   borderRadius: 16,
                   borderWidth: 1.5,
@@ -281,44 +320,22 @@ export default function AddChild() {
                   gap: 6,
                 }}
               >
-                <Camera size={22} color={theme.textMuted} />
-                <Text
-                  style={{
-                    color: theme.textMuted,
-                    fontSize: 12,
-                    fontWeight: '600',
-                  }}
-                >
-                  Caméra
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() =>
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-                }
-                style={{
-                  flex: 1,
-                  height: 80,
-                  backgroundColor: theme.iconBg,
-                  borderRadius: 16,
-                  borderWidth: 1.5,
-                  borderColor: theme.cardBorder,
-                  borderStyle: 'dashed',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                }}
-              >
-                <ImageIcon size={22} color={theme.textMuted} />
-                <Text
-                  style={{
-                    color: theme.textMuted,
-                    fontSize: 12,
-                    fontWeight: '600',
-                  }}
-                >
-                  Galerie
-                </Text>
+                {isUploading ? (
+                  <ActivityIndicator color={theme.accent} size="small" />
+                ) : (
+                  <>
+                    <Camera size={20} color={theme.textMuted} />
+                    <Text
+                      style={{
+                        color: theme.textMuted,
+                        fontSize: 12,
+                        fontWeight: '600',
+                      }}
+                    >
+                      {photoUri ? 'Changer' : 'Caméra / Galerie'}
+                    </Text>
+                  </>
+                )}
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -355,11 +372,7 @@ export default function AddChild() {
                 <User size={14} color={theme.primary} />
               </View>
               <Text
-                style={{
-                  color: theme.text,
-                  fontSize: 15,
-                  fontWeight: '700',
-                }}
+                style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
               >
                 Identité
               </Text>
@@ -379,14 +392,6 @@ export default function AddChild() {
               placeholder="Nom de famille"
               autoCapitalize="words"
               error={errors.lastName}
-            />
-            <InputField
-              label="Âge"
-              value={form.age}
-              onChangeText={setField('age')}
-              placeholder="Ex: 7"
-              keyboardType="numeric"
-              error={errors.age}
             />
           </Animated.View>
 
@@ -422,11 +427,7 @@ export default function AddChild() {
                 <GraduationCap size={14} color={theme.accent} />
               </View>
               <Text
-                style={{
-                  color: theme.text,
-                  fontSize: 15,
-                  fontWeight: '700',
-                }}
+                style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
               >
                 Scolarité
               </Text>
@@ -498,12 +499,10 @@ export default function AddChild() {
           </Animated.View>
 
           {/* Save */}
-          <Animated.View
-            entering={FadeInDown.delay(200).duration(400)}
-            style={btnStyle}
-          >
+          <Animated.View entering={FadeInDown.delay(200).duration(400)}>
             <TouchableOpacity
               onPress={handleSave}
+              disabled={isBusy}
               style={{
                 backgroundColor: theme.accent,
                 borderRadius: 18,
@@ -512,13 +511,34 @@ export default function AddChild() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 8,
+                opacity: isBusy ? 0.6 : 1,
               }}
             >
-              <Save size={18} color="#fff" strokeWidth={2.5} />
-              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-                Enregistrer l'enfant
-              </Text>
+              {isBusy ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Save size={18} color="#fff" strokeWidth={2.5} />
+                  <Text
+                    style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
+                  >
+                    Enregistrer l'enfant
+                  </Text>
+                </>
+              )}
             </TouchableOpacity>
+            {addChild.isError ? (
+              <Text
+                style={{
+                  color: theme.red,
+                  fontSize: 13,
+                  textAlign: 'center',
+                  marginTop: 8,
+                }}
+              >
+                Une erreur est survenue. Réessayez.
+              </Text>
+            ) : null}
           </Animated.View>
         </View>
       </ScrollView>

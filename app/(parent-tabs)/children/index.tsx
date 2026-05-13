@@ -1,5 +1,11 @@
 import React, { useCallback } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ActivityIndicator,
+  FlatList,
+} from 'react-native';
 import { useTheme } from '@/theme';
 import { router } from 'expo-router';
 import Animated, {
@@ -11,29 +17,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { UserPlus, Shield, Clock, ChevronRight } from 'lucide-react-native';
-
-const mockChildren = [
-  {
-    id: '1',
-    firstName: 'Emma',
-    lastName: 'Dupont',
-    age: 8,
-    school: 'École Primaire Saint-Exupéry',
-    grade: 'CE2',
-    activeAuthorizations: 2,
-    todayPickups: 1,
-  },
-  {
-    id: '2',
-    firstName: 'Lucas',
-    lastName: 'Dupont',
-    age: 6,
-    school: 'École Maternelle Les Petits Loups',
-    grade: 'CP',
-    activeAuthorizations: 1,
-    todayPickups: 0,
-  },
-];
+import { useChildren } from '@/features/parent/hooks/useChildren';
+import type { Child } from '@/features/parent/types';
 
 function Avatar({ initials }: { initials: string }) {
   const t = useTheme();
@@ -55,21 +40,21 @@ function Avatar({ initials }: { initials: string }) {
   );
 }
 
-function ChildCard({
+const ChildCard = React.memo(function ChildCard({
   item,
   index,
   onPress,
 }: {
-  item: (typeof mockChildren)[0];
+  item: Child;
   index: number;
-  onPress: (c: (typeof mockChildren)[0]) => void;
+  onPress: (c: Child) => void;
 }) {
   const theme = useTheme();
   const scale = useSharedValue(1);
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
-  const initials = `${item.firstName[0]}${item.lastName[0]}`;
+  const initials = `${item.first_name[0] ?? '?'}${item.last_name[0] ?? ''}`;
 
   return (
     <Animated.View
@@ -106,7 +91,7 @@ function ChildCard({
               <Text
                 style={{ color: theme.text, fontSize: 17, fontWeight: '700' }}
               >
-                {item.firstName} {item.lastName}
+                {item.first_name} {item.last_name}
               </Text>
               <Text
                 style={{
@@ -115,14 +100,19 @@ function ChildCard({
                   marginTop: 2,
                 }}
               >
-                {item.age} ans · {item.grade}
+                {item.grade ?? '—'}
+                {item.date_of_birth
+                  ? ` · ${new Date().getFullYear() - new Date(item.date_of_birth).getFullYear()} ans`
+                  : ''}
               </Text>
-              <Text
-                style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}
-                numberOfLines={1}
-              >
-                {item.school}
-              </Text>
+              {item.school_name ? (
+                <Text
+                  style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}
+                  numberOfLines={1}
+                >
+                  {item.school_name}
+                </Text>
+              ) : null}
             </View>
             <ChevronRight size={18} color={theme.textMuted} />
           </View>
@@ -150,16 +140,15 @@ function ChildCard({
                   width: 28,
                   height: 28,
                   borderRadius: 9,
-                  backgroundColor: 'rgba(30,58,138,0.1)',
+                  backgroundColor: theme.primaryBg,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Shield size={14} color="#1e3a8a" />
+                <Shield size={14} color={theme.primary} />
               </View>
               <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
-                {item.activeAuthorizations} autorisation
-                {item.activeAuthorizations > 1 ? 's' : ''}
+                Personnes autorisées
               </Text>
             </View>
             <View
@@ -175,15 +164,15 @@ function ChildCard({
                   width: 28,
                   height: 28,
                   borderRadius: 9,
-                  backgroundColor: 'rgba(16,185,129,0.1)',
+                  backgroundColor: theme.greenBg,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Clock size={14} color="#10b981" />
+                <Clock size={14} color={theme.green} />
               </View>
               <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
-                {item.todayPickups} aujourd'hui
+                Aujourd'hui
               </Text>
             </View>
           </View>
@@ -191,13 +180,14 @@ function ChildCard({
       </TouchableOpacity>
     </Animated.View>
   );
-}
+});
 
 export default function ChildrenList() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { data: children, isLoading } = useChildren();
 
-  const handleChildPress = useCallback((child: (typeof mockChildren)[0]) => {
+  const handleChildPress = useCallback((child: Child) => {
     router.push(`/(parent-tabs)/children/${child.id}` as any);
   }, []);
 
@@ -207,11 +197,13 @@ export default function ChildrenList() {
   }, []);
 
   const renderChild = useCallback(
-    ({ item, index }: { item: (typeof mockChildren)[0]; index: number }) => (
+    ({ item, index }: { item: Child; index: number }) => (
       <ChildCard item={item} index={index} onPress={handleChildPress} />
     ),
     [handleChildPress]
   );
+
+  const count = children?.length ?? 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -250,7 +242,7 @@ export default function ChildrenList() {
               letterSpacing: -0.5,
             }}
           >
-            {mockChildren.length} enfant{mockChildren.length > 1 ? 's' : ''}
+            {isLoading ? '…' : `${count} enfant${count > 1 ? 's' : ''}`}
           </Text>
         </View>
         <TouchableOpacity
@@ -272,16 +264,59 @@ export default function ChildrenList() {
         </TouchableOpacity>
       </Animated.View>
 
-      <FlatList
-        data={mockChildren}
-        renderItem={renderChild}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{
-          padding: 16,
-          paddingBottom: insets.bottom + 100,
-        }}
-        showsVerticalScrollIndicator={false}
-      />
+      {isLoading ? (
+        <View
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+        >
+          <ActivityIndicator color={theme.accent} size="large" />
+        </View>
+      ) : count === 0 ? (
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 40,
+          }}
+        >
+          <Text
+            style={{
+              color: theme.textMuted,
+              fontSize: 15,
+              textAlign: 'center',
+              lineHeight: 22,
+            }}
+          >
+            Vous n'avez pas encore ajouté d'enfant.{'\n'}Commencez dès
+            maintenant.
+          </Text>
+          <TouchableOpacity
+            onPress={handleAddChild}
+            style={{
+              marginTop: 20,
+              backgroundColor: theme.accent,
+              borderRadius: 14,
+              paddingVertical: 12,
+              paddingHorizontal: 24,
+            }}
+          >
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>
+              Ajouter un enfant
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={children}
+          renderItem={renderChild}
+          keyExtractor={item => item.id}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 100,
+          }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 }

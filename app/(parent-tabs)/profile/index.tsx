@@ -1,4 +1,6 @@
 import { useAuthStore, useSession } from '@/features/auth/store/auth.store';
+import { EditProfileSheet } from '@/features/parent/components/ui/EditProfileSheet';
+import { useParentProfile } from '@/features/parent/hooks/useParentProfile';
 import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { useTheme } from '@/theme';
@@ -12,6 +14,7 @@ import {
   Lock,
   LogOut,
   Moon,
+  Pencil,
   Shield,
   Smartphone,
   User,
@@ -19,6 +22,7 @@ import {
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
+  Modal,
   ScrollView,
   Switch,
   Text,
@@ -127,17 +131,22 @@ export default function ProfileScreen() {
   const logout = useAuthStore(s => s.logout);
   const { isDark, toggleTheme } = useThemeSwitcher();
 
+  const [editSheetVisible, setEditSheetVisible] = useState(false);
   const [prefs, setPrefs] = useState({
     notifications: true,
     biometricAuth: true,
   });
 
-  const profile = session?.user.profile;
+  const { data: profile } = useParentProfile();
+
   const firstName =
-    profile?.first_name ?? session?.user.email?.split('@')[0] ?? '';
-  const lastName = profile?.last_name ?? '';
+    profile?.first_name ??
+    session?.user.profile?.first_name ??
+    session?.user.email?.split('@')[0] ??
+    '';
+  const lastName = profile?.last_name ?? session?.user.profile?.last_name ?? '';
   const email = session?.user.email ?? '';
-  const phone = profile?.phone ?? '';
+  const phone = profile?.phone ?? session?.user.profile?.phone ?? '';
   const initials = `${firstName[0] ?? '?'}${lastName[0] ?? ''}`.toUpperCase();
 
   const toggle = useCallback((key: keyof typeof prefs, value: boolean) => {
@@ -191,14 +200,14 @@ export default function ProfileScreen() {
             iconBg: theme.primaryBg,
             title: 'Informations personnelles',
             subtitle: 'Nom, email, téléphone',
-            onPress: () => {},
+            onPress: () => setEditSheetVisible(true),
           },
           {
             icon: <Shield size={16} color={theme.accent} strokeWidth={2.5} />,
             iconBg: theme.accentBg,
             title: 'Sécurité',
             subtitle: 'Mot de passe, 2FA',
-            onPress: () => {},
+            onPress: () => setEditSheetVisible(true),
           },
         ] as RowItem[],
       },
@@ -317,11 +326,7 @@ export default function ProfileScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text
-                  style={{
-                    color: theme.text,
-                    fontSize: 18,
-                    fontWeight: '800',
-                  }}
+                  style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}
                 >
                   {firstName} {lastName}
                 </Text>
@@ -350,22 +355,23 @@ export default function ProfileScreen() {
               </View>
             </View>
             <TouchableOpacity
-              onPress={() =>
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-              }
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setEditSheetVisible(true);
+              }}
               style={{
                 backgroundColor: theme.profileEditBg,
                 borderRadius: 12,
                 paddingVertical: 10,
                 alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 6,
               }}
             >
+              <Pencil size={14} color={theme.textSecondary} strokeWidth={2.5} />
               <Text
-                style={{
-                  color: theme.text,
-                  fontWeight: '600',
-                  fontSize: 14,
-                }}
+                style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
               >
                 Modifier le profil
               </Text>
@@ -433,11 +439,7 @@ export default function ProfileScreen() {
             >
               <LogOut size={18} color={theme.red} strokeWidth={2.5} />
               <Text
-                style={{
-                  color: theme.red,
-                  fontWeight: '700',
-                  fontSize: 15,
-                }}
+                style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}
               >
                 Se déconnecter
               </Text>
@@ -445,6 +447,23 @@ export default function ProfileScreen() {
           </Animated.View>
         </View>
       </ScrollView>
+
+      {/* Edit Profile Modal Sheet */}
+      <Modal
+        visible={editSheetVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setEditSheetVisible(false)}
+      >
+        {profile ? (
+          <EditProfileSheet
+            profile={profile}
+            onClose={() => setEditSheetVisible(false)}
+          />
+        ) : (
+          <View style={{ flex: 1, backgroundColor: theme.bg }} />
+        )}
+      </Modal>
     </View>
   );
 }
