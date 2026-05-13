@@ -32,7 +32,7 @@ export function useChildren() {
           event: '*',
           schema: 'public',
           table: 'children',
-          filter: `parent_user_id=eq.${parentId}`,
+          filter: `parent_id=eq.${parentId}`,
         },
         payload => {
           if (payload.eventType === 'DELETE') {

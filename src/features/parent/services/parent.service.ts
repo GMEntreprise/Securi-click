@@ -1,12 +1,12 @@
 import { supabase } from '@/lib/supabase/client';
 import type {
-  AddAuthorizedPersonPayload,
+  AddGuardianPayload,
   AddChildPayload,
-  AuthorizedPerson,
+  Guardian,
   Child,
   ParentProfile,
   PickupLog,
-  UpdateAuthorizedPersonPayload,
+  UpdateGuardianPayload,
   UpdateProfilePayload,
 } from '../types';
 
@@ -53,11 +53,11 @@ export const parentService = {
     if (error) throw error;
   },
 
-  async getChildren(parentUserId: string): Promise<Child[]> {
+  async getChildren(parentId: string): Promise<Child[]> {
     const { data, error } = await supabase
       .from('children')
       .select('*')
-      .eq('parent_user_id', parentUserId)
+      .eq('parent_id', parentId)
       .order('created_at', { ascending: false });
     if (error) throw error;
     return (data ?? []) as Child[];
@@ -73,20 +73,18 @@ export const parentService = {
     return data as Child;
   },
 
-  async addChild(
-    parentUserId: string,
-    payload: AddChildPayload
-  ): Promise<Child> {
+  async addChild(parentId: string, payload: AddChildPayload): Promise<Child> {
     const { data, error } = await supabase
       .from('children')
       .insert({
-        parent_user_id: parentUserId,
+        parent_id: parentId,
         first_name: payload.first_name,
         last_name: payload.last_name,
         date_of_birth: payload.date_of_birth,
-        grade: payload.grade,
-        school_name: payload.school_name,
+        class_name: payload.class_name,
+        school_id: payload.school_id ?? null,
         photo_url: payload.photo_url ?? null,
+        medical_notes: payload.medical_notes ?? null,
       })
       .select()
       .single();
@@ -116,94 +114,92 @@ export const parentService = {
     if (error) throw error;
   },
 
-  async getAuthorizedPersons(childId: string): Promise<AuthorizedPerson[]> {
+  async getGuardians(childId: string): Promise<Guardian[]> {
     const { data, error } = await supabase
-      .from('authorized_persons')
+      .from('guardians')
       .select('*')
       .eq('child_id', childId)
-      .order('created_at', { ascending: false });
+      .order('priority', { ascending: true });
     if (error) throw error;
-    return (data ?? []) as AuthorizedPerson[];
+    return (data ?? []) as Guardian[];
   },
 
-  async getAuthorizedPerson(personId: string): Promise<AuthorizedPerson> {
+  async getGuardian(guardianId: string): Promise<Guardian> {
     const { data, error } = await supabase
-      .from('authorized_persons')
+      .from('guardians')
       .select('*')
-      .eq('id', personId)
+      .eq('id', guardianId)
       .single();
     if (error) throw error;
-    return data as AuthorizedPerson;
+    return data as Guardian;
   },
 
-  async addAuthorizedPerson(
-    parentUserId: string,
-    payload: AddAuthorizedPersonPayload
-  ): Promise<AuthorizedPerson> {
+  async addGuardian(
+    parentId: string,
+    payload: AddGuardianPayload
+  ): Promise<Guardian> {
     const { data, error } = await supabase
-      .from('authorized_persons')
+      .from('guardians')
       .insert({
-        parent_user_id: parentUserId,
+        parent_id: parentId,
         child_id: payload.child_id,
         first_name: payload.first_name,
         last_name: payload.last_name,
         phone: payload.phone,
-        relation: payload.relation,
+        email: payload.email ?? null,
+        relationship: payload.relationship,
+        photo_url: payload.photo_url ?? null,
+        priority: payload.priority ?? 1,
         is_active: true,
-        valid_until: payload.valid_until,
-        notes: payload.notes,
       })
       .select()
       .single();
     if (error) throw error;
-    return data as AuthorizedPerson;
+    return data as Guardian;
   },
 
-  async updateAuthorizedPerson(
-    personId: string,
-    payload: UpdateAuthorizedPersonPayload
-  ): Promise<AuthorizedPerson> {
+  async updateGuardian(
+    guardianId: string,
+    payload: UpdateGuardianPayload
+  ): Promise<Guardian> {
     const { data, error } = await supabase
-      .from('authorized_persons')
+      .from('guardians')
       .update({ ...payload, updated_at: new Date().toISOString() })
-      .eq('id', personId)
+      .eq('id', guardianId)
       .select()
       .single();
     if (error) throw error;
-    return data as AuthorizedPerson;
+    return data as Guardian;
   },
 
-  async toggleAuthorizedPerson(
-    personId: string,
-    isActive: boolean
-  ): Promise<void> {
+  async toggleGuardian(guardianId: string, isActive: boolean): Promise<void> {
     const { error } = await supabase
-      .from('authorized_persons')
+      .from('guardians')
       .update({ is_active: isActive, updated_at: new Date().toISOString() })
-      .eq('id', personId);
+      .eq('id', guardianId);
     if (error) throw error;
   },
 
-  async deleteAuthorizedPerson(personId: string): Promise<void> {
+  async deleteGuardian(guardianId: string): Promise<void> {
     const { error } = await supabase
-      .from('authorized_persons')
+      .from('guardians')
       .delete()
-      .eq('id', personId);
+      .eq('id', guardianId);
     if (error) throw error;
   },
 
-  async getPickupLogs(parentUserId: string, limit = 50): Promise<PickupLog[]> {
+  async getPickupLogs(parentId: string, limit = 50): Promise<PickupLog[]> {
     const { data, error } = await supabase
       .from('pickup_logs')
       .select(
         `
         *,
-        child:children(first_name, last_name, photo_url),
-        authorized_person:authorized_persons(first_name, last_name, relation)
+        child:children!inner(first_name, last_name, photo_url),
+        guardian:guardians(first_name, last_name, relationship)
       `
       )
-      .eq('children.parent_user_id', parentUserId)
-      .order('scanned_at', { ascending: false })
+      .eq('children.parent_id', parentId)
+      .order('pickup_time', { ascending: false })
       .limit(limit);
     if (error) throw error;
     return (data ?? []) as PickupLog[];

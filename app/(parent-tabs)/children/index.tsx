@@ -100,19 +100,11 @@ const ChildCard = React.memo(function ChildCard({
                   marginTop: 2,
                 }}
               >
-                {item.grade ?? '—'}
+                {item.class_name ?? '—'}
                 {item.date_of_birth
                   ? ` · ${new Date().getFullYear() - new Date(item.date_of_birth).getFullYear()} ans`
                   : ''}
               </Text>
-              {item.school_name ? (
-                <Text
-                  style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}
-                  numberOfLines={1}
-                >
-                  {item.school_name}
-                </Text>
-              ) : null}
             </View>
             <ChevronRight size={18} color={theme.textMuted} />
           </View>

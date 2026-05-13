@@ -26,13 +26,12 @@ import {
 } from 'lucide-react-native';
 import { useSession } from '@/features/auth/store/auth.store';
 import { useAddChild } from '@/features/parent/hooks/useChildren';
-import { useUploadImage } from '@/features/parent/hooks/useUploadImage';
+import { useImagePicker } from '@/hooks';
 
 interface FormData {
   firstName: string;
   lastName: string;
-  school: string;
-  grade: string;
+  className: string;
 }
 
 type FormErrors = Partial<Record<keyof FormData, string>>;
@@ -123,7 +122,7 @@ export default function AddChild() {
   const userId = session?.user.id ?? '';
 
   const addChild = useAddChild();
-  const { pickFromGallery, takePhoto, isUploading } = useUploadImage({
+  const { pickFromGallery, takePhoto, isUploading } = useImagePicker({
     bucket: 'children-images',
     userId,
   });
@@ -131,8 +130,7 @@ export default function AddChild() {
   const [form, setForm] = useState<FormData>({
     firstName: '',
     lastName: '',
-    school: '',
-    grade: '',
+    className: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -150,8 +148,7 @@ export default function AddChild() {
     const next: FormErrors = {};
     if (!form.firstName.trim()) next.firstName = 'Prénom requis';
     if (!form.lastName.trim()) next.lastName = 'Nom requis';
-    if (!form.school.trim()) next.school = 'École requise';
-    if (!form.grade.trim()) next.grade = 'Classe requise';
+    if (!form.className.trim()) next.className = 'Classe requise';
     setErrors(next);
     return Object.keys(next).length === 0;
   }, [form]);
@@ -192,8 +189,7 @@ export default function AddChild() {
       first_name: form.firstName.trim(),
       last_name: form.lastName.trim(),
       date_of_birth: null,
-      grade: form.grade,
-      school_name: form.school.trim(),
+      class_name: form.className.trim(),
       photo_url: photoUrl,
     });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -432,13 +428,6 @@ export default function AddChild() {
                 Scolarité
               </Text>
             </View>
-            <InputField
-              label="École"
-              value={form.school}
-              onChangeText={setField('school')}
-              placeholder="Nom de l'établissement"
-              error={errors.school}
-            />
             <Text
               style={{
                 color: theme.textSecondary,
@@ -451,13 +440,13 @@ export default function AddChild() {
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {GRADES.map(g => {
-                const active = form.grade === g;
+                const active = form.className === g;
                 return (
                   <TouchableOpacity
                     key={g}
                     onPress={() => {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setField('grade')(g);
+                      setField('className')(g);
                     }}
                     style={{
                       paddingHorizontal: 12,
@@ -481,7 +470,7 @@ export default function AddChild() {
                 );
               })}
             </View>
-            {errors.grade ? (
+            {errors.className ? (
               <View
                 style={{
                   flexDirection: 'row',
@@ -492,7 +481,7 @@ export default function AddChild() {
               >
                 <AlertCircle size={13} color={theme.red} />
                 <Text style={{ color: theme.red, fontSize: 12 }}>
-                  {errors.grade}
+                  {errors.className}
                 </Text>
               </View>
             ) : null}

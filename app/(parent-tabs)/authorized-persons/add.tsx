@@ -14,20 +14,12 @@ import { z } from 'zod';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  ArrowLeft,
-  User,
-  Phone,
-  Heart,
-  Calendar,
-  Check,
-  FileText,
-} from 'lucide-react-native';
+import { ArrowLeft, User, Phone, Check } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
-import { useAddAuthorizedPerson } from '@/features/parent/hooks/useAuthorizedPersons';
+import { useAddGuardian } from '@/features/parent/hooks/useGuardians';
 
-const RELATIONS = [
+const RELATIONSHIPS = [
   'Grand-père',
   'Grand-mère',
   'Oncle',
@@ -43,21 +35,19 @@ const schema = z.object({
   first_name: z.string().min(2, 'Minimum 2 caractères'),
   last_name: z.string().min(2, 'Minimum 2 caractères'),
   phone: z.string().min(10, 'Numéro invalide'),
-  relation: z.string().min(1, 'Sélectionnez une relation'),
-  valid_until: z.string().nullable(),
-  notes: z.string().nullable(),
+  relationship: z.string().min(1, 'Sélectionnez une relation'),
 });
 
 type FormData = z.infer<typeof schema>;
 
-export default function AddAuthorizedPersonScreen() {
+export default function AddGuardianScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { childId } = useLocalSearchParams<{ childId: string }>();
-  const addPerson = useAddAuthorizedPerson();
+  const addGuardian = useAddGuardian();
 
-  const [selectedRelation, setSelectedRelation] = useState('');
+  const [selectedRelationship, setSelectedRelationship] = useState('');
 
   const {
     control,
@@ -70,16 +60,14 @@ export default function AddAuthorizedPersonScreen() {
       first_name: '',
       last_name: '',
       phone: '',
-      relation: '',
-      valid_until: null,
-      notes: null,
+      relationship: '',
     },
   });
 
-  const handleRelationSelect = useCallback(
-    (relation: string) => {
-      setSelectedRelation(relation);
-      setValue('relation', relation, { shouldValidate: true });
+  const handleRelationshipSelect = useCallback(
+    (rel: string) => {
+      setSelectedRelationship(rel);
+      setValue('relationship', rel, { shouldValidate: true });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     },
     [setValue]
@@ -89,19 +77,17 @@ export default function AddAuthorizedPersonScreen() {
     async (data: FormData) => {
       if (!childId) return;
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await addPerson.mutateAsync({
+      await addGuardian.mutateAsync({
         child_id: childId,
         first_name: data.first_name,
         last_name: data.last_name,
         phone: data.phone,
-        relation: data.relation,
-        valid_until: data.valid_until,
-        notes: data.notes,
+        relationship: data.relationship,
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     },
-    [childId, addPerson, router]
+    [childId, addGuardian, router]
   );
 
   return (
@@ -220,12 +206,12 @@ export default function AddAuthorizedPersonScreen() {
             Relation
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {RELATIONS.map(r => {
-              const active = selectedRelation === r;
+            {RELATIONSHIPS.map(r => {
+              const active = selectedRelationship === r;
               return (
                 <TouchableOpacity
                   key={r}
-                  onPress={() => handleRelationSelect(r)}
+                  onPress={() => handleRelationshipSelect(r)}
                   style={{
                     paddingVertical: 8,
                     paddingHorizontal: 14,
@@ -248,32 +234,11 @@ export default function AddAuthorizedPersonScreen() {
               );
             })}
           </View>
-          {errors.relation?.message ? (
+          {errors.relationship?.message ? (
             <Text style={{ color: theme.red, fontSize: 12, marginTop: 6 }}>
-              {errors.relation.message}
+              {errors.relationship.message}
             </Text>
           ) : null}
-        </Animated.View>
-
-        {/* Optional fields */}
-        <Animated.View entering={FadeInDown.delay(240).duration(400)}>
-          <AuthInputField
-            control={control}
-            name="valid_until"
-            label="Valide jusqu'au (optionnel)"
-            icon={<Calendar size={16} color={theme.textMuted} />}
-            placeholder="AAAA-MM-JJ"
-            error={errors.valid_until?.message ?? undefined}
-          />
-          <AuthInputField
-            control={control}
-            name="notes"
-            label="Notes (optionnel)"
-            icon={<FileText size={16} color={theme.textMuted} />}
-            placeholder="Ex. récupère les mercredis"
-            multiline
-            error={errors.notes?.message ?? undefined}
-          />
         </Animated.View>
       </ScrollView>
 
@@ -290,7 +255,7 @@ export default function AddAuthorizedPersonScreen() {
       >
         <TouchableOpacity
           onPress={handleSubmit(onSubmit)}
-          disabled={addPerson.isPending}
+          disabled={addGuardian.isPending}
           style={{
             backgroundColor: theme.accent,
             borderRadius: 18,
@@ -299,15 +264,15 @@ export default function AddAuthorizedPersonScreen() {
             flexDirection: 'row',
             justifyContent: 'center',
             gap: 8,
-            opacity: addPerson.isPending ? 0.6 : 1,
+            opacity: addGuardian.isPending ? 0.6 : 1,
           }}
         >
           <Check size={18} color="#fff" strokeWidth={2.5} />
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-            {addPerson.isPending ? 'Enregistrement…' : 'Ajouter la personne'}
+            {addGuardian.isPending ? 'Enregistrement…' : 'Ajouter la personne'}
           </Text>
         </TouchableOpacity>
-        {addPerson.isError ? (
+        {addGuardian.isError ? (
           <Text
             style={{
               color: theme.red,

@@ -1,29 +1,30 @@
 export interface Child {
   id: string;
-  parent_user_id: string;
+  parent_id: string;
+  school_id: string | null;
   first_name: string;
   last_name: string;
   date_of_birth: string | null;
-  grade: string | null;
-  school_id: string | null;
-  school_name: string | null;
   photo_url: string | null;
+  class_name: string | null;
+  medical_notes: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-export interface AuthorizedPerson {
+export interface Guardian {
   id: string;
-  parent_user_id: string;
+  parent_id: string;
   child_id: string;
   first_name: string;
   last_name: string;
   phone: string;
-  relation: string;
-  is_active: boolean;
-  valid_until: string | null;
+  email: string | null;
+  relationship: string;
   photo_url: string | null;
-  notes: string | null;
+  priority: number;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -44,17 +45,16 @@ export interface ParentProfile {
 export interface PickupLog {
   id: string;
   child_id: string;
-  authorized_person_id: string | null;
-  collector_user_id: string | null;
-  school_id: string | null;
-  status: 'completed' | 'pending' | 'refused' | 'replay_attempt';
-  scanned_at: string;
+  guardian_id: string | null;
+  qr_code_id: string | null;
+  staff_id: string | null;
+  pickup_time: string;
+  status: 'completed' | 'denied' | 'cancelled';
+  denial_reason: string | null;
   notes: string | null;
+  created_at: string;
   child?: Pick<Child, 'first_name' | 'last_name' | 'photo_url'>;
-  authorized_person?: Pick<
-    AuthorizedPerson,
-    'first_name' | 'last_name' | 'relation'
-  >;
+  guardian?: Pick<Guardian, 'first_name' | 'last_name' | 'relationship'>;
 }
 
 export interface UpdateProfilePayload {
@@ -73,26 +73,28 @@ export interface AddChildPayload {
   first_name: string;
   last_name: string;
   date_of_birth: string | null;
-  grade: string;
-  school_name: string;
+  class_name: string;
+  school_id?: string | null;
   photo_url?: string | null;
+  medical_notes?: string | null;
 }
 
-export interface AddAuthorizedPersonPayload {
+export interface AddGuardianPayload {
   child_id: string;
   first_name: string;
   last_name: string;
   phone: string;
-  relation: string;
-  valid_until: string | null;
-  notes: string | null;
+  email?: string | null;
+  relationship: string;
+  photo_url?: string | null;
+  priority?: number;
 }
 
-export interface UpdateAuthorizedPersonPayload {
+export interface UpdateGuardianPayload {
   first_name: string;
   last_name: string;
   phone: string;
-  relation: string;
-  valid_until: string | null;
-  notes: string | null;
+  email?: string | null;
+  relationship: string;
+  priority?: number;
 }

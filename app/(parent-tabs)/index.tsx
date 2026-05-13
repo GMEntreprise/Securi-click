@@ -1,5 +1,11 @@
 import React, { useMemo, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 import { useTheme } from '@/theme';
 import { useSession } from '@/features/auth/store/auth.store';
 import { router } from 'expo-router';
@@ -18,37 +24,12 @@ import {
   Clock,
   CheckCircle,
   TrendingUp,
+  UserPlus,
+  AlertCircle,
 } from 'lucide-react-native';
-
-const mockStats = {
-  activeAuthorizations: 3,
-  todayPickups: 2,
-  childrenCount: 2,
-};
-
-const mockRecentActivity = [
-  {
-    id: '1',
-    childName: 'Emma',
-    time: '14:30',
-    status: 'completed',
-    collector: 'Jean Dupont',
-  },
-  {
-    id: '2',
-    childName: 'Lucas',
-    time: '09:15',
-    status: 'pending',
-    collector: 'Marie Martin',
-  },
-  {
-    id: '3',
-    childName: 'Emma',
-    time: '16:45',
-    status: 'completed',
-    collector: 'Jean Dupont',
-  },
-];
+import { useChildren } from '@/features/parent/hooks/useChildren';
+import { useRecentPickupLogs } from '@/features/parent/hooks/usePickupLogs';
+import type { PickupLog } from '@/features/parent/types';
 
 interface QuickAction {
   id: string;
@@ -126,12 +107,28 @@ const ActivityRow = React.memo(function ActivityRow({
   index,
   isLast,
 }: {
-  item: (typeof mockRecentActivity)[0];
+  item: PickupLog;
   index: number;
   isLast: boolean;
 }) {
   const theme = useTheme();
   const isSuccess = item.status === 'completed';
+  const isDenied = item.status === 'denied';
+
+  const color = isSuccess ? theme.green : isDenied ? theme.red : theme.amber;
+  const bg = isSuccess ? theme.greenBg : isDenied ? theme.redBg : theme.amberBg;
+  const label = isSuccess ? 'OK' : isDenied ? 'Refus' : 'Annulé';
+
+  const childName = item.child
+    ? `${item.child.first_name} ${item.child.last_name}`
+    : '—';
+  const guardianName = item.guardian
+    ? `${item.guardian.first_name} ${item.guardian.last_name}`
+    : 'Inconnu';
+  const time = new Date(item.pickup_time).toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   return (
     <Animated.View
@@ -150,24 +147,26 @@ const ActivityRow = React.memo(function ActivityRow({
           width: 36,
           height: 36,
           borderRadius: 12,
-          backgroundColor: isSuccess ? theme.greenBg : theme.amberBg,
+          backgroundColor: bg,
           alignItems: 'center',
           justifyContent: 'center',
           marginRight: 12,
         }}
       >
         {isSuccess ? (
-          <CheckCircle size={18} color={theme.green} strokeWidth={2} />
+          <CheckCircle size={18} color={color} strokeWidth={2} />
+        ) : isDenied ? (
+          <AlertCircle size={18} color={color} strokeWidth={2} />
         ) : (
-          <Clock size={18} color={theme.amber} strokeWidth={2} />
+          <Clock size={18} color={color} strokeWidth={2} />
         )}
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}>
-          {item.childName}
+          {childName}
         </Text>
         <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
-          {item.collector} · {item.time}
+          {guardianName} · {time}
         </Text>
       </View>
       <View
@@ -175,18 +174,10 @@ const ActivityRow = React.memo(function ActivityRow({
           paddingHorizontal: 8,
           paddingVertical: 3,
           borderRadius: 20,
-          backgroundColor: isSuccess ? theme.greenBg : theme.amberBg,
+          backgroundColor: bg,
         }}
       >
-        <Text
-          style={{
-            fontSize: 11,
-            fontWeight: '700',
-            color: isSuccess ? theme.green : theme.amber,
-          }}
-        >
-          {isSuccess ? 'OK' : 'Attente'}
-        </Text>
+        <Text style={{ fontSize: 11, fontWeight: '700', color }}>{label}</Text>
       </View>
     </Animated.View>
   );
@@ -201,6 +192,14 @@ export default function ParentDashboard() {
     session?.user.profile?.first_name ??
     session?.user.email?.split('@')[0] ??
     'Parent';
+
+  const { data: children } = useChildren();
+  const { data: recentLogs, isLoading: logsLoading } = useRecentPickupLogs(5);
+
+  const childrenCount = children?.length ?? 0;
+  const completedCount = (recentLogs ?? []).filter(
+    l => l.status === 'completed'
+  ).length;
 
   const quickActions = useMemo<QuickAction[]>(
     () => [
@@ -219,10 +218,17 @@ export default function ParentDashboard() {
         onPress: () => router.push('/(parent-tabs)/children' as any),
       },
       {
-        id: 'history',
-        icon: <Clock size={22} color={theme.green} strokeWidth={2} />,
-        label: 'Historique',
+        id: 'add-guardian',
+        icon: <UserPlus size={22} color={theme.green} strokeWidth={2} />,
+        label: 'Autoriser',
         accentBg: theme.greenBg,
+        onPress: () => router.push('/(parent-tabs)/children' as any),
+      },
+      {
+        id: 'history',
+        icon: <Clock size={22} color={theme.textSecondary} strokeWidth={2} />,
+        label: 'Historique',
+        accentBg: theme.iconBg,
         onPress: () => router.push('/(parent-tabs)/history' as any),
       },
     ],
@@ -233,27 +239,27 @@ export default function ParentDashboard() {
     () => [
       {
         icon: <Shield size={18} color={theme.accent} />,
-        label: 'Autorisations',
-        value: mockStats.activeAuthorizations,
+        label: 'Enfants',
+        value: childrenCount,
         bg: theme.accentBg,
         color: theme.accent,
       },
       {
         icon: <TrendingUp size={18} color={theme.green} />,
         label: 'Récupérations',
-        value: mockStats.todayPickups,
+        value: completedCount,
         bg: theme.greenBg,
         color: theme.green,
       },
       {
         icon: <Users size={18} color={theme.primary} />,
-        label: 'Enfants',
-        value: mockStats.childrenCount,
+        label: 'Récents',
+        value: recentLogs?.length ?? 0,
         bg: theme.primaryBg,
         color: theme.primary,
       },
     ],
-    [theme]
+    [theme, childrenCount, completedCount, recentLogs]
   );
 
   return (
@@ -405,14 +411,30 @@ export default function ParentDashboard() {
               overflow: 'hidden',
             }}
           >
-            {mockRecentActivity.map((item, i) => (
-              <ActivityRow
-                key={item.id}
-                item={item}
-                index={i}
-                isLast={i === mockRecentActivity.length - 1}
+            {logsLoading ? (
+              <ActivityIndicator
+                color={theme.accent}
+                style={{ paddingVertical: 24 }}
               />
-            ))}
+            ) : (recentLogs ?? []).length === 0 ? (
+              <View
+                style={{ paddingVertical: 24, alignItems: 'center', gap: 8 }}
+              >
+                <Clock size={28} color={theme.textMuted} strokeWidth={1.5} />
+                <Text style={{ color: theme.textMuted, fontSize: 14 }}>
+                  Aucune activité récente
+                </Text>
+              </View>
+            ) : (
+              (recentLogs ?? []).map((item, i) => (
+                <ActivityRow
+                  key={item.id}
+                  item={item}
+                  index={i}
+                  isLast={i === (recentLogs ?? []).length - 1}
+                />
+              ))
+            )}
           </View>
         </Animated.View>
       </View>

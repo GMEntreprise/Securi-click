@@ -21,8 +21,6 @@ import {
   ArrowLeft,
   User,
   Phone,
-  Calendar,
-  FileText,
   Check,
   Trash2,
   ToggleLeft,
@@ -31,13 +29,13 @@ import {
 import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import {
-  useUpdateAuthorizedPerson,
-  useToggleAuthorizedPerson,
-  useDeleteAuthorizedPerson,
-} from '@/features/parent/hooks/useAuthorizedPersons';
+  useUpdateGuardian,
+  useToggleGuardian,
+  useDeleteGuardian,
+} from '@/features/parent/hooks/useGuardians';
 import { parentService } from '@/features/parent/services/parent.service';
 
-const RELATIONS = [
+const RELATIONSHIPS = [
   'Grand-père',
   'Grand-mère',
   'Oncle',
@@ -53,14 +51,12 @@ const schema = z.object({
   first_name: z.string().min(2, 'Minimum 2 caractères'),
   last_name: z.string().min(2, 'Minimum 2 caractères'),
   phone: z.string().min(10, 'Numéro invalide'),
-  relation: z.string().min(1, 'Sélectionnez une relation'),
-  valid_until: z.string().nullable(),
-  notes: z.string().nullable(),
+  relationship: z.string().min(1, 'Sélectionnez une relation'),
 });
 
 type FormData = z.infer<typeof schema>;
 
-export default function AuthorizedPersonDetailScreen() {
+export default function GuardianDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
@@ -69,17 +65,17 @@ export default function AuthorizedPersonDetailScreen() {
     childId: string;
   }>();
 
-  const { data: person, isLoading } = useQuery({
-    queryKey: ['authorized-person', id],
-    queryFn: () => parentService.getAuthorizedPerson(id ?? ''),
+  const { data: guardian, isLoading } = useQuery({
+    queryKey: ['guardian', id],
+    queryFn: () => parentService.getGuardian(id ?? ''),
     enabled: !!id,
   });
 
-  const updatePerson = useUpdateAuthorizedPerson(childId ?? '');
-  const togglePerson = useToggleAuthorizedPerson(childId ?? '');
-  const deletePerson = useDeleteAuthorizedPerson(childId ?? '');
+  const updateGuardian = useUpdateGuardian(childId ?? '');
+  const toggleGuardian = useToggleGuardian(childId ?? '');
+  const deleteGuardian = useDeleteGuardian(childId ?? '');
 
-  const [selectedRelation, setSelectedRelation] = useState('');
+  const [selectedRelationship, setSelectedRelationship] = useState('');
 
   const {
     control,
@@ -93,30 +89,26 @@ export default function AuthorizedPersonDetailScreen() {
       first_name: '',
       last_name: '',
       phone: '',
-      relation: '',
-      valid_until: null,
-      notes: null,
+      relationship: '',
     },
   });
 
   useEffect(() => {
-    if (person) {
+    if (guardian) {
       reset({
-        first_name: person.first_name,
-        last_name: person.last_name,
-        phone: person.phone,
-        relation: person.relation,
-        valid_until: person.valid_until,
-        notes: person.notes,
+        first_name: guardian.first_name,
+        last_name: guardian.last_name,
+        phone: guardian.phone,
+        relationship: guardian.relationship,
       });
-      setSelectedRelation(person.relation);
+      setSelectedRelationship(guardian.relationship);
     }
-  }, [person, reset]);
+  }, [guardian, reset]);
 
-  const handleRelationSelect = useCallback(
-    (relation: string) => {
-      setSelectedRelation(relation);
-      setValue('relation', relation, { shouldValidate: true });
+  const handleRelationshipSelect = useCallback(
+    (rel: string) => {
+      setSelectedRelationship(rel);
+      setValue('relationship', rel, { shouldValidate: true });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     },
     [setValue]
@@ -126,48 +118,46 @@ export default function AuthorizedPersonDetailScreen() {
     async (data: FormData) => {
       if (!id) return;
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await updatePerson.mutateAsync({
-        personId: id,
+      await updateGuardian.mutateAsync({
+        guardianId: id,
         payload: {
           first_name: data.first_name,
           last_name: data.last_name,
           phone: data.phone,
-          relation: data.relation,
-          valid_until: data.valid_until,
-          notes: data.notes,
+          relationship: data.relationship,
         },
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       router.back();
     },
-    [id, updatePerson, router]
+    [id, updateGuardian, router]
   );
 
   const handleToggle = useCallback(() => {
-    if (!id || !person) return;
+    if (!id || !guardian) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    togglePerson.mutate({ personId: id, isActive: !person.is_active });
-  }, [id, person, togglePerson]);
+    toggleGuardian.mutate({ guardianId: id, isActive: !guardian.is_active });
+  }, [id, guardian, toggleGuardian]);
 
   const handleDelete = useCallback(() => {
-    if (!id || !person) return;
+    if (!id || !guardian) return;
     Alert.alert(
       "Supprimer l'autorisation",
-      `Retirer l'accès à ${person.first_name} ${person.last_name} ?`,
+      `Retirer l'accès à ${guardian.first_name} ${guardian.last_name} ?`,
       [
         { text: 'Annuler', style: 'cancel' },
         {
           text: 'Supprimer',
           style: 'destructive',
           onPress: () => {
-            deletePerson.mutate(id);
+            deleteGuardian.mutate(id);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             router.back();
           },
         },
       ]
     );
-  }, [id, person, deletePerson, router]);
+  }, [id, guardian, deleteGuardian, router]);
 
   if (isLoading) {
     return (
@@ -237,31 +227,31 @@ export default function AuthorizedPersonDetailScreen() {
             <Text
               style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}
             >
-              {person ? `${person.first_name} ${person.last_name}` : '—'}
+              {guardian ? `${guardian.first_name} ${guardian.last_name}` : '—'}
             </Text>
           </View>
         </View>
 
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          {/* Toggle active */}
           <TouchableOpacity
             onPress={handleToggle}
             style={{
               width: 40,
               height: 40,
               borderRadius: 14,
-              backgroundColor: person?.is_active ? theme.greenBg : theme.iconBg,
+              backgroundColor: guardian?.is_active
+                ? theme.greenBg
+                : theme.iconBg,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            {person?.is_active ? (
+            {guardian?.is_active ? (
               <ToggleRight size={20} color={theme.green} />
             ) : (
               <ToggleLeft size={20} color={theme.textMuted} />
             )}
           </TouchableOpacity>
-          {/* Delete */}
           <TouchableOpacity
             onPress={handleDelete}
             style={{
@@ -287,11 +277,13 @@ export default function AuthorizedPersonDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Status banner */}
-        {person && (
+        {guardian && (
           <Animated.View
             entering={FadeInDown.delay(60).duration(300)}
             style={{
-              backgroundColor: person.is_active ? theme.greenBg : theme.iconBg,
+              backgroundColor: guardian.is_active
+                ? theme.greenBg
+                : theme.iconBg,
               borderRadius: 14,
               padding: 12,
               marginBottom: 20,
@@ -305,19 +297,19 @@ export default function AuthorizedPersonDetailScreen() {
                 width: 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: person.is_active
+                backgroundColor: guardian.is_active
                   ? theme.green
                   : theme.textMuted,
               }}
             />
             <Text
               style={{
-                color: person.is_active ? theme.green : theme.textMuted,
+                color: guardian.is_active ? theme.green : theme.textMuted,
                 fontWeight: '600',
                 fontSize: 13,
               }}
             >
-              {person.is_active
+              {guardian.is_active
                 ? "Accès actif — peut récupérer l'enfant"
                 : 'Accès désactivé'}
             </Text>
@@ -370,12 +362,12 @@ export default function AuthorizedPersonDetailScreen() {
             Relation
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {RELATIONS.map(r => {
-              const active = selectedRelation === r;
+            {RELATIONSHIPS.map(r => {
+              const active = selectedRelationship === r;
               return (
                 <TouchableOpacity
                   key={r}
-                  onPress={() => handleRelationSelect(r)}
+                  onPress={() => handleRelationshipSelect(r)}
                   style={{
                     paddingVertical: 8,
                     paddingHorizontal: 14,
@@ -398,31 +390,11 @@ export default function AuthorizedPersonDetailScreen() {
               );
             })}
           </View>
-          {errors.relation?.message ? (
+          {errors.relationship?.message ? (
             <Text style={{ color: theme.red, fontSize: 12, marginTop: 6 }}>
-              {errors.relation.message}
+              {errors.relationship.message}
             </Text>
           ) : null}
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(240).duration(400)}>
-          <AuthInputField
-            control={control}
-            name="valid_until"
-            label="Valide jusqu'au (optionnel)"
-            icon={<Calendar size={16} color={theme.textMuted} />}
-            placeholder="AAAA-MM-JJ"
-            error={errors.valid_until?.message ?? undefined}
-          />
-          <AuthInputField
-            control={control}
-            name="notes"
-            label="Notes (optionnel)"
-            icon={<FileText size={16} color={theme.textMuted} />}
-            placeholder="Ex. récupère les mercredis"
-            multiline
-            error={errors.notes?.message ?? undefined}
-          />
         </Animated.View>
       </ScrollView>
 
@@ -439,7 +411,7 @@ export default function AuthorizedPersonDetailScreen() {
       >
         <TouchableOpacity
           onPress={handleSubmit(onSubmit)}
-          disabled={updatePerson.isPending}
+          disabled={updateGuardian.isPending}
           style={{
             backgroundColor: theme.primary,
             borderRadius: 18,
@@ -448,17 +420,17 @@ export default function AuthorizedPersonDetailScreen() {
             flexDirection: 'row',
             justifyContent: 'center',
             gap: 8,
-            opacity: updatePerson.isPending ? 0.6 : 1,
+            opacity: updateGuardian.isPending ? 0.6 : 1,
           }}
         >
           <Check size={18} color="#fff" strokeWidth={2.5} />
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-            {updatePerson.isPending
+            {updateGuardian.isPending
               ? 'Enregistrement…'
               : 'Enregistrer les modifications'}
           </Text>
         </TouchableOpacity>
-        {updatePerson.isError ? (
+        {updateGuardian.isError ? (
           <Text
             style={{
               color: theme.red,

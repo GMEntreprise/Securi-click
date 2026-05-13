@@ -11,57 +11,16 @@ import {
   MapPin,
   Calendar,
 } from 'lucide-react-native';
+import { usePickupLogs } from '@/features/parent/hooks/usePickupLogs';
+import type { PickupLog } from '@/features/parent/types';
 
-const mockHistory = [
-  {
-    id: '1',
-    childName: 'Emma',
-    collectorName: 'Jean Dupont',
-    time: '14:30',
-    date: '2025-01-15',
-    location: 'École Saint-Exupéry',
-    status: 'completed',
-    type: 'pickup',
-  },
-  {
-    id: '2',
-    childName: 'Lucas',
-    collectorName: 'Marie Martin',
-    time: '09:15',
-    date: '2025-01-15',
-    location: 'Portail principal',
-    status: 'pending',
-    type: 'authorization',
-  },
-  {
-    id: '3',
-    childName: 'Emma',
-    collectorName: 'Jean Dupont',
-    time: '16:45',
-    date: '2025-01-14',
-    location: 'École Saint-Exupéry',
-    status: 'completed',
-    type: 'pickup',
-  },
-  {
-    id: '4',
-    childName: 'Lucas',
-    collectorName: 'Inconnu',
-    time: '12:00',
-    date: '2025-01-14',
-    location: 'Portail secondaire',
-    status: 'failed',
-    type: 'pickup',
-  },
-];
-
-type FilterId = 'all' | 'completed' | 'pending' | 'failed';
+type FilterId = 'all' | 'completed' | 'denied' | 'cancelled';
 
 const FILTERS: { id: FilterId; label: string }[] = [
   { id: 'all', label: 'Tout' },
   { id: 'completed', label: 'Succès' },
-  { id: 'pending', label: 'Attente' },
-  { id: 'failed', label: 'Échecs' },
+  { id: 'denied', label: 'Refusés' },
+  { id: 'cancelled', label: 'Annulés' },
 ];
 
 const STATUS_CONFIG = {
@@ -71,32 +30,39 @@ const STATUS_CONFIG = {
     label: 'Succès',
     Icon: CheckCircle,
   },
-  pending: {
-    color: '#f59e0b',
-    bg: 'rgba(245,158,11,0.12)',
-    label: 'Attente',
-    Icon: Clock,
-  },
-  failed: {
+  denied: {
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.12)',
-    label: 'Échec',
+    label: 'Refusé',
     Icon: AlertCircle,
+  },
+  cancelled: {
+    color: '#f59e0b',
+    bg: 'rgba(245,158,11,0.12)',
+    label: 'Annulé',
+    Icon: Clock,
   },
 };
 
-function HistoryItem({
-  item,
-  index,
-}: {
-  item: (typeof mockHistory)[0];
-  index: number;
-}) {
+function HistoryItem({ item, index }: { item: PickupLog; index: number }) {
   const theme = useTheme();
   const cfg =
     STATUS_CONFIG[item.status as keyof typeof STATUS_CONFIG] ??
-    STATUS_CONFIG.pending;
+    STATUS_CONFIG.cancelled;
   const { Icon } = cfg;
+
+  const childName = item.child
+    ? `${item.child.first_name} ${item.child.last_name}`
+    : '—';
+  const guardianName = item.guardian
+    ? `${item.guardian.first_name} ${item.guardian.last_name}`
+    : 'Inconnu';
+  const pickupDate = new Date(item.pickup_time);
+  const dateStr = pickupDate.toLocaleDateString('fr-FR');
+  const timeStr = pickupDate.toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   return (
     <Animated.View
@@ -139,7 +105,7 @@ function HistoryItem({
               <Text
                 style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
               >
-                {item.childName}
+                {childName}
               </Text>
             </View>
             <View
@@ -165,9 +131,9 @@ function HistoryItem({
               marginBottom: 6,
             }}
           >
-            {item.type === 'pickup' ? 'Récupéré par' : 'Autorisation pour'}{' '}
+            Récupéré par{' '}
             <Text style={{ fontWeight: '600', color: theme.text }}>
-              {item.collectorName}
+              {guardianName}
             </Text>
           </Text>
 
@@ -177,25 +143,27 @@ function HistoryItem({
             >
               <Calendar size={12} color={theme.textMuted} />
               <Text style={{ color: theme.textMuted, fontSize: 12 }}>
-                {new Date(item.date).toLocaleDateString('fr-FR')} · {item.time}
+                {dateStr} · {timeStr}
               </Text>
             </View>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                flex: 1,
-              }}
-            >
-              <MapPin size={12} color={theme.textMuted} />
-              <Text
-                style={{ color: theme.textMuted, fontSize: 12 }}
-                numberOfLines={1}
+            {item.denial_reason ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  flex: 1,
+                }}
               >
-                {item.location}
-              </Text>
-            </View>
+                <MapPin size={12} color={theme.textMuted} />
+                <Text
+                  style={{ color: theme.textMuted, fontSize: 12 }}
+                  numberOfLines={1}
+                >
+                  {item.denial_reason}
+                </Text>
+              </View>
+            ) : null}
           </View>
         </View>
       </View>
@@ -207,22 +175,23 @@ export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const [filter, setFilter] = useState<FilterId>('all');
+  const { data: logs, isLoading } = usePickupLogs(100);
 
   const stats = useMemo(
     () => ({
-      completed: mockHistory.filter(i => i.status === 'completed').length,
-      pending: mockHistory.filter(i => i.status === 'pending').length,
-      failed: mockHistory.filter(i => i.status === 'failed').length,
+      completed: (logs ?? []).filter(l => l.status === 'completed').length,
+      denied: (logs ?? []).filter(l => l.status === 'denied').length,
+      cancelled: (logs ?? []).filter(l => l.status === 'cancelled').length,
     }),
-    []
+    [logs]
   );
 
   const filtered = useMemo(
     () =>
       filter === 'all'
-        ? mockHistory
-        : mockHistory.filter(i => i.status === filter),
-    [filter]
+        ? (logs ?? [])
+        : (logs ?? []).filter(l => l.status === filter),
+    [filter, logs]
   );
 
   const handleFilter = useCallback((id: FilterId) => {
@@ -278,16 +247,16 @@ export default function HistoryScreen() {
               bg: 'rgba(16,185,129,0.1)',
             },
             {
-              value: stats.pending,
-              label: 'Attente',
-              color: '#f59e0b',
-              bg: 'rgba(245,158,11,0.1)',
-            },
-            {
-              value: stats.failed,
-              label: 'Échecs',
+              value: stats.denied,
+              label: 'Refusés',
               color: '#ef4444',
               bg: 'rgba(239,68,68,0.1)',
+            },
+            {
+              value: stats.cancelled,
+              label: 'Annulés',
+              color: '#f59e0b',
+              bg: 'rgba(245,158,11,0.1)',
             },
           ].map(s => (
             <View
@@ -301,7 +270,7 @@ export default function HistoryScreen() {
               }}
             >
               <Text style={{ color: s.color, fontSize: 20, fontWeight: '800' }}>
-                {s.value}
+                {isLoading ? '—' : s.value}
               </Text>
               <Text
                 style={{
@@ -365,7 +334,7 @@ export default function HistoryScreen() {
           <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
             <Clock size={40} color={theme.textMuted} strokeWidth={1.5} />
             <Text style={{ color: theme.textMuted, fontSize: 15 }}>
-              Aucune activité
+              {isLoading ? 'Chargement…' : 'Aucune activité'}
             </Text>
           </View>
         )}

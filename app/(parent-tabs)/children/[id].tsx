@@ -21,21 +21,19 @@ import {
   ArrowLeft,
   Shield,
   Phone,
-  Calendar,
   ToggleLeft,
   ToggleRight,
   UserPlus,
   GraduationCap,
-  MapPin,
   Trash2,
 } from 'lucide-react-native';
 import { useChild } from '@/features/parent/hooks/useChildren';
 import {
-  useAuthorizedPersons,
-  useToggleAuthorizedPerson,
-  useDeleteAuthorizedPerson,
-} from '@/features/parent/hooks/useAuthorizedPersons';
-import type { AuthorizedPerson } from '@/features/parent/types';
+  useGuardians,
+  useToggleGuardian,
+  useDeleteGuardian,
+} from '@/features/parent/hooks/useGuardians';
+import type { Guardian } from '@/features/parent/types';
 
 const AuthorizationCard = React.memo(function AuthorizationCard({
   item,
@@ -43,7 +41,7 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
   onToggle,
   onDelete,
 }: {
-  item: AuthorizedPerson;
+  item: Guardian;
   index: number;
   onToggle: (id: string, current: boolean) => void;
   onDelete: (id: string, name: string) => void;
@@ -56,28 +54,8 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
     ],
   }));
 
-  const daysLeft = useMemo(() => {
-    if (!item.valid_until) return null;
-    const diff = new Date(item.valid_until).getTime() - Date.now();
-    return Math.ceil(diff / 86400000);
-  }, [item.valid_until]);
-
-  const expiryColor =
-    daysLeft === null
-      ? theme.green
-      : daysLeft <= 7
-        ? theme.red
-        : daysLeft <= 30
-          ? theme.amber
-          : theme.green;
-  const expiryBg =
-    daysLeft === null
-      ? theme.greenBg
-      : daysLeft <= 7
-        ? theme.redBg
-        : daysLeft <= 30
-          ? theme.amberBg
-          : theme.greenBg;
+  const expiryColor = theme.green;
+  const expiryBg = theme.greenBg;
 
   const handleToggle = useCallback(() => {
     scale.value = 0.95;
@@ -165,7 +143,7 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
                 <Text
                   style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
                 >
-                  {item.relation}
+                  {item.relationship}
                 </Text>
               </View>
               <TouchableOpacity
@@ -207,33 +185,22 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
                 </Text>
               </View>
               <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+                style={{
+                  backgroundColor: expiryBg,
+                  paddingHorizontal: 7,
+                  paddingVertical: 2,
+                  borderRadius: 8,
+                }}
               >
-                <Calendar size={12} color={theme.textMuted} />
-                <View
+                <Text
                   style={{
-                    backgroundColor: expiryBg,
-                    paddingHorizontal: 7,
-                    paddingVertical: 2,
-                    borderRadius: 8,
+                    color: expiryColor,
+                    fontSize: 11,
+                    fontWeight: '700',
                   }}
                 >
-                  <Text
-                    style={{
-                      color: expiryColor,
-                      fontSize: 11,
-                      fontWeight: '700',
-                    }}
-                  >
-                    {daysLeft === null
-                      ? 'Permanent'
-                      : daysLeft <= 0
-                        ? 'Expirée'
-                        : daysLeft === 1
-                          ? '1 jour'
-                          : `${daysLeft} jours`}
-                  </Text>
-                </View>
+                  Actif
+                </Text>
               </View>
             </View>
           </View>
@@ -252,9 +219,9 @@ export default function ChildDetails() {
   const childId = id ?? '';
   const { data: child, isLoading: childLoading } = useChild(childId);
   const { data: authorizations, isLoading: authLoading } =
-    useAuthorizedPersons(childId);
-  const togglePerson = useToggleAuthorizedPerson(childId);
-  const deletePerson = useDeleteAuthorizedPerson(childId);
+    useGuardians(childId);
+  const togglePerson = useToggleGuardian(childId);
+  const deletePerson = useDeleteGuardian(childId);
 
   const handleBack = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -262,15 +229,15 @@ export default function ChildDetails() {
   }, [router]);
 
   const handleToggle = useCallback(
-    (personId: string, currentActive: boolean) => {
-      togglePerson.mutate({ personId, isActive: !currentActive });
+    (guardianId: string, currentActive: boolean) => {
+      togglePerson.mutate({ guardianId, isActive: !currentActive });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
     [togglePerson]
   );
 
   const handleDelete = useCallback(
-    (personId: string, name: string) => {
+    (guardianId: string, name: string) => {
       Alert.alert(
         "Supprimer l'autorisation",
         `Retirer l'accès à ${name} ? Cette personne ne pourra plus récupérer l'enfant.`,
@@ -280,7 +247,7 @@ export default function ChildDetails() {
             text: 'Supprimer',
             style: 'destructive',
             onPress: () => {
-              deletePerson.mutate(personId);
+              deletePerson.mutate(guardianId);
               Haptics.notificationAsync(
                 Haptics.NotificationFeedbackType.Success
               );
@@ -400,7 +367,7 @@ export default function ChildDetails() {
           </View>
 
           <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
-            {child.grade ? (
+            {child.class_name ? (
               <View
                 style={{
                   flexDirection: 'row',
@@ -420,32 +387,7 @@ export default function ChildDetails() {
                     fontWeight: '700',
                   }}
                 >
-                  {child.grade}
-                </Text>
-              </View>
-            ) : null}
-            {child.school_name ? (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 5,
-                  backgroundColor: theme.iconBg,
-                  paddingHorizontal: 10,
-                  paddingVertical: 5,
-                  borderRadius: 10,
-                }}
-              >
-                <MapPin size={13} color={theme.textMuted} />
-                <Text
-                  style={{
-                    color: theme.textSecondary,
-                    fontSize: 12,
-                    fontWeight: '600',
-                  }}
-                  numberOfLines={1}
-                >
-                  {child.school_name}
+                  {child.class_name}
                 </Text>
               </View>
             ) : null}
