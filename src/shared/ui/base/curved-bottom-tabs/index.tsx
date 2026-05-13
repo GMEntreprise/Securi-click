@@ -437,7 +437,13 @@ export const CurvedBottomTabs: React.FC<
       textSize,
       animation,
     }) => {
-      const tabs: Tab[] = state.routes.map((route, index) => {
+      const visibleRoutes = state.routes
+        .map((route, index) => ({ route, index }))
+        .filter(
+          ({ route }) => (descriptors[route.key].options as any).href !== null
+        );
+
+      const tabs: Tab[] = visibleRoutes.map(({ route, index }) => {
         const { options } = descriptors[route.key];
         const isActive = state.index === index;
 
@@ -463,8 +469,8 @@ export const CurvedBottomTabs: React.FC<
         };
       });
 
-      const handlePress = (index: number, tab: Tab): void => {
-        const route = state.routes[index];
+      const handlePress = (tabIndex: number, tab: Tab): void => {
+        const { route, index } = visibleRoutes[tabIndex];
 
         const event = navigation.emit({
           type: 'tabPress',
@@ -477,10 +483,14 @@ export const CurvedBottomTabs: React.FC<
         }
       };
 
+      const visibleIndex = visibleRoutes.findIndex(
+        ({ index }) => index === state.index
+      );
+
       return (
         <CurvedBottomTabsCore
           tabs={tabs}
-          currentIndex={state.index}
+          currentIndex={visibleIndex === -1 ? 0 : visibleIndex}
           onPress={handlePress}
           gradient={gradients}
           {...(activeColor !== undefined && { activeColor })}
