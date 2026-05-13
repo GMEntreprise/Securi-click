@@ -1,9 +1,6 @@
 import React, { memo } from 'react';
 import { Text, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  withTiming,
-} from 'react-native-reanimated';
+import { useTheme } from '@/theme';
 
 type Strength = 'weak' | 'medium' | 'strong';
 
@@ -22,28 +19,28 @@ interface PasswordStrengthBarProps {
 
 export const PasswordStrengthBar: React.FC<PasswordStrengthBarProps> = memo(
   ({ strength }) => {
+    const t = useTheme();
     const config = STRENGTH_CONFIG[strength];
 
     return (
-      <View className="mt-2 mb-1">
-        <View className="flex-row gap-1.5 mb-1">
+      <View style={{ marginTop: 8, marginBottom: 4 }}>
+        <View style={{ flexDirection: 'row', gap: 6, marginBottom: 4 }}>
           {[1, 2, 3].map(i => (
             <View
               key={i}
-              className="flex-1 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
-            >
-              {i <= config.bars && (
-                <View
-                  style={{ backgroundColor: config.color }}
-                  className="absolute inset-0 rounded-full"
-                />
-              )}
-            </View>
+              style={{
+                flex: 1,
+                height: 4,
+                borderRadius: 4,
+                backgroundColor:
+                  i <= config.bars ? config.color : t.inputBorder,
+              }}
+            />
           ))}
         </View>
-        <Text style={{ color: config.color }} className="text-xs font-medium">
+        <Text style={{ fontSize: 12, fontWeight: '600', color: config.color }}>
           Force du mot de passe :{' '}
-          <Text style={{ color: config.color }} className="font-bold">
+          <Text style={{ fontWeight: '800', color: config.color }}>
             {config.label}
           </Text>
         </Text>

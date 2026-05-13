@@ -1,301 +1,527 @@
-import React, { useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useRouter } from 'expo-router';
+import { useTheme } from '@/theme';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   FadeInDown,
-  LayoutAnimationConfig,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft,
   User,
-  Calendar,
-  Phone,
-  Mail,
-  MapPin,
+  GraduationCap,
   AlertCircle,
-  Camera,
-  Upload,
   Save,
+  Camera,
+  ImageIcon,
 } from 'lucide-react-native';
 
 interface FormData {
-  name: string;
+  firstName: string;
+  lastName: string;
   age: string;
   school: string;
   grade: string;
-  phone: string;
-  email: string;
-  address: string;
-  emergencyContact: string;
 }
 
-const initialFormData: FormData = {
-  name: '',
-  age: '',
-  school: '',
-  grade: '',
-  phone: '',
-  email: '',
-  address: '',
-  emergencyContact: '',
-};
+type FormErrors = Partial<Record<keyof FormData, string>>;
 
-const gradeOptions = [
-  'TPS', 'TPS', 'PS', 'MS', 'GS', 'CP', 'CE1', 'CE2', 
-  'CM1', 'CM2', '6ème', '5ème', '4ème', '3ème'
+const GRADES = [
+  'TPS',
+  'PS',
+  'MS',
+  'GS',
+  'CP',
+  'CE1',
+  'CE2',
+  'CM1',
+  'CM2',
+  '6ème',
+  '5ème',
+  '4ème',
+  '3ème',
 ];
+
+function InputField({
+  label,
+  value,
+  onChangeText,
+  placeholder,
+  keyboardType = 'default',
+  error,
+  autoCapitalize = 'sentences',
+}: {
+  label: string;
+  value: string;
+  onChangeText: (v: string) => void;
+  placeholder: string;
+  keyboardType?: 'default' | 'numeric' | 'email-address' | 'phone-pad';
+  error?: string;
+  autoCapitalize?: 'none' | 'sentences' | 'words';
+}) {
+  const theme = useTheme();
+  return (
+    <View style={{ marginBottom: 14 }}>
+      <Text
+        style={{
+          color: theme.textSecondary,
+          fontSize: 13,
+          fontWeight: '600',
+          marginBottom: 6,
+        }}
+      >
+        {label}
+      </Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={theme.placeholder}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        style={{
+          backgroundColor: theme.input,
+          borderWidth: 1,
+          borderColor: error ? theme.red : theme.inputBorder,
+          borderRadius: 14,
+          paddingHorizontal: 14,
+          paddingVertical: 12,
+          fontSize: 15,
+          color: theme.text,
+        }}
+      />
+      {error ? (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            marginTop: 4,
+          }}
+        >
+          <AlertCircle size={13} color={theme.red} />
+          <Text style={{ color: theme.red, fontSize: 12 }}>{error}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
 
 export default function AddChild() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [formData, setFormData] = React.useState<FormData>(initialFormData);
-  const [errors, setErrors] = React.useState<Partial<FormData>>({});
+  const theme = useTheme();
 
-  const scale = useSharedValue(1);
+  const [form, setForm] = useState<FormData>({
+    firstName: '',
+    lastName: '',
+    age: '',
+    school: '',
+    grade: '',
+  });
+  const [errors, setErrors] = useState<FormErrors>({});
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: withSpring(scale.value, {
-          damping: 15,
-          stiffness: 300,
-        }),
-      },
-    ],
+  const btnScale = useSharedValue(1);
+  const btnStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: btnScale.value }],
   }));
 
   const handleBack = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
-  }, []);
+  }, [router]);
 
-  const handleInputChange = useCallback((field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
-  }, [errors]);
+  const setField = useCallback(
+    (field: keyof FormData) => (value: string) => {
+      setForm(prev => ({ ...prev, [field]: value }));
+      setErrors(prev => ({ ...prev, [field]: undefined }));
+    },
+    []
+  );
 
-  const validateForm = useCallback(() => {
-    const newErrors: Partial<FormData> = {};
-
-    if (!formData.name.trim()) newErrors.name = 'Le nom est requis';
-    if (!formData.age.trim() || isNaN(Number(formData.age))) {
-      newErrors.age = 'L\'âge doit être un nombre valide';
-    }
-    if (!formData.school.trim()) newErrors.school = 'L\'école est requise';
-    if (!formData.grade.trim()) newErrors.grade = 'La classe est requise';
-    if (!formData.phone.trim()) newErrors.phone = 'Le téléphone est requis';
-    if (!formData.email.trim() || !formData.email.includes('@')) {
-      newErrors.email = 'L\'email est invalide';
-    }
-    if (!formData.address.trim()) newErrors.address = 'L\'adresse est requise';
-    if (!formData.emergencyContact.trim()) {
-      newErrors.emergencyContact = 'Le contact d\'urgence est requis';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  const validate = useCallback((): boolean => {
+    const next: FormErrors = {};
+    if (!form.firstName.trim()) next.firstName = 'Prénom requis';
+    if (!form.lastName.trim()) next.lastName = 'Nom requis';
+    if (!form.age.trim() || isNaN(Number(form.age)) || Number(form.age) < 1)
+      next.age = 'Âge invalide';
+    if (!form.school.trim()) next.school = 'École requise';
+    if (!form.grade.trim()) next.grade = 'Classe requise';
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  }, [form]);
 
   const handleSave = useCallback(() => {
-    scale.value = 0.95;
+    btnScale.value = withSpring(0.95, { damping: 12 });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    
     setTimeout(() => {
-      scale.value = 1;
-      
-      if (validateForm()) {
-        // TODO: Save to backend
-        Alert.alert(
-          'Succès',
-          `${formData.name} a été ajouté avec succès !`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                router.back();
-              },
-            },
-          ]
-        );
+      btnScale.value = withSpring(1);
+      if (validate()) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        router.back();
       }
     }, 100);
-  }, [formData, validateForm]);
-
-  const sections = useMemo(() => [
-    {
-      title: 'Informations personnelles',
-      icon: <User size={20} color="#1E3A8A" />,
-      fields: [
-        { key: 'name', label: 'Nom complet', placeholder: 'Entrez le nom de l\'enfant', keyboardType: 'default' },
-        { key: 'age', label: 'Âge', placeholder: 'Entrez l\'âge', keyboardType: 'numeric' },
-      ],
-    },
-    {
-      title: 'Scolarité',
-      icon: <Calendar size={20} color="#1E3A8A" />,
-      fields: [
-        { key: 'school', label: 'École', placeholder: 'Entrez le nom de l\'école', keyboardType: 'default' },
-        { key: 'grade', label: 'Classe', placeholder: 'Sélectionnez la classe', keyboardType: 'default' },
-      ],
-    },
-    {
-      title: 'Contact',
-      icon: <Phone size={20} color="#1E3A8A" />,
-      fields: [
-        { key: 'phone', label: 'Téléphone', placeholder: 'Entrez le numéro', keyboardType: 'phone-pad' },
-        { key: 'email', label: 'Email', placeholder: 'Entrez l\'email', keyboardType: 'email-address' },
-      ],
-    },
-    {
-      title: 'Localisation',
-      icon: <MapPin size={20} color="#1E3A8A" />,
-      fields: [
-        { key: 'address', label: 'Adresse', placeholder: 'Entrez l\'adresse complète', keyboardType: 'default' },
-        { key: 'emergencyContact', label: 'Contact d\'urgence', placeholder: 'Nom et téléphone', keyboardType: 'default' },
-      ],
-    },
-  ], []);
-
-  const renderInput = useCallback((field: any) => (
-    <View className="mb-4">
-      <Text className="text-sm font-medium text-foreground mb-2">
-        {field.label}
-      </Text>
-      <TextInput
-        value={formData[field.key as keyof FormData]}
-        onChangeText={(value) => handleInputChange(field.key as keyof FormData, value)}
-        placeholder={field.placeholder}
-        keyboardType={field.keyboardType}
-        className={`w-full px-4 py-3 bg-white border rounded-xl ${
-          errors[field.key as keyof FormData]
-            ? 'border-red-300 bg-red-50'
-            : 'border-gray-200'
-        }`}
-        style={{ fontSize: 16 }}
-      />
-      {errors[field.key as keyof FormData] && (
-        <View className="flex-row items-center mt-2">
-          <AlertCircle size={14} color="#EF4444" />
-          <Text className="text-red-500 text-sm ml-2">
-            {errors[field.key as keyof FormData]}
-          </Text>
-        </View>
-      )}
-    </View>
-  ), [formData, errors, handleInputChange]);
+  }, [validate, btnScale, router]);
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.bg }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+        keyboardShouldPersistTaps="handled"
       >
-        <View className="px-4 pt-4" style={{ paddingBottom: insets.bottom + 80 }}>
-          {/* Header */}
-          <Animated.View 
-            entering={FadeInDown.duration(600)}
-            className="flex-row items-center mb-6"
+        {/* Header */}
+        <Animated.View
+          entering={FadeInDown.duration(400)}
+          style={{
+            backgroundColor: theme.card,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.cardBorder,
+            paddingTop: insets.top + 16,
+            paddingBottom: 20,
+            paddingHorizontal: 20,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 14,
+          }}
+        >
+          <TouchableOpacity
+            onPress={handleBack}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 14,
+              backgroundColor: theme.iconBg,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <TouchableOpacity
-              onPress={handleBack}
-              className="w-10 h-10 rounded-full items-center justify-center bg-white shadow-sm mr-4"
+            <ArrowLeft size={20} color={theme.text} strokeWidth={2} />
+          </TouchableOpacity>
+          <View>
+            <Text
+              style={{
+                color: theme.textMuted,
+                fontSize: 11,
+                fontWeight: '700',
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
+                marginBottom: 2,
+              }}
             >
-              <ArrowLeft size={20} color="#1E3A8A" />
-            </TouchableOpacity>
-            
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-foreground mb-1">
-                Ajouter un enfant
-              </Text>
-              <Text className="text-sm text-gray-500">
-                Remplissez les informations de votre enfant
-              </Text>
-            </View>
-          </Animated.View>
-
-          {/* Form Sections */}
-          <View className="space-y-6">
-            {sections.map((section, sectionIndex) => (
-              <Animated.View
-                key={section.title}
-                entering={FadeInDown.delay(sectionIndex * 100).duration(600)}
-                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100"
-              >
-                <View className="flex-row items-center mb-4">
-                  {section.icon}
-                  <Text className="text-lg font-semibold text-foreground ml-3">
-                    {section.title}
-                  </Text>
-                </View>
-                
-                {section.fields.map((field: any) => renderInput(field))}
-              </Animated.View>
-            ))}
+              Nouveau
+            </Text>
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: 22,
+                fontWeight: '800',
+                letterSpacing: -0.5,
+              }}
+            >
+              Ajouter un enfant
+            </Text>
           </View>
+        </Animated.View>
 
-          {/* Photo Section */}
-          <Animated.View 
-            entering={FadeInDown.delay(400).duration(600)}
-            className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-6"
+        <View style={{ padding: 20, gap: 16 }}>
+          {/* Photo picker */}
+          <Animated.View
+            entering={FadeInDown.delay(80).duration(400)}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              padding: 16,
+            }}
           >
-            <Text className="text-lg font-semibold text-foreground mb-4">
+            <Text
+              style={{
+                color: theme.textMuted,
+                fontSize: 11,
+                fontWeight: '700',
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
+                marginBottom: 12,
+              }}
+            >
               Photo
             </Text>
-            <View className="flex-row space-x-4">
+            <View style={{ flexDirection: 'row', gap: 10 }}>
               <TouchableOpacity
-                className="flex-1 h-24 bg-gray-50 rounded-xl items-center justify-center border-2 border-dashed border-gray-300"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  // TODO: Open camera
+                onPress={() =>
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                }
+                style={{
+                  flex: 1,
+                  height: 80,
+                  backgroundColor: theme.iconBg,
+                  borderRadius: 16,
+                  borderWidth: 1.5,
+                  borderColor: theme.cardBorder,
+                  borderStyle: 'dashed',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
                 }}
               >
-                <Camera size={24} color="#64748B" />
-                <Text className="text-sm text-gray-500 mt-2">
-                  Prendre photo
+                <Camera size={22} color={theme.textMuted} />
+                <Text
+                  style={{
+                    color: theme.textMuted,
+                    fontSize: 12,
+                    fontWeight: '600',
+                  }}
+                >
+                  Caméra
                 </Text>
               </TouchableOpacity>
-              
               <TouchableOpacity
-                className="flex-1 h-24 bg-gray-50 rounded-xl items-center justify-center border-2 border-dashed border-gray-300"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  // TODO: Open gallery
+                onPress={() =>
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                }
+                style={{
+                  flex: 1,
+                  height: 80,
+                  backgroundColor: theme.iconBg,
+                  borderRadius: 16,
+                  borderWidth: 1.5,
+                  borderColor: theme.cardBorder,
+                  borderStyle: 'dashed',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
                 }}
               >
-                <Upload size={24} color="#64748B" />
-                <Text className="text-sm text-gray-500 mt-2">
+                <ImageIcon size={22} color={theme.textMuted} />
+                <Text
+                  style={{
+                    color: theme.textMuted,
+                    fontSize: 12,
+                    fontWeight: '600',
+                  }}
+                >
                   Galerie
                 </Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
 
-          {/* Save Button */}
-          <Animated.View 
-            entering={FadeInDown.delay(500).duration(600)}
-            className="mb-6"
+          {/* Identity */}
+          <Animated.View
+            entering={FadeInDown.delay(120).duration(400)}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              padding: 16,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 14,
+              }}
+            >
+              <View
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 9,
+                  backgroundColor: theme.primaryBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <User size={14} color={theme.primary} />
+              </View>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontSize: 15,
+                  fontWeight: '700',
+                }}
+              >
+                Identité
+              </Text>
+            </View>
+            <InputField
+              label="Prénom"
+              value={form.firstName}
+              onChangeText={setField('firstName')}
+              placeholder="Prénom de l'enfant"
+              autoCapitalize="words"
+              error={errors.firstName}
+            />
+            <InputField
+              label="Nom"
+              value={form.lastName}
+              onChangeText={setField('lastName')}
+              placeholder="Nom de famille"
+              autoCapitalize="words"
+              error={errors.lastName}
+            />
+            <InputField
+              label="Âge"
+              value={form.age}
+              onChangeText={setField('age')}
+              placeholder="Ex: 7"
+              keyboardType="numeric"
+              error={errors.age}
+            />
+          </Animated.View>
+
+          {/* Scolarité */}
+          <Animated.View
+            entering={FadeInDown.delay(160).duration(400)}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              padding: 16,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 14,
+              }}
+            >
+              <View
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 9,
+                  backgroundColor: theme.accentBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <GraduationCap size={14} color={theme.accent} />
+              </View>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontSize: 15,
+                  fontWeight: '700',
+                }}
+              >
+                Scolarité
+              </Text>
+            </View>
+            <InputField
+              label="École"
+              value={form.school}
+              onChangeText={setField('school')}
+              placeholder="Nom de l'établissement"
+              error={errors.school}
+            />
+            <Text
+              style={{
+                color: theme.textSecondary,
+                fontSize: 13,
+                fontWeight: '600',
+                marginBottom: 8,
+              }}
+            >
+              Classe
+            </Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {GRADES.map(g => {
+                const active = form.grade === g;
+                return (
+                  <TouchableOpacity
+                    key={g}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setField('grade')(g);
+                    }}
+                    style={{
+                      paddingHorizontal: 12,
+                      paddingVertical: 7,
+                      borderRadius: 10,
+                      backgroundColor: active ? theme.accent : theme.iconBg,
+                      borderWidth: 1,
+                      borderColor: active ? 'transparent' : theme.cardBorder,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: active ? '#fff' : theme.textSecondary,
+                        fontSize: 13,
+                        fontWeight: '700',
+                      }}
+                    >
+                      {g}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {errors.grade ? (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  marginTop: 6,
+                }}
+              >
+                <AlertCircle size={13} color={theme.red} />
+                <Text style={{ color: theme.red, fontSize: 12 }}>
+                  {errors.grade}
+                </Text>
+              </View>
+            ) : null}
+          </Animated.View>
+
+          {/* Save */}
+          <Animated.View
+            entering={FadeInDown.delay(200).duration(400)}
+            style={btnStyle}
           >
             <TouchableOpacity
               onPress={handleSave}
-              className="bg-primary rounded-2xl py-4 flex-row items-center justify-center shadow-lg"
-              style={animatedStyle}
+              style={{
+                backgroundColor: theme.accent,
+                borderRadius: 18,
+                paddingVertical: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+              }}
             >
-              <Save size={20} color="white" />
-              <Text className="text-white font-semibold text-lg ml-2">
+              <Save size={18} color="#fff" strokeWidth={2.5} />
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
                 Enregistrer l'enfant
               </Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

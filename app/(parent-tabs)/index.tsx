@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/theme';
+import { useSession } from '@/features/auth/store/auth.store';
 import { router } from 'expo-router';
 import Animated, {
   FadeInDown,
@@ -53,30 +54,32 @@ interface QuickAction {
   id: string;
   icon: React.ReactNode;
   label: string;
-  accent: string;
   accentBg: string;
   onPress: () => void;
 }
 
-function QuickActionCard({ action }: { action: QuickAction }) {
+const QuickActionCard = React.memo(function QuickActionCard({
+  action,
+}: {
+  action: QuickAction;
+}) {
   const scale = useSharedValue(1);
   const theme = useTheme();
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
+  const handlePress = useCallback(() => {
+    scale.value = withSpring(0.93, { damping: 12, stiffness: 300 });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setTimeout(() => {
+      scale.value = withSpring(1);
+      action.onPress();
+    }, 100);
+  }, [action, scale]);
+
   return (
-    <TouchableOpacity
-      onPress={() => {
-        scale.value = withSpring(0.93, { damping: 12, stiffness: 300 });
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        setTimeout(() => {
-          scale.value = withSpring(1);
-          action.onPress();
-        }, 100);
-      }}
-      style={{ flex: 1 }}
-    >
+    <TouchableOpacity onPress={handlePress} style={{ flex: 1 }}>
       <Animated.View
         style={[
           animStyle,
@@ -116,14 +119,16 @@ function QuickActionCard({ action }: { action: QuickAction }) {
       </Animated.View>
     </TouchableOpacity>
   );
-}
+});
 
-function ActivityRow({
+const ActivityRow = React.memo(function ActivityRow({
   item,
   index,
+  isLast,
 }: {
   item: (typeof mockRecentActivity)[0];
   index: number;
+  isLast: boolean;
 }) {
   const theme = useTheme();
   const isSuccess = item.status === 'completed';
@@ -136,7 +141,7 @@ function ActivityRow({
         alignItems: 'center',
         paddingVertical: 14,
         paddingHorizontal: 16,
-        borderBottomWidth: index < mockRecentActivity.length - 1 ? 1 : 0,
+        borderBottomWidth: isLast ? 0 : 1,
         borderBottomColor: theme.separator,
       }}
     >
@@ -145,18 +150,16 @@ function ActivityRow({
           width: 36,
           height: 36,
           borderRadius: 12,
-          backgroundColor: isSuccess
-            ? 'rgba(16,185,129,0.12)'
-            : 'rgba(245,158,11,0.12)',
+          backgroundColor: isSuccess ? theme.greenBg : theme.amberBg,
           alignItems: 'center',
           justifyContent: 'center',
           marginRight: 12,
         }}
       >
         {isSuccess ? (
-          <CheckCircle size={18} color="#10b981" strokeWidth={2} />
+          <CheckCircle size={18} color={theme.green} strokeWidth={2} />
         ) : (
-          <Clock size={18} color="#f59e0b" strokeWidth={2} />
+          <Clock size={18} color={theme.amber} strokeWidth={2} />
         )}
       </View>
       <View style={{ flex: 1 }}>
@@ -172,16 +175,14 @@ function ActivityRow({
           paddingHorizontal: 8,
           paddingVertical: 3,
           borderRadius: 20,
-          backgroundColor: isSuccess
-            ? 'rgba(16,185,129,0.12)'
-            : 'rgba(245,158,11,0.12)',
+          backgroundColor: isSuccess ? theme.greenBg : theme.amberBg,
         }}
       >
         <Text
           style={{
             fontSize: 11,
             fontWeight: '700',
-            color: isSuccess ? '#10b981' : '#f59e0b',
+            color: isSuccess ? theme.green : theme.amber,
           }}
         >
           {isSuccess ? 'OK' : 'Attente'}
@@ -189,11 +190,17 @@ function ActivityRow({
       </View>
     </Animated.View>
   );
-}
+});
 
 export default function ParentDashboard() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const session = useSession();
+
+  const firstName =
+    session?.user.profile?.first_name ??
+    session?.user.email?.split('@')[0] ??
+    'Parent';
 
   const quickActions = useMemo<QuickAction[]>(
     () => [
@@ -201,28 +208,52 @@ export default function ParentDashboard() {
         id: 'qr',
         icon: <QrCode size={22} color={theme.accent} strokeWidth={2} />,
         label: 'QR Code',
-        accent: theme.accent,
         accentBg: theme.accentBg,
         onPress: () => router.push('/(parent-tabs)/qr' as any),
       },
       {
         id: 'children',
-        icon: <Users size={22} color="#1e3a8a" strokeWidth={2} />,
+        icon: <Users size={22} color={theme.primary} strokeWidth={2} />,
         label: 'Enfants',
-        accent: '#1e3a8a',
-        accentBg: 'rgba(30,58,138,0.1)',
+        accentBg: theme.primaryBg,
         onPress: () => router.push('/(parent-tabs)/children' as any),
       },
       {
         id: 'history',
-        icon: <Clock size={22} color="#10b981" strokeWidth={2} />,
+        icon: <Clock size={22} color={theme.green} strokeWidth={2} />,
         label: 'Historique',
-        accent: '#10b981',
-        accentBg: 'rgba(16,185,129,0.1)',
+        accentBg: theme.greenBg,
         onPress: () => router.push('/(parent-tabs)/history' as any),
       },
     ],
-    [theme.accent, theme.accentBg]
+    [theme]
+  );
+
+  const stats = useMemo(
+    () => [
+      {
+        icon: <Shield size={18} color={theme.accent} />,
+        label: 'Autorisations',
+        value: mockStats.activeAuthorizations,
+        bg: theme.accentBg,
+        color: theme.accent,
+      },
+      {
+        icon: <TrendingUp size={18} color={theme.green} />,
+        label: 'Récupérations',
+        value: mockStats.todayPickups,
+        bg: theme.greenBg,
+        color: theme.green,
+      },
+      {
+        icon: <Users size={18} color={theme.primary} />,
+        label: 'Enfants',
+        value: mockStats.childrenCount,
+        bg: theme.primaryBg,
+        color: theme.primary,
+      },
+    ],
+    [theme]
   );
 
   return (
@@ -257,7 +288,7 @@ export default function ParentDashboard() {
               letterSpacing: -0.5,
             }}
           >
-            Bonjour 👋
+            Bonjour, {firstName}
           </Text>
           <Text
             style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}
@@ -271,31 +302,9 @@ export default function ParentDashboard() {
           entering={FadeInDown.delay(80).duration(400)}
           style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}
         >
-          {[
-            {
-              icon: <Shield size={18} color={theme.accent} />,
-              label: 'Autorisations',
-              value: mockStats.activeAuthorizations,
-              bg: theme.accentBg,
-              color: theme.accent,
-            },
-            {
-              icon: <TrendingUp size={18} color="#10b981" />,
-              label: 'Récupérations',
-              value: mockStats.todayPickups,
-              bg: 'rgba(16,185,129,0.1)',
-              color: '#10b981',
-            },
-            {
-              icon: <Users size={18} color="#1e3a8a" />,
-              label: 'Enfants',
-              value: mockStats.childrenCount,
-              bg: 'rgba(30,58,138,0.1)',
-              color: '#1e3a8a',
-            },
-          ].map((stat, i) => (
+          {stats.map(stat => (
             <View
-              key={i}
+              key={stat.label}
               style={{
                 flex: 1,
                 backgroundColor: theme.card,
@@ -397,7 +406,12 @@ export default function ParentDashboard() {
             }}
           >
             {mockRecentActivity.map((item, i) => (
-              <ActivityRow key={item.id} item={item} index={i} />
+              <ActivityRow
+                key={item.id}
+                item={item}
+                index={i}
+                isLast={i === mockRecentActivity.length - 1}
+              />
             ))}
           </View>
         </Animated.View>

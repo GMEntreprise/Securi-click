@@ -1,23 +1,41 @@
+import { useEffect } from 'react';
+import { Stack, useRouter } from 'expo-router';
 import {
   useIsAuthenticated,
   useIsLoading,
 } from '@/features/auth/store/auth.store';
-import { Stack } from 'expo-router';
-import { LoadingScreen } from '../../components/ui/LoadingScreen';
+import { View, ActivityIndicator } from 'react-native';
+import { useTheme } from '@/theme';
+
+function LoadingView() {
+  const theme = useTheme();
+  return (
+    <View
+      style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: theme.bg,
+      }}
+    >
+      <ActivityIndicator size="large" color={theme.accent} />
+    </View>
+  );
+}
 
 export default function AuthLayout() {
+  const router = useRouter();
   const isAuthenticated = useIsAuthenticated();
   const isLoading = useIsLoading();
 
-  // Show loading screen while restoring session
-  if (isLoading) {
-    return <LoadingScreen message="Chargement..." />;
-  }
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.replace('/(parent-tabs)' as any);
+    }
+  }, [isAuthenticated, isLoading, router]);
 
-  // Redirect authenticated users to app
-  if (isAuthenticated) {
-    return null; // Will be handled by root layout
-  }
+  if (isLoading) return <LoadingView />;
+  if (isAuthenticated) return null;
 
   return (
     <Stack>

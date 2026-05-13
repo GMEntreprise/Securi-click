@@ -1,46 +1,5 @@
-import { useSession, useUserRole } from '@/features/auth/store/auth.store';
-import React from 'react';
-import { Text, View } from 'react-native';
+import { Redirect } from 'expo-router';
 
-export default function DashboardScreen() {
-  const session = useSession();
-  const userRole = useUserRole();
-
-  return (
-    <View className="flex-1 bg-background p-6">
-      <View className="items-center mb-8">
-        <Text className="text-3xl font-bold text-foreground mb-2">
-          Bienvenue sur SecuriClick
-        </Text>
-        <Text className="text-muted-foreground text-center">
-          Tableau de bord
-        </Text>
-      </View>
-
-      <View className="space-y-4">
-        <View className="bg-card p-4 rounded-lg">
-          <Text className="text-lg font-semibold mb-2">
-            Informations utilisateur
-          </Text>
-          <Text className="text-muted-foreground">
-            Email: {session?.user.email}
-          </Text>
-          <Text className="text-muted-foreground">Rôle: {userRole}</Text>
-          {session?.user.profile && (
-            <>
-              <Text className="text-muted-foreground">
-                Nom: {session.user.profile.first_name}{' '}
-                {session.user.profile.last_name}
-              </Text>
-              {session.user.profile.phone && (
-                <Text className="text-muted-foreground">
-                  Téléphone: {session.user.profile.phone}
-                </Text>
-              )}
-            </>
-          )}
-        </View>
-      </View>
-    </View>
-  );
+export default function DashboardRedirect() {
+  return <Redirect href={'/(parent-tabs)' as any} />;
 }

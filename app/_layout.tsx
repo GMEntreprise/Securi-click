@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '@/features/auth/utils/mapAuthSession';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Slot } from 'expo-router';
+import { ThemeProvider } from '@/shared/ui/organisms/theme-switch/context';
+import { ThemeMode } from '@/shared/ui/organisms/theme-switch/types';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,7 +24,6 @@ function DeepLinkHandler() {
 
   useEffect(() => {
     async function handleUrl(url: string) {
-      // Supabase sends tokens in the fragment: securiclick://auth/callback#access_token=...&refresh_token=...
       const fragment = url.split('#')[1];
       if (!fragment) return;
 
@@ -43,21 +44,17 @@ function DeepLinkHandler() {
       const session = await mapSupabaseSessionToAuthSession(data.session);
       loginAction(session);
 
-      if (type === 'signup' || type === 'email_change') {
-        router.replace('/(parent-tabs)' as any);
-      } else if (type === 'recovery') {
+      if (type === 'recovery') {
         router.replace('/(auth)/login' as any);
       } else {
         router.replace('/(parent-tabs)' as any);
       }
     }
 
-    // App opened from a cold start via deep link
     Linking.getInitialURL().then(url => {
       if (url) handleUrl(url);
     });
 
-    // App already open, link arrives
     const sub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
     return () => sub.remove();
   }, [loginAction, router]);
@@ -74,8 +71,10 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <DeepLinkHandler />
-      <Slot />
+      <ThemeProvider defaultTheme={ThemeMode.Light}>
+        <DeepLinkHandler />
+        <Slot />
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

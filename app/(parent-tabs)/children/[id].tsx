@@ -1,83 +1,109 @@
 import React, { useMemo, useCallback, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Switch } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useTheme } from '@/theme';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
   FadeInDown,
-  LayoutAnimationConfig,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft,
   Shield,
-  Clock,
-  MapPin,
   Phone,
-  Mail,
   Calendar,
   ToggleLeft,
   ToggleRight,
-  User,
-  AlertCircle,
+  UserPlus,
+  GraduationCap,
+  MapPin,
 } from 'lucide-react-native';
 
-// Mock data - will be replaced with real hooks
-const mockChild = {
-  id: '1',
-  name: 'Emma',
-  age: 8,
-  school: 'École Primaire Saint-Exupéry',
-  grade: 'CE2',
-  avatar: '👧',
-  phone: '06 12 34 56 78',
-  email: 'emma.parent@email.com',
-  address: '123 Rue de la Paix, 75001 Paris',
-  emergencyContact: 'Marie Dupont - 06 98 76 54 32',
+const mockChildren: Record<
+  string,
+  {
+    id: string;
+    firstName: string;
+    lastName: string;
+    age: number;
+    school: string;
+    grade: string;
+  }
+> = {
+  '1': {
+    id: '1',
+    firstName: 'Emma',
+    lastName: 'Dupont',
+    age: 8,
+    school: 'École Primaire Saint-Exupéry',
+    grade: 'CE2',
+  },
+  '2': {
+    id: '2',
+    firstName: 'Lucas',
+    lastName: 'Dupont',
+    age: 6,
+    school: 'École Maternelle Les Petits Loups',
+    grade: 'CP',
+  },
 };
 
 const mockAuthorizations = [
   {
     id: '1',
-    collectorName: 'Jean Dupont',
-    collectorPhone: '06 11 22 33 44',
-    relationship: 'Grand-père',
-    validUntil: '2024-12-31',
+    firstName: 'Jean',
+    lastName: 'Dupont',
+    phone: '06 11 22 33 44',
+    relation: 'Grand-père',
+    validUntil: '2025-12-31',
     isActive: true,
-    qrCode: 'SC-EMMA-001',
   },
   {
     id: '2',
-    collectorName: 'Marie Martin',
-    collectorPhone: '06 55 66 77 88',
-    relationship: 'Tante',
-    validUntil: '2024-11-30',
+    firstName: 'Marie',
+    lastName: 'Martin',
+    phone: '06 55 66 77 88',
+    relation: 'Tante',
+    validUntil: '2025-11-30',
     isActive: false,
-    qrCode: 'SC-EMMA-002',
   },
 ];
 
-interface AuthorizationCardProps {
-  item: any;
+type Authorization = (typeof mockAuthorizations)[0];
+
+const AuthorizationCard = React.memo(function AuthorizationCard({
+  item,
+  index,
+  onToggle,
+}: {
+  item: Authorization;
   index: number;
   onToggle: (id: string) => void;
-}
-
-const AuthorizationCard = React.memo(({ item, index, onToggle }: AuthorizationCardProps) => {
+}) {
+  const theme = useTheme();
   const scale = useSharedValue(1);
-
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      {
-        scale: withSpring(scale.value, {
-          damping: 15,
-          stiffness: 300,
-        }),
-      },
+      { scale: withSpring(scale.value, { damping: 15, stiffness: 300 }) },
     ],
   }));
+
+  const daysLeft = useMemo(() => {
+    const diff = new Date(item.validUntil).getTime() - Date.now();
+    return Math.ceil(diff / 86400000);
+  }, [item.validUntil]);
+
+  const expiryColor =
+    daysLeft <= 7 ? theme.red : daysLeft <= 30 ? theme.amber : theme.green;
+  const expiryBg =
+    daysLeft <= 7
+      ? theme.redBg
+      : daysLeft <= 30
+        ? theme.amberBg
+        : theme.greenBg;
 
   const handleToggle = useCallback(() => {
     scale.value = 0.95;
@@ -86,238 +112,372 @@ const AuthorizationCard = React.memo(({ item, index, onToggle }: AuthorizationCa
       scale.value = 1;
       onToggle(item.id);
     }, 100);
-  }, [item.id, onToggle]);
+  }, [item.id, onToggle, scale]);
 
-  const getStatusColor = () => {
-    return item.isActive ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200';
-  };
-
-  const getBadgeColor = () => {
-    return item.isActive ? 'bg-green-500' : 'bg-gray-500';
-  };
-
-  const daysUntilExpiry = useMemo(() => {
-    const expiry = new Date(item.validUntil);
-    const now = new Date();
-    const diffTime = expiry.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  }, [item.validUntil]);
+  const initials = `${item.firstName[0]}${item.lastName[0]}`;
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 50).duration(400)}
-      className="mb-4"
+      entering={FadeInDown.delay(index * 60).duration(400)}
+      style={{ marginBottom: 10 }}
     >
-      <View className={`bg-white rounded-2xl p-4 border ${getStatusColor()} shadow-sm`}>
-        <View className="flex-row items-center justify-between mb-3">
-          <View className="flex-1">
-            <View className="flex-row items-center space-x-2 mb-1">
-              <View className={`w-2 h-2 rounded-full ${getBadgeColor()}`} />
-              <Text className="font-semibold text-foreground">
-                {item.collectorName}
+      <View
+        style={{
+          backgroundColor: theme.card,
+          borderRadius: 20,
+          borderWidth: 1,
+          borderColor: item.isActive
+            ? 'rgba(16,185,129,0.25)'
+            : theme.cardBorder,
+          overflow: 'hidden',
+        }}
+      >
+        <View
+          style={{
+            width: 4,
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            backgroundColor: item.isActive ? theme.green : theme.separator,
+          }}
+        />
+        <View style={{ padding: 14, paddingLeft: 18 }}>
+          {/* Top row */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 12,
+            }}
+          >
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                backgroundColor: item.isActive ? theme.greenBg : theme.iconBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 12,
+              }}
+            >
+              <Text
+                style={{
+                  color: item.isActive ? theme.green : theme.textMuted,
+                  fontSize: 15,
+                  fontWeight: '800',
+                }}
+              >
+                {initials}
               </Text>
             </View>
-            <Text className="text-sm text-gray-500">
-              {item.relationship}
-            </Text>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontWeight: '700',
+                  fontSize: 15,
+                }}
+              >
+                {item.firstName} {item.lastName}
+              </Text>
+              <Text
+                style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
+              >
+                {item.relation}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={handleToggle}
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: item.isActive ? theme.greenBg : theme.iconBg,
+              }}
+            >
+              <Animated.View style={animatedStyle}>
+                {item.isActive ? (
+                  <ToggleRight size={22} color={theme.green} />
+                ) : (
+                  <ToggleLeft size={22} color={theme.textMuted} />
+                )}
+              </Animated.View>
+            </TouchableOpacity>
           </View>
-          
-          <TouchableOpacity
-            onPress={handleToggle}
-            className="w-12 h-12 rounded-full items-center justify-center bg-gray-100"
-            style={animatedStyle}
+
+          {/* Details */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
           >
-            {item.isActive ? (
-              <ToggleRight size={20} color="#10B981" />
-            ) : (
-              <ToggleLeft size={20} color="#64748B" />
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View className="flex-row items-center space-x-4 mb-3">
-          <View className="flex-row items-center space-x-2">
-            <Phone size={14} color="#64748B" />
-            <Text className="text-sm text-gray-600">{item.collectorPhone}</Text>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
+            >
+              <Phone size={12} color={theme.textMuted} />
+              <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+                {item.phone}
+              </Text>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 4,
+              }}
+            >
+              <Calendar size={12} color={theme.textMuted} />
+              <View
+                style={{
+                  backgroundColor: expiryBg,
+                  paddingHorizontal: 7,
+                  paddingVertical: 2,
+                  borderRadius: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    color: expiryColor,
+                    fontSize: 11,
+                    fontWeight: '700',
+                  }}
+                >
+                  {daysLeft <= 0
+                    ? 'Expirée'
+                    : daysLeft === 1
+                      ? '1 jour'
+                      : `${daysLeft} jours`}
+                </Text>
+              </View>
+            </View>
           </View>
-        </View>
-
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center space-x-2">
-            <Calendar size={14} color="#64748B" />
-            <Text className="text-sm text-gray-600">
-              Valide jusqu'au {new Date(item.validUntil).toLocaleDateString('fr-FR')}
-            </Text>
-          </View>
-          
-          <View className={`px-2 py-1 rounded-full ${
-            daysUntilExpiry <= 7 
-              ? 'bg-red-100' 
-              : daysUntilExpiry <= 30 
-                ? 'bg-amber-100' 
-                : 'bg-green-100'
-          }`}>
-            <Text className={`text-xs font-medium ${
-              daysUntilExpiry <= 7 
-                ? 'text-red-600' 
-                : daysUntilExpiry <= 30 
-                  ? 'text-amber-600' 
-                  : 'text-green-600'
-            }`}>
-              {daysUntilExpiry <= 0 
-                ? 'Expirée' 
-                : daysUntilExpiry === 1 
-                  ? '1 jour' 
-                  : `${daysUntilExpiry} jours`
-              }
-            </Text>
-          </View>
-        </View>
-
-        <View className="mt-3 pt-3 border-t border-gray-100">
-          <Text className="text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded">
-            QR: {item.qrCode}
-          </Text>
         </View>
       </View>
     </Animated.View>
   );
 });
 
-AuthorizationCard.displayName = 'AuthorizationCard';
-
 export default function ChildDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const theme = useTheme();
   const [authorizations, setAuthorizations] = useState(mockAuthorizations);
+
+  const child = mockChildren[id ?? '1'] ?? mockChildren['1'];
 
   const handleBack = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
-  }, []);
+  }, [router]);
 
-  const handleToggleAuthorization = useCallback((authId: string) => {
-    setAuthorizations(prev => 
-      prev.map(auth => 
-        auth.id === authId 
-          ? { ...auth, isActive: !auth.isActive }
-          : auth
-      )
+  const handleToggle = useCallback((authId: string) => {
+    setAuthorizations(prev =>
+      prev.map(a => (a.id === authId ? { ...a, isActive: !a.isActive } : a))
     );
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   }, []);
 
-  const activeAuthorizations = useMemo(() => 
-    authorizations.filter(auth => auth.isActive).length,
+  const handleAddPerson = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push('/(parent-tabs)/children/add' as any);
+  }, [router]);
+
+  const activeCount = useMemo(
+    () => authorizations.filter(a => a.isActive).length,
     [authorizations]
   );
 
   return (
-    <View className="flex-1 bg-gray-50">
+    <View style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       >
-        <View className="px-4 pt-4" style={{ paddingBottom: insets.bottom + 80 }}>
-          {/* Header */}
-          <Animated.View 
-            entering={FadeInDown.duration(600)}
-            className="flex-row items-center mb-6"
+        {/* Header */}
+        <Animated.View
+          entering={FadeInDown.duration(400)}
+          style={{
+            backgroundColor: theme.card,
+            borderBottomWidth: 1,
+            borderBottomColor: theme.cardBorder,
+            paddingTop: insets.top + 16,
+            paddingBottom: 20,
+            paddingHorizontal: 20,
+          }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              marginBottom: 20,
+            }}
           >
             <TouchableOpacity
               onPress={handleBack}
-              className="w-10 h-10 rounded-full items-center justify-center bg-white shadow-sm mr-4"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 14,
+                backgroundColor: theme.iconBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginRight: 14,
+              }}
             >
-              <ArrowLeft size={20} color="#1E3A8A" />
+              <ArrowLeft size={20} color={theme.text} strokeWidth={2} />
             </TouchableOpacity>
-            
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-foreground mb-1">
-                {mockChild.name}
-              </Text>
-              <Text className="text-sm text-gray-500">
-                {mockChild.age} ans • {mockChild.grade}
-              </Text>
-            </View>
-          </Animated.View>
-
-          {/* Child Info Card */}
-          <Animated.View 
-            entering={FadeInDown.delay(100).duration(600)}
-            className="bg-white rounded-2xl p-4 mb-6 shadow-sm border border-gray-100"
-          >
-            <View className="flex-row items-center space-x-4 mb-4">
-              <View className="w-20 h-20 bg-primary rounded-2xl items-center justify-center">
-                <Text className="text-4xl">{mockChild.avatar}</Text>
-              </View>
-              
-              <View className="flex-1">
-                <Text className="text-lg font-bold text-foreground mb-1">
-                  {mockChild.name}
-                </Text>
-                <Text className="text-sm text-gray-500 mb-2">
-                  {mockChild.school}
-                </Text>
-                <View className="flex-row items-center space-x-2">
-                  <Shield size={16} color="#10B981" />
-                  <Text className="text-sm text-green-600 font-medium">
-                    {activeAuthorizations} autorisation{activeAuthorizations > 1 ? 's' : ''} active{activeAuthorizations > 1 ? 's' : ''}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <View className="space-y-3">
-              <View className="flex-row items-center space-x-3">
-                <Phone size={16} color="#64748B" />
-                <Text className="text-sm text-gray-600">{mockChild.phone}</Text>
-              </View>
-              
-              <View className="flex-row items-center space-x-3">
-                <Mail size={16} color="#64748B" />
-                <Text className="text-sm text-gray-600">{mockChild.email}</Text>
-              </View>
-              
-              <View className="flex-row items-center space-x-3">
-                <MapPin size={16} color="#64748B" />
-                <Text className="text-sm text-gray-600">{mockChild.address}</Text>
-              </View>
-              
-              <View className="flex-row items-center space-x-3">
-                <AlertCircle size={16} color="#EF4444" />
-                <Text className="text-sm text-gray-600">
-                  Contact d'urgence: {mockChild.emergencyContact}
-                </Text>
-              </View>
-            </View>
-          </Animated.View>
-
-          {/* Authorizations */}
-          <Animated.View entering={FadeInDown.delay(200).duration(600)}>
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-lg font-semibold text-foreground">
-                Autorisations
-              </Text>
-              <TouchableOpacity>
-                <Text className="text-primary text-sm font-medium">
-                  Ajouter
-                </Text>
-              </TouchableOpacity>
-            </View>
-
             <View>
-              {authorizations.map((auth, index) => (
-                <AuthorizationCard
-                  key={auth.id}
-                  item={auth}
-                  index={index}
-                  onToggle={handleToggleAuthorization}
-                />
-              ))}
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontSize: 11,
+                  fontWeight: '700',
+                  letterSpacing: 1.2,
+                  textTransform: 'uppercase',
+                  marginBottom: 2,
+                }}
+              >
+                Fiche enfant
+              </Text>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontSize: 22,
+                  fontWeight: '800',
+                  letterSpacing: -0.5,
+                }}
+              >
+                {child.firstName} {child.lastName}
+              </Text>
             </View>
+          </View>
+
+          {/* Child info pills */}
+          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                backgroundColor: theme.primaryBg,
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 10,
+              }}
+            >
+              <GraduationCap size={13} color={theme.primary} />
+              <Text
+                style={{
+                  color: theme.primary,
+                  fontSize: 12,
+                  fontWeight: '700',
+                }}
+              >
+                {child.grade}
+              </Text>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                backgroundColor: theme.iconBg,
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 10,
+              }}
+            >
+              <MapPin size={13} color={theme.textMuted} />
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 12,
+                  fontWeight: '600',
+                }}
+                numberOfLines={1}
+              >
+                {child.school}
+              </Text>
+            </View>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                backgroundColor: theme.greenBg,
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 10,
+              }}
+            >
+              <Shield size={13} color={theme.green} />
+              <Text
+                style={{
+                  color: theme.green,
+                  fontSize: 12,
+                  fontWeight: '700',
+                }}
+              >
+                {activeCount} autorisation{activeCount > 1 ? 's' : ''} active
+                {activeCount > 1 ? 's' : ''}
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* Authorizations list */}
+        <View style={{ padding: 16 }}>
+          <Animated.View
+            entering={FadeInDown.delay(100).duration(400)}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 14,
+            }}
+          >
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: 17,
+                fontWeight: '700',
+              }}
+            >
+              Personnes autorisées
+            </Text>
+            <TouchableOpacity
+              onPress={handleAddPerson}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                backgroundColor: theme.accent,
+                paddingHorizontal: 12,
+                paddingVertical: 7,
+                borderRadius: 12,
+              }}
+            >
+              <UserPlus size={14} color="#fff" strokeWidth={2.5} />
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>
+                Ajouter
+              </Text>
+            </TouchableOpacity>
           </Animated.View>
+
+          {authorizations.map((auth, i) => (
+            <AuthorizationCard
+              key={auth.id}
+              item={auth}
+              index={i}
+              onToggle={handleToggle}
+            />
+          ))}
         </View>
       </ScrollView>
     </View>

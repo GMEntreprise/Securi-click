@@ -1,38 +1,32 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  Switch,
-  Alert,
-} from 'react-native';
+import { useAuthStore, useSession } from '@/features/auth/store/auth.store';
+import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
+import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { useTheme } from '@/theme';
-import { useRouter } from 'expo-router';
-import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
 import {
-  User,
   Bell,
+  ChevronRight,
+  FileText,
+  HelpCircle,
+  Lock,
+  LogOut,
+  Moon,
   Shield,
   Smartphone,
-  LogOut,
-  ChevronRight,
-  HelpCircle,
-  FileText,
-  Lock,
+  User,
 } from 'lucide-react-native';
-
-const mockProfile = {
-  firstName: 'Parent',
-  lastName: 'Utilisateur',
-  email: 'parent@securiclick.fr',
-  phone: '06 12 34 56 78',
-  notifications: true,
-  biometricAuth: true,
-  darkMode: false,
-};
+import React, { useCallback, useMemo, useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface RowItem {
   icon: React.ReactNode;
@@ -44,17 +38,26 @@ interface RowItem {
   onToggle?: (v: boolean) => void;
   onPress: () => void;
   destructive?: boolean;
+  customRight?: React.ReactNode;
 }
 
-function SettingRow({ item, isLast }: { item: RowItem; isLast: boolean }) {
+const SettingRow = React.memo(function SettingRow({
+  item,
+  isLast,
+}: {
+  item: RowItem;
+  isLast: boolean;
+}) {
   const theme = useTheme();
   return (
     <TouchableOpacity
       onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        item.onPress();
+        if (!item.toggle && !item.customRight) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          item.onPress();
+        }
       }}
-      activeOpacity={item.toggle ? 1 : 0.7}
+      activeOpacity={item.toggle || item.customRight ? 1 : 0.7}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -69,9 +72,7 @@ function SettingRow({ item, isLast }: { item: RowItem; isLast: boolean }) {
           width: 34,
           height: 34,
           borderRadius: 11,
-          backgroundColor: item.destructive
-            ? 'rgba(239,68,68,0.1)'
-            : item.iconBg,
+          backgroundColor: item.destructive ? theme.redBg : item.iconBg,
           alignItems: 'center',
           justifyContent: 'center',
           marginRight: 12,
@@ -82,7 +83,7 @@ function SettingRow({ item, isLast }: { item: RowItem; isLast: boolean }) {
       <View style={{ flex: 1 }}>
         <Text
           style={{
-            color: item.destructive ? '#ef4444' : theme.text,
+            color: item.destructive ? theme.red : theme.text,
             fontSize: 15,
             fontWeight: '600',
           }}
@@ -95,7 +96,9 @@ function SettingRow({ item, isLast }: { item: RowItem; isLast: boolean }) {
           </Text>
         )}
       </View>
-      {item.toggle ? (
+      {item.customRight ? (
+        item.customRight
+      ) : item.toggle ? (
         <Switch
           value={item.value}
           onValueChange={v => {
@@ -103,27 +106,39 @@ function SettingRow({ item, isLast }: { item: RowItem; isLast: boolean }) {
             item.onToggle?.(v);
           }}
           trackColor={{
-            false: theme.isDark ? '#30363d' : '#e5e7eb',
+            false: theme.switchTrackOff,
             true: theme.switchTrackOn,
           }}
           thumbColor="#ffffff"
-          ios_backgroundColor={theme.isDark ? '#30363d' : '#e5e7eb'}
+          ios_backgroundColor={theme.switchTrackOff}
         />
       ) : (
         <ChevronRight size={16} color={theme.textMuted} />
       )}
     </TouchableOpacity>
   );
-}
+});
 
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const session = useSession();
+  const logout = useAuthStore(s => s.logout);
+  const { isDark, toggleTheme } = useThemeSwitcher();
+
   const [prefs, setPrefs] = useState({
-    notifications: mockProfile.notifications,
-    biometricAuth: mockProfile.biometricAuth,
+    notifications: true,
+    biometricAuth: true,
   });
+
+  const profile = session?.user.profile;
+  const firstName =
+    profile?.first_name ?? session?.user.email?.split('@')[0] ?? '';
+  const lastName = profile?.last_name ?? '';
+  const email = session?.user.email ?? '';
+  const phone = profile?.phone ?? '';
+  const initials = `${firstName[0] ?? '?'}${lastName[0] ?? ''}`.toUpperCase();
 
   const toggle = useCallback((key: keyof typeof prefs, value: boolean) => {
     setPrefs(p => ({ ...p, [key]: value }));
@@ -137,13 +152,34 @@ export default function ProfileScreen() {
       {
         text: 'Déconnecter',
         style: 'destructive',
-        onPress: () => {
+        onPress: async () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          await logout();
           router.replace('/(auth)/login' as any);
         },
       },
     ]);
-  }, [router]);
+  }, [logout, router]);
+
+  const darkModeSwitch = useMemo(
+    () => (
+      <GooeySwitch
+        active={isDark}
+        onToggle={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          toggleTheme({
+            animationType: 'circular' as any,
+            animationDuration: 500,
+          });
+        }}
+        size={64}
+        activeColor={theme.primary}
+        inactiveColor={theme.accent}
+        trackColor={isDark ? theme.cardBorder : theme.accentBg}
+      />
+    ),
+    [isDark, toggleTheme, theme]
+  );
 
   const sections = useMemo(
     () => [
@@ -151,15 +187,15 @@ export default function ProfileScreen() {
         title: 'Compte',
         items: [
           {
-            icon: <User size={16} color="#1e3a8a" strokeWidth={2.5} />,
-            iconBg: 'rgba(30,58,138,0.1)',
+            icon: <User size={16} color={theme.primary} strokeWidth={2.5} />,
+            iconBg: theme.primaryBg,
             title: 'Informations personnelles',
             subtitle: 'Nom, email, téléphone',
             onPress: () => {},
           },
           {
-            icon: <Shield size={16} color="#f97316" strokeWidth={2.5} />,
-            iconBg: 'rgba(249,115,22,0.1)',
+            icon: <Shield size={16} color={theme.accent} strokeWidth={2.5} />,
+            iconBg: theme.accentBg,
             title: 'Sécurité',
             subtitle: 'Mot de passe, 2FA',
             onPress: () => {},
@@ -170,8 +206,18 @@ export default function ProfileScreen() {
         title: 'Préférences',
         items: [
           {
-            icon: <Bell size={16} color="#10b981" strokeWidth={2.5} />,
-            iconBg: 'rgba(16,185,129,0.1)',
+            icon: (
+              <Moon size={16} color={theme.textSecondary} strokeWidth={2.5} />
+            ),
+            iconBg: theme.iconBg,
+            title: 'Mode sombre',
+            subtitle: isDark ? 'Activé' : 'Désactivé',
+            customRight: darkModeSwitch,
+            onPress: () => {},
+          },
+          {
+            icon: <Bell size={16} color={theme.green} strokeWidth={2.5} />,
+            iconBg: theme.greenBg,
             title: 'Notifications',
             subtitle: 'Alertes push et emails',
             toggle: true,
@@ -195,30 +241,32 @@ export default function ProfileScreen() {
         title: 'Support',
         items: [
           {
-            icon: <HelpCircle size={16} color="#f59e0b" strokeWidth={2.5} />,
-            iconBg: 'rgba(245,158,11,0.1)',
+            icon: (
+              <HelpCircle size={16} color={theme.amber} strokeWidth={2.5} />
+            ),
+            iconBg: theme.amberBg,
             title: 'Aide & FAQ',
             onPress: () => {},
           },
           {
-            icon: <FileText size={16} color="#6b7280" strokeWidth={2.5} />,
-            iconBg: 'rgba(107,114,128,0.1)',
+            icon: (
+              <FileText size={16} color={theme.textMuted} strokeWidth={2.5} />
+            ),
+            iconBg: theme.iconBg,
             title: "Conditions d'utilisation",
             onPress: () => {},
           },
           {
-            icon: <Lock size={16} color="#6b7280" strokeWidth={2.5} />,
-            iconBg: 'rgba(107,114,128,0.1)',
+            icon: <Lock size={16} color={theme.textMuted} strokeWidth={2.5} />,
+            iconBg: theme.iconBg,
             title: 'Confidentialité',
             onPress: () => {},
           },
         ] as RowItem[],
       },
     ],
-    [prefs, toggle]
+    [prefs, toggle, theme, isDark, darkModeSwitch]
   );
-
-  const initials = `${mockProfile.firstName[0]}${mockProfile.lastName[0]}`;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -269,24 +317,36 @@ export default function ProfileScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text
-                  style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}
-                >
-                  {mockProfile.firstName} {mockProfile.lastName}
-                </Text>
-                <Text
                   style={{
-                    color: theme.textSecondary,
-                    fontSize: 13,
-                    marginTop: 2,
+                    color: theme.text,
+                    fontSize: 18,
+                    fontWeight: '800',
                   }}
                 >
-                  {mockProfile.email}
+                  {firstName} {lastName}
                 </Text>
-                <Text
-                  style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
-                >
-                  {mockProfile.phone}
-                </Text>
+                {email ? (
+                  <Text
+                    style={{
+                      color: theme.textSecondary,
+                      fontSize: 13,
+                      marginTop: 2,
+                    }}
+                  >
+                    {email}
+                  </Text>
+                ) : null}
+                {phone ? (
+                  <Text
+                    style={{
+                      color: theme.textMuted,
+                      fontSize: 12,
+                      marginTop: 1,
+                    }}
+                  >
+                    {phone}
+                  </Text>
+                ) : null}
               </View>
             </View>
             <TouchableOpacity
@@ -294,14 +354,18 @@ export default function ProfileScreen() {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
               }
               style={{
-                backgroundColor: theme.isDark ? '#21262d' : '#f3f4f6',
+                backgroundColor: theme.profileEditBg,
                 borderRadius: 12,
                 paddingVertical: 10,
                 alignItems: 'center',
               }}
             >
               <Text
-                style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
+                style={{
+                  color: theme.text,
+                  fontWeight: '600',
+                  fontSize: 14,
+                }}
               >
                 Modifier le profil
               </Text>
@@ -367,9 +431,13 @@ export default function ProfileScreen() {
                 gap: 8,
               }}
             >
-              <LogOut size={18} color="#ef4444" strokeWidth={2.5} />
+              <LogOut size={18} color={theme.red} strokeWidth={2.5} />
               <Text
-                style={{ color: '#ef4444', fontWeight: '700', fontSize: 15 }}
+                style={{
+                  color: theme.red,
+                  fontWeight: '700',
+                  fontSize: 15,
+                }}
               >
                 Se déconnecter
               </Text>
