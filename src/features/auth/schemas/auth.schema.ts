@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const loginSchema = z.object({
   email: z.string().email('Email invalide'),
-  password: z.string().min(6, 'Mot de passe trop court'),
+  password: z.string().min(8, '8 caractères minimum'),
 });
 
 export const parentRegisterSchema = z
@@ -11,7 +11,7 @@ export const parentRegisterSchema = z
     last_name: z.string().min(2, 'Nom requis'),
     email: z.string().email('Email invalide'),
     phone: z.string().min(10, 'Téléphone requis'),
-    password: z.string().min(6, 'Mot de passe min 6 caractères'),
+    password: z.string().min(8, '8 caractères minimum'),
     confirm_password: z.string(),
     accept_terms: z
       .boolean()
@@ -40,7 +40,7 @@ export const schoolRegisterSchema = z
     manager_first_name: z.string().min(2, 'Prénom du responsable requis'),
     manager_last_name: z.string().min(2, 'Nom du responsable requis'),
     manager_function: z.string().min(2, 'Fonction du responsable requise'),
-    password: z.string().min(6, 'Mot de passe min 6 caractères'),
+    password: z.string().min(8, '8 caractères minimum'),
     confirm_password: z.string(),
     accept_terms: z
       .boolean()
@@ -60,7 +60,7 @@ export const schoolRegisterSchema = z
 export const collectorRegisterSchema = z
   .object({
     email: z.string().email('Email invalide'),
-    password: z.string().min(6, 'Mot de passe min 6 caractères'),
+    password: z.string().min(8, '8 caractères minimum'),
     confirm_password: z.string(),
     invitation_token: z.string().min(1, "Token d'invitation requis"),
     accept_terms: z
@@ -84,7 +84,7 @@ export const forgotPasswordSchema = z.object({
 
 export const resetPasswordSchema = z
   .object({
-    password: z.string().min(6, 'Mot de passe min 6 caractères'),
+    password: z.string().min(8, '8 caractères minimum'),
     confirm_password: z.string(),
   })
   .refine(data => data.password === data.confirm_password, {

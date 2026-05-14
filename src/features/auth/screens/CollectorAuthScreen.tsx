@@ -22,12 +22,12 @@ import {
 import { useTheme } from '@/theme';
 
 const activationSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email('Email invalide'),
   password: z
     .string()
     .min(8, '8 caractères minimum')
     .regex(/[A-Z]/, '1 majuscule requise'),
-  invitation_token: z.string().min(1),
+  invitation_token: z.string().min(1, "Token d'invitation requis"),
 });
 
 type ActivationValues = z.infer<typeof activationSchema>;
