@@ -390,7 +390,7 @@ export const SchoolAuthScreen: React.FC = memo(() => {
   const handleLogin = useCallback(
     (data: LoginValues) => {
       loginMutation.mutate(data, {
-        onSuccess: () => router.replace('/(app)/dashboard' as any),
+        onSuccess: () => router.replace('/(school-tabs)/home' as any),
       });
     },
     [loginMutation, router]
@@ -399,7 +399,7 @@ export const SchoolAuthScreen: React.FC = memo(() => {
   const handleRegister = useCallback(
     (data: RegisterValues) => {
       registerMutation.mutate(data as any, {
-        onSuccess: () => router.replace('/(app)/dashboard' as any),
+        onSuccess: () => router.replace('/(school-tabs)/home' as any),
       });
     },
     [registerMutation, router]

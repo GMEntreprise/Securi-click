@@ -43,8 +43,13 @@ function NavigationGuard() {
       if (error || !data.session) return;
       const session = await mapSupabaseSessionToAuthSession(data.session);
       loginAction(session);
+      const role = session.user.role;
       if (type === 'recovery') {
         router.replace('/(auth)/login' as any);
+      } else if (role === 'collector') {
+        router.replace('/(collector-tabs)' as any);
+      } else if (role === 'school_admin' || role === 'staff') {
+        router.replace('/(school-tabs)/home' as any);
       } else {
         router.replace('/(parent-tabs)' as any);
       }
@@ -86,16 +91,22 @@ function NavigationGuard() {
     } else if (isAuthenticated && inAuth) {
       if (role === 'collector') {
         router.replace('/(collector-tabs)' as any);
+      } else if (role === 'school_admin' || role === 'staff') {
+        router.replace('/(school-tabs)/home' as any);
       } else {
         router.replace('/(parent-tabs)' as any);
       }
     } else if (isAuthenticated && !inAuth) {
-      // Already in app — enforce correct tab group per role
-      const inParentTabs = seg === '(parent-tabs)';
       const inCollectorTabs = seg === '(collector-tabs)';
-      if (role === 'collector' && inParentTabs) {
+      const inSchoolTabs = seg === '(school-tabs)';
+      const isSchool = role === 'school_admin' || role === 'staff';
+      if (role === 'collector' && !inCollectorTabs) {
         router.replace('/(collector-tabs)' as any);
-      } else if (role !== 'collector' && inCollectorTabs) {
+      } else if (isSchool && !inSchoolTabs) {
+        router.replace('/(school-tabs)/home' as any);
+      } else if (!isSchool && role !== 'collector' && inSchoolTabs) {
+        router.replace('/(parent-tabs)' as any);
+      } else if (role !== 'collector' && !isSchool && inCollectorTabs) {
         router.replace('/(parent-tabs)' as any);
       }
     }
