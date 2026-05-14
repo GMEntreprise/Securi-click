@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { TouchableOpacity, View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -11,6 +11,7 @@ import {
   XCircle,
   MinusCircle,
   AlertTriangle,
+  UserPlus,
 } from 'lucide-react-native';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
@@ -19,7 +20,9 @@ import {
   useMyPickupLogs,
   useMyIdentity,
   useCollectorProfile,
+  usePendingInvites,
 } from '@/features/collector/hooks/useCollector';
+import { CollectorOnboardSheet } from '@/features/collector/components/ui/CollectorOnboardSheet';
 
 const STATUS_CFG = {
   completed: { Icon: CheckCircle, color: '#10b981', label: 'Validé' },
@@ -34,6 +37,11 @@ export default function CollectorHomeScreen() {
   const { data: guardians, isLoading: guardiansLoading } = useMyGuardians();
   const { data: identity } = useMyIdentity();
   const { data: logs, isLoading: logsLoading } = useMyPickupLogs();
+  const { data: pendingInvites } = usePendingInvites();
+
+  const hasPending = (pendingInvites?.length ?? 0) > 0;
+  const [onboardVisible, setOnboardVisible] = useState(false);
+  const handleOnboardDismiss = useCallback(() => setOnboardVisible(false), []);
 
   const activeGuardians = useMemo(
     () => (guardians ?? []).filter(g => g.is_active),
@@ -83,15 +91,20 @@ export default function CollectorHomeScreen() {
   const recentLogs = (logs ?? []).slice(0, 5);
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.bg }}
-      contentContainerStyle={{
-        paddingTop: insets.top + 20,
-        paddingHorizontal: 20,
-        paddingBottom: insets.bottom + 100,
-      }}
-      showsVerticalScrollIndicator={false}
-    >
+    <>
+      <CollectorOnboardSheet
+        visible={onboardVisible}
+        onDismiss={handleOnboardDismiss}
+      />
+      <ScrollView
+        style={{ flex: 1, backgroundColor: theme.bg }}
+        contentContainerStyle={{
+          paddingTop: insets.top + 20,
+          paddingHorizontal: 20,
+          paddingBottom: insets.bottom + 100,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
       {/* Header */}
       <Animated.View
         entering={FadeInDown.duration(400)}
@@ -120,6 +133,52 @@ export default function CollectorHomeScreen() {
           Bonjour{profile ? `, ${profile.first_name}` : ''} 👋
         </Text>
       </Animated.View>
+
+      {/* Pending invites banner */}
+      {hasPending && (
+        <Animated.View
+          entering={FadeInDown.delay(30).duration(350)}
+          style={{ marginBottom: 14 }}
+        >
+          <TouchableOpacity
+            onPress={() => setOnboardVisible(true)}
+            activeOpacity={0.8}
+            style={{
+              backgroundColor: theme.accentBg,
+              borderRadius: 18,
+              borderWidth: 1.5,
+              borderColor: 'rgba(249,115,22,0.35)',
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 13,
+                backgroundColor: theme.accent,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <UserPlus size={18} color="#fff" strokeWidth={2.5} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+                {(pendingInvites?.length ?? 0) > 1
+                  ? `${pendingInvites!.length} invitations en attente`
+                  : 'Invitation en attente'}
+              </Text>
+              <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 1 }}>
+                Appuyez pour confirmer votre accès
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </Animated.View>
+      )}
 
       {/* Access status — big clear card */}
       <Animated.View
@@ -427,6 +486,7 @@ export default function CollectorHomeScreen() {
           )}
         </View>
       </Animated.View>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }

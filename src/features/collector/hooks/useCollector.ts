@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase/client';
 import { useSession } from '@/features/auth/store/auth.store';
 import { collectorService } from '../services/collector.service';
 import type { CollectorGuardian, DocumentType } from '../types';
+import type { PendingInvite } from '../services/collector.service';
 
 const GUARDIANS_KEY = (uid: string) => ['collector-guardians', uid] as const;
 const IDENTITY_KEY = (uid: string) => ['collector-identity', uid] as const;
@@ -257,10 +258,24 @@ export function useUploadIdentity() {
   });
 }
 
+export function usePendingInvites() {
+  const session = useSession();
+  const email = session?.user.email ?? '';
+
+  return useQuery({
+    queryKey: ['collector-pending-invites', email],
+    queryFn: () => collectorService.getPendingInvitesByEmail(email),
+    enabled: !!email,
+    staleTime: 0,
+    gcTime: 0,
+  });
+}
+
 export function useAcceptInvite() {
   const queryClient = useQueryClient();
   const session = useSession();
   const uid = session?.user.id ?? '';
+  const email = session?.user.email ?? '';
 
   return useMutation({
     mutationFn: ({
@@ -272,6 +287,9 @@ export function useAcceptInvite() {
     }) => collectorService.acceptInvite(token, accessCode),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) });
+      queryClient.invalidateQueries({ queryKey: ['collector-pending-invites', email] });
     },
   });
 }
+
+export type { PendingInvite };

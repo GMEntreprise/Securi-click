@@ -16,6 +16,28 @@ const GUARDIAN_SELECT = `
   parent:user_profiles!guardians_parent_id_fkey ( first_name, last_name, phone )
 `.trim();
 
+const PENDING_INVITE_SELECT = `
+  id, invitation_token, access_code_hash, first_name, last_name,
+  relationship, parent_id,
+  child:children ( id, first_name, last_name, photo_url )
+`.trim();
+
+export interface PendingInvite {
+  id: string;
+  invitation_token: string;
+  access_code_hash: string | null;
+  first_name: string;
+  last_name: string;
+  relationship: string;
+  parent_id: string;
+  child: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    photo_url: string | null;
+  } | null;
+}
+
 const IDENTITY_SELECT = `
   id, collector_user_id, parent_id, document_type, front_path, back_path,
   selfie_path, verification_status, verified_at, verified_by,
@@ -128,6 +150,14 @@ export const collectorService = {
       .createSignedUrl(path, expiresIn);
     if (error) throw error;
     return data.signedUrl;
+  },
+
+  async getPendingInvitesByEmail(email: string): Promise<PendingInvite[]> {
+    const { data, error } = await supabase.rpc('get_pending_invites_by_email', {
+      p_email: email,
+    });
+    if (error) throw error;
+    return (data ?? []) as PendingInvite[];
   },
 
   async acceptInvite(
