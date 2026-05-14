@@ -44,10 +44,11 @@ interface ParentRegisterFormV2Props {
   onSubmit: (data: RegisterParentData) => void;
   isLoading: boolean;
   error?: string | null;
+  defaultEmail?: string;
 }
 
 export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
-  ({ onSubmit, isLoading, error }) => {
+  ({ onSubmit, isLoading, error, defaultEmail = '' }) => {
     const t = useTheme();
     const {
       control,
@@ -59,7 +60,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
       defaultValues: {
         first_name: '',
         last_name: '',
-        email: '',
+        email: defaultEmail,
         phone: '',
         password: '',
         accept_terms: false,

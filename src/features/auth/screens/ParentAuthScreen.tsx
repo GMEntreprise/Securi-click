@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+
 import React, { memo, useCallback, useState } from 'react';
 import {
   Dimensions,
@@ -12,6 +13,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLogin } from '../hooks/useLogin';
 import { useRegisterParent } from '../hooks/useRegister';
+import { useLastEmail } from '../hooks/useLastEmail';
 import { AuthBackButton, AuthTabToggle } from '../components/ui';
 import { ParentLoginForm } from './ParentLoginForm';
 import { ParentRegisterFormV2 } from './ParentRegisterFormV2';
@@ -26,25 +28,22 @@ export const ParentAuthScreen: React.FC = memo(() => {
   const t = useTheme();
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
 
+  const lastEmail = useLastEmail();
   const loginMutation = useLogin();
   const registerMutation = useRegisterParent();
 
   const handleLogin = useCallback(
     (data: { email: string; password: string }) => {
-      loginMutation.mutate(data, {
-        onSuccess: () => router.replace('/(parent-tabs)' as any),
-      });
+      loginMutation.mutate(data);
     },
-    [loginMutation, router]
+    [loginMutation]
   );
 
   const handleRegister = useCallback(
     (data: any) => {
-      registerMutation.mutate(data, {
-        onSuccess: () => router.replace('/(parent-tabs)' as any),
-      });
+      registerMutation.mutate(data);
     },
-    [registerMutation, router]
+    [registerMutation]
   );
 
   const handleForgotPassword = useCallback(() => {
@@ -101,16 +100,20 @@ export const ParentAuthScreen: React.FC = memo(() => {
         <Animated.View entering={FadeInDown.delay(80).duration(400)}>
           {activeTab === 0 ? (
             <ParentLoginForm
+              key={lastEmail}
               onSubmit={handleLogin}
               isLoading={loginMutation.isPending}
               error={loginMutation.error?.message}
               onForgotPassword={handleForgotPassword}
+              defaultEmail={lastEmail}
             />
           ) : (
             <ParentRegisterFormV2
+              key={lastEmail}
               onSubmit={handleRegister}
               isLoading={registerMutation.isPending}
               error={registerMutation.error?.message}
+              defaultEmail={lastEmail}
             />
           )}
         </Animated.View>

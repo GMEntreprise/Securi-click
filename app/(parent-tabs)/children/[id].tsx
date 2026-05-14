@@ -29,6 +29,7 @@ import {
   Pencil,
 } from 'lucide-react-native';
 import { useChild } from '@/features/parent/hooks/useChildren';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import {
   useGuardians,
   useToggleGuardian,
@@ -226,7 +227,21 @@ export default function ChildDetails() {
 
   const handleToggle = useCallback(
     (guardianId: string, currentActive: boolean) => {
-      togglePerson.mutate({ guardianId, isActive: !currentActive });
+      const nextActive = !currentActive;
+      togglePerson.mutate(
+        { guardianId, isActive: nextActive },
+        {
+          onSuccess: () => {
+            Toast.show(nextActive ? 'Accès activé' : 'Accès désactivé', {
+              type: nextActive ? 'success' : 'warning',
+              duration: 2500,
+            });
+          },
+          onError: () => {
+            Toast.show('Impossible de modifier l\'accès', { type: 'error' });
+          },
+        }
+      );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
     [togglePerson]

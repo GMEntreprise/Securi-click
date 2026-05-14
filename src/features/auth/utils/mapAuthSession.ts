@@ -30,28 +30,31 @@ function resolveRole(
 }
 
 export async function mapSupabaseSessionToAuthSession(
-  session: Session
+  session: Session,
+  knownProfile?: UserProfile | null
 ): Promise<AuthSession> {
   const authUser = session.user;
   const email = authUser.email ?? '';
 
-  let profile: UserProfile | null = null;
+  let profile: UserProfile | null = knownProfile ?? null;
 
-  const { data, error } = await supabase
-    .from('user_profiles')
-    .select('id, first_name, last_name, phone, school_id, role')
-    .eq('user_id', authUser.id)
-    .maybeSingle();
+  if (profile === null) {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('id, first_name, last_name, phone, school_id, role')
+      .eq('user_id', authUser.id)
+      .maybeSingle();
 
-  if (!error && data) {
-    profile = {
-      id: String(data.id),
-      first_name: String(data.first_name ?? ''),
-      last_name: String(data.last_name ?? ''),
-      phone: data.phone ? String(data.phone) : undefined,
-      school_id: data.school_id ? String(data.school_id) : undefined,
-      role: data.role as UserProfile['role'],
-    };
+    if (!error && data) {
+      profile = {
+        id: String(data.id),
+        first_name: String(data.first_name ?? ''),
+        last_name: String(data.last_name ?? ''),
+        phone: data.phone ? String(data.phone) : undefined,
+        school_id: data.school_id ? String(data.school_id) : undefined,
+        role: data.role as UserProfile['role'],
+      };
+    }
   }
 
   const role = resolveRole(

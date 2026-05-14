@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '@/theme';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -75,14 +76,15 @@ export default function QRScreen() {
 
   const activeQr = qrCodes?.[0] ?? null;
 
-  const daysLeft = activeQr
-    ? Math.max(
-        0,
-        Math.ceil(
-          (new Date(activeQr.expires_at).getTime() - Date.now()) / 86400000
-        )
-      )
-    : 0;
+  const timeLeftLabel = useMemo(() => {
+    if (!activeQr) return '';
+    const msLeft = new Date(activeQr.expires_at).getTime() - Date.now();
+    if (msLeft <= 0) return 'Expiré';
+    const hoursLeft = Math.floor(msLeft / 3600000);
+    if (hoursLeft < 24) return `${hoursLeft}h restante${hoursLeft > 1 ? 's' : ''}`;
+    const daysLeft = Math.floor(hoursLeft / 24);
+    return `${daysLeft} jour${daysLeft > 1 ? 's' : ''} restant${daysLeft > 1 ? 's' : ''}`;
+  }, [activeQr]);
 
   const handleBiometric = useCallback(async () => {
     try {
@@ -122,10 +124,11 @@ export default function QRScreen() {
         onSuccess: () => {
           qrScale.value = withSpring(1);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          Toast.show('QR code généré avec succès', { type: 'success', duration: 2500 });
         },
         onError: () => {
           qrScale.value = withSpring(1);
-          Alert.alert('Erreur', 'Impossible de générer le QR code.');
+          Toast.show('Impossible de générer le QR code', { type: 'error', duration: 3000 });
         },
       }
     );
@@ -401,8 +404,7 @@ export default function QRScreen() {
           >
             <CheckCircle size={13} color="#10b981" strokeWidth={2.5} />
             <Text style={{ color: '#10b981', fontSize: 12, fontWeight: '700' }}>
-              Actif · {daysLeft} jour{daysLeft !== 1 ? 's' : ''} restant
-              {daysLeft !== 1 ? 's' : ''}
+              Actif · {timeLeftLabel}
             </Text>
           </View>
         )}

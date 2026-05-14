@@ -28,6 +28,7 @@ import { useUpdateChild } from '../../hooks/useChildren';
 import { useSession } from '@/features/auth/store/auth.store';
 import { useImagePicker } from '@/hooks';
 import type { Child } from '../../types';
+import { Toast } from '@/shared/ui/molecules/Toast';
 
 const GRADES = [
   'TPS',
@@ -206,9 +207,11 @@ export const EditChildSheet = memo(function EditChildSheet({
         },
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Toast.show(`Profil de ${form.firstName} mis à jour`, { type: 'success', duration: 2500 });
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show('Impossible de sauvegarder les modifications', { type: 'error', duration: 3000 });
     }
   }, [validate, updateChild, child.id, form, photoUri, onClose]);
 

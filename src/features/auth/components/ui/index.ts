@@ -7,3 +7,4 @@ export { AuthStepBar } from './AuthStepBar';
 export { AuthBackButton } from './AuthBackButton';
 export { PasswordStrengthBar } from './PasswordStrengthBar';
 export { AuthCheckbox } from './AuthCheckbox';
+export { AuthPickerField } from './AuthPickerField';

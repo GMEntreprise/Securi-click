@@ -23,6 +23,7 @@ import {
 } from 'lucide-react-native';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import {
   useUpdateCollectorProfile,
   useUpdateCollectorAvatarUrl,
@@ -196,9 +197,11 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
         phone: form.phone.trim(),
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Toast.show('Profil mis à jour avec succès', { type: 'success', duration: 2500 });
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show('Impossible d\'enregistrer les modifications', { type: 'error', duration: 3000 });
     }
   }, [validate, updateProfile, form, onClose]);
 

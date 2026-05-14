@@ -76,8 +76,10 @@ async function registerParent(data: RegisterParentData): Promise<User> {
   };
 }
 
-async function registerSchool(data: RegisterSchoolData): Promise<User> {
-  const { data: authData, error } = await supabase.auth.signUp({
+async function registerSchool(data: RegisterSchoolData): Promise<void> {
+  // All school data is stored in user_metadata so DeepLinkHandler can create
+  // the school + profile rows after the user confirms their email.
+  const { error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
     options: {
@@ -97,60 +99,7 @@ async function registerSchool(data: RegisterSchoolData): Promise<User> {
     },
   });
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!authData.user) {
-    throw new Error('No user created');
-  }
-
-  // Create school record
-  const { error: schoolError } = await supabase
-    .from('schools')
-    .insert({
-      name: data.school_name,
-      type: data.school_type,
-      email: data.email,
-      phone: data.phone,
-      address: data.address,
-      city: data.city,
-      postal_code: data.postal_code,
-      manager_first_name: data.manager_first_name,
-      manager_last_name: data.manager_last_name,
-      manager_function: data.manager_function,
-      admin_user_id: authData.user.id,
-    })
-    .select()
-    .single();
-
-  if (schoolError) {
-    throw new Error(schoolError.message);
-  }
-
-  // Create user profile
-  const { error: profileError } = await supabase
-    .from('user_profiles')
-    .insert({
-      user_id: authData.user.id,
-      first_name: data.manager_first_name,
-      last_name: data.manager_last_name,
-      phone: data.phone,
-      role: 'school_admin',
-    })
-    .select()
-    .single();
-
-  if (profileError) {
-    throw new Error(profileError.message);
-  }
-
-  return {
-    id: authData.user.id,
-    email: authData.user.email ?? data.email,
-    role: 'school_admin',
-    authUser: authData.user,
-  };
+  if (error) throw new Error(error.message);
 }
 
 async function inviteCollector(email: string): Promise<void> {

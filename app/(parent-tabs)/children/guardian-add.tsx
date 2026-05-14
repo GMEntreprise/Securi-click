@@ -22,6 +22,7 @@ import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSecti
 import { useSession } from '@/features/auth/store/auth.store';
 import { supabase } from '@/lib/supabase/client';
 import { authService } from '@/features/auth/services/supabaseAuth.service';
+import { Toast } from '@/shared/ui/molecules/Toast';
 
 const RELATIONSHIPS = [
   'Grand-père',
@@ -104,12 +105,23 @@ export default function AddGuardianScreen() {
 
         if (rpcError) throw new Error(rpcError.message);
 
-        await authService.inviteCollector(data.email.trim());
+        // Send magic link — ignore rate limit errors (guardian record already saved)
+        try {
+          await authService.inviteCollector(data.email.trim());
+        } catch {
+          // Rate limit hit: invitation enregistrée, email sera renvoyé plus tard
+        }
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Toast.show(`${data.first_name} ${data.last_name} a été ajouté(e)`, {
+          type: 'success',
+          duration: 3000,
+        });
         router.back();
       } catch (e) {
-        setError(e instanceof Error ? e.message : 'Une erreur est survenue.');
+        const msg = e instanceof Error ? e.message : 'Une erreur est survenue.';
+        setError(msg);
+        Toast.show(msg, { type: 'error', duration: 4000 });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       } finally {
         setIsSubmitting(false);

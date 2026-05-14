@@ -6,16 +6,16 @@ import type {
 } from '../types';
 import { authService } from '../services/supabaseAuth.service';
 import { useAuthStore } from '../store/auth.store';
+import { saveLastEmail } from './useLastEmail';
 
 export const useRegisterParent = () => {
   const setLoading = useAuthStore(s => s.setLoading);
 
   return useMutation({
     mutationFn: (data: RegisterParentData) => authService.registerParent(data),
-    onMutate: async () => {
-      setLoading(true);
-    },
-    onSuccess: () => {
+    onMutate: async () => { setLoading(true); },
+    onSuccess: (_, variables) => {
+      saveLastEmail(variables.email);
       setLoading(false);
     },
     onError: error => {
@@ -29,11 +29,10 @@ export const useRegisterSchool = () => {
   const setLoading = useAuthStore(s => s.setLoading);
 
   return useMutation({
-    mutationFn: (data: RegisterSchoolData) => authService.registerSchool(data),
-    onMutate: async () => {
-      setLoading(true);
-    },
-    onSuccess: () => {
+    mutationFn: (data: RegisterSchoolData) => authService.registerSchool(data) as Promise<void>,
+    onMutate: async () => { setLoading(true); },
+    onSuccess: (_, variables) => {
+      saveLastEmail(variables.email);
       setLoading(false);
     },
     onError: error => {
@@ -48,11 +47,10 @@ export const useInviteCollector = () => {
   return useMutation({
     mutationFn: (data: InviteCollectorData) =>
       authService.inviteCollector(data.email),
-    onMutate: () => {
-      setLoading(true);
+    onMutate: () => { setLoading(true); },
+    onSuccess: (_, variables) => {
+      saveLastEmail(variables.email);
     },
-    onSettled: () => {
-      setLoading(false);
-    },
+    onSettled: () => { setLoading(false); },
   });
 };

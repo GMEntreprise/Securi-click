@@ -2,10 +2,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
   AlertCircle,
+  Briefcase,
   Building2,
   Mail,
+  MailCheck,
   MapPin,
   Phone,
+  School,
   Shield,
   User,
 } from 'lucide-react-native';
@@ -23,18 +26,21 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import {
-  loginSchema,
+  loginSchema, schoolRegisterSchema,
   type LoginFormData as LoginValues,
+  type SchoolRegisterFormData as RegisterValues,
 } from '../schemas/auth.schema';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import { useLogin } from '../hooks/useLogin';
 import { useRegisterSchool } from '../hooks/useRegister';
+import { useLastEmail } from '../hooks/useLastEmail';
 import {
   AuthBackButton,
   AuthCheckbox,
   AuthInputField,
   AuthPasswordField,
+  AuthPickerField,
   AuthPrimaryButton,
   AuthStepBar,
   AuthTabToggle,
@@ -44,30 +50,30 @@ import { useTheme } from '@/theme';
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.3;
 
-const registerSchema = z.object({
-  school_name: z.string().min(2, "Nom de l'établissement requis"),
-  city: z.string().min(2, 'Ville requise'),
-  postal_code: z.string().min(5, 'Code postal requis'),
-  manager_first_name: z.string().min(2, 'Prénom requis'),
-  manager_last_name: z.string().min(2, 'Nom requis'),
-  manager_function: z.string().min(2, 'Fonction requise'),
-  email: z.string().email('Email invalide'),
-  phone: z.string().min(9, 'Téléphone requis'),
-  address: z.string().min(5, 'Adresse requise'),
-  school_type: z.string().min(2, 'Type requis'),
-  password: z.string().min(8, '8 caractères minimum'),
-  confirm_password: z.string(),
-  accept_terms: z.boolean().refine(v => v, 'Accepter les CGU'),
-  accept_privacy: z.boolean().refine(v => v, 'Accepter la politique'),
-});
+const SCHOOL_TYPES = [
+  'École maternelle',
+  'École primaire',
+  'Collège',
+];
 
-type RegisterValues = z.infer<typeof registerSchema>;
+const MANAGER_FUNCTIONS = [
+  'Directeur / Directrice',
+  'Directeur adjoint',
+  'Principal',
+  'Principal adjoint',
+  'Enseignant',
+  'Enseignant référent',
+  'Responsable administratif',
+  'Autre',
+];
+
 
 const SchoolLoginForm: React.FC<{
   onSubmit: (d: LoginValues) => void;
   isLoading: boolean;
   error?: string | null;
-}> = memo(({ onSubmit, isLoading, error }) => {
+  defaultEmail?: string;
+}> = memo(({ onSubmit, isLoading, error, defaultEmail = '' }) => {
   const t = useTheme();
   const {
     control,
@@ -75,7 +81,7 @@ const SchoolLoginForm: React.FC<{
     formState: { errors },
   } = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: defaultEmail, password: '' },
   });
 
   return (
@@ -156,22 +162,23 @@ const SchoolRegisterForm: React.FC<{
   onSubmit: (d: RegisterValues) => void;
   isLoading: boolean;
   error?: string | null;
-}> = memo(({ onSubmit, isLoading, error }) => {
+  defaultEmail?: string;
+}> = memo(({ onSubmit, isLoading, error, defaultEmail = '' }) => {
   const t = useTheme();
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(schoolRegisterSchema),
     defaultValues: {
       school_name: '',
       city: '',
       postal_code: '',
       manager_first_name: '',
       manager_last_name: '',
-      manager_function: 'Directeur / Responsable',
-      email: '',
+      manager_function: 'Directeur / Directrice',
+      email: defaultEmail,
       phone: '',
       address: '',
       school_type: 'École primaire',
@@ -235,6 +242,16 @@ const SchoolRegisterForm: React.FC<{
         error={errors.school_name?.message}
       />
 
+      <AuthPickerField
+        control={control}
+        name="school_type"
+        label="Type d'établissement"
+        options={SCHOOL_TYPES}
+        icon={<School size={18} color={t.textMuted} />}
+        placeholder="Sélectionnez le type"
+        error={errors.school_type?.message}
+      />
+
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <View style={{ flex: 1 }}>
           <AuthInputField
@@ -258,6 +275,15 @@ const SchoolRegisterForm: React.FC<{
           />
         </View>
       </View>
+
+      <AuthInputField
+        control={control}
+        name="address"
+        label="Adresse"
+        placeholder="12 rue de la Paix"
+        icon={<MapPin size={18} color={t.textMuted} />}
+        error={errors.address?.message}
+      />
 
       <View
         style={{
@@ -310,11 +336,13 @@ const SchoolRegisterForm: React.FC<{
         </View>
       </View>
 
-      <AuthInputField
+      <AuthPickerField
         control={control}
         name="manager_function"
         label="Fonction"
-        placeholder="Directeur / Responsable"
+        options={MANAGER_FUNCTIONS}
+        icon={<Briefcase size={18} color={t.textMuted} />}
+        placeholder="Sélectionnez votre fonction"
         error={errors.manager_function?.message}
       />
       <AuthInputField
@@ -342,6 +370,12 @@ const SchoolRegisterForm: React.FC<{
         label="Mot de passe"
         error={errors.password?.message}
       />
+      <AuthPasswordField
+        control={control}
+        name="confirm_password"
+        label="Confirmer le mot de passe"
+        error={errors.confirm_password?.message}
+      />
 
       <AuthCheckbox
         control={control}
@@ -356,6 +390,22 @@ const SchoolRegisterForm: React.FC<{
               Conditions Générales d'Utilisation
             </Text>{' '}
             professionnelles.
+          </Text>
+        }
+      />
+      <AuthCheckbox
+        control={control}
+        name="accept_privacy"
+        error={errors.accept_privacy?.message}
+        label={
+          <Text
+            style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
+          >
+            J'accepte la{' '}
+            <Text style={{ color: t.primary, fontWeight: '700' }}>
+              Politique de confidentialité
+            </Text>
+            .
           </Text>
         }
       />
@@ -380,7 +430,9 @@ export const SchoolAuthScreen: React.FC = memo(() => {
   const insets = useSafeAreaInsets();
   const t = useTheme();
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
+  const [registerEmail, setRegisterEmail] = useState<string | null>(null);
 
+  const lastEmail = useLastEmail();
   const loginMutation = useLogin();
   const registerMutation = useRegisterSchool();
 
@@ -396,10 +448,22 @@ export const SchoolAuthScreen: React.FC = memo(() => {
   const handleRegister = useCallback(
     (data: RegisterValues) => {
       registerMutation.mutate(data as any, {
-        onSuccess: () => router.replace('/(school-tabs)/home' as any),
+        onSuccess: () => {
+          setRegisterEmail(data.email);
+          Toast.show('Email de confirmation envoyé ! Vérifiez votre boîte mail.', {
+            type: 'success',
+            duration: 4000,
+          });
+        },
+        onError: (e: any) => {
+          Toast.show(e?.message ?? 'Impossible de créer le compte. Réessayez.', {
+            type: 'error',
+            duration: 5000,
+          });
+        },
       });
     },
-    [registerMutation, router]
+    [registerMutation]
   );
 
   const handleTabToggle = useCallback(
@@ -441,30 +505,90 @@ export const SchoolAuthScreen: React.FC = memo(() => {
           pointerEvents="none"
         />
 
-        <Animated.View entering={FadeInDown.duration(400)}>
-          <AuthTabToggle
-            leftLabel="Connexion"
-            rightLabel="Créer établissement"
-            activeIndex={activeTab}
-            onToggle={handleTabToggle}
-          />
-        </Animated.View>
+        {registerEmail ? (
+          <Animated.View
+            entering={FadeInDown.duration(400)}
+            style={{ paddingHorizontal: 24, paddingTop: 40, alignItems: 'center' }}
+          >
+            <MailCheck size={56} color={t.green} strokeWidth={1.5} />
+            <Text
+              style={{
+                fontSize: 24,
+                fontWeight: '800',
+                color: t.text,
+                textAlign: 'center',
+                marginTop: 20,
+                marginBottom: 12,
+                letterSpacing: -0.5,
+              }}
+            >
+              Confirmez votre email
+            </Text>
+            <Text
+              style={{
+                fontSize: 15,
+                color: t.textSecondary,
+                textAlign: 'center',
+                lineHeight: 22,
+                marginBottom: 8,
+              }}
+            >
+              Un lien de confirmation a été envoyé à
+            </Text>
+            <Text
+              style={{
+                fontSize: 15,
+                fontWeight: '700',
+                color: t.text,
+                textAlign: 'center',
+                marginBottom: 24,
+              }}
+            >
+              {registerEmail}
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: t.textSecondary,
+                textAlign: 'center',
+                lineHeight: 20,
+              }}
+            >
+              Cliquez sur le lien dans l'email pour activer votre espace et accéder à votre tableau de bord.
+            </Text>
+          </Animated.View>
+        ) : (
+          <>
+            <Animated.View entering={FadeInDown.duration(400)}>
+              <AuthTabToggle
+                leftLabel="Connexion"
+                rightLabel="Créer établissement"
+                activeIndex={activeTab}
+                onToggle={handleTabToggle}
+              />
+            </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(80).duration(400)}>
-          {activeTab === 0 ? (
-            <SchoolLoginForm
-              onSubmit={handleLogin}
-              isLoading={loginMutation.isPending}
-              error={loginMutation.error?.message}
-            />
-          ) : (
-            <SchoolRegisterForm
-              onSubmit={handleRegister}
-              isLoading={registerMutation.isPending}
-              error={registerMutation.error?.message}
-            />
-          )}
-        </Animated.View>
+            <Animated.View entering={FadeInDown.delay(80).duration(400)}>
+              {activeTab === 0 ? (
+                <SchoolLoginForm
+                  key={lastEmail}
+                  onSubmit={handleLogin}
+                  isLoading={loginMutation.isPending}
+                  error={loginMutation.error?.message}
+                  defaultEmail={lastEmail}
+                />
+              ) : (
+                <SchoolRegisterForm
+                  key={lastEmail}
+                  onSubmit={handleRegister}
+                  isLoading={registerMutation.isPending}
+                  error={registerMutation.error?.message}
+                  defaultEmail={lastEmail}
+                />
+              )}
+            </Animated.View>
+          </>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );

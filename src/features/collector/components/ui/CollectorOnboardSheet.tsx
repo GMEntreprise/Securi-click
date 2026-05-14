@@ -11,6 +11,7 @@ import * as Haptics from 'expo-haptics';
 import { CheckCircle, Mail, UserPlus } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import {
   usePendingInvites,
   useAcceptInvite,
@@ -95,11 +96,14 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
               ? `${invite.child.first_name} ${invite.child.last_name}`
               : 'l\'enfant';
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            Toast.show(`Accès confirmé pour ${childName}`, { type: 'success', duration: 3000 });
             setState({ kind: 'success', childName });
           },
           onError: e => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            setPinError(formatError(e.message));
+            const msg = formatError(e.message);
+            setPinError(msg);
+            Toast.show(msg, { type: 'error', duration: 4000 });
           },
         }
       );
@@ -120,11 +124,14 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
               ? `${invite.child.first_name} ${invite.child.last_name}`
               : 'l\'enfant';
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            Toast.show(`Accès confirmé pour ${childName}`, { type: 'success', duration: 3000 });
             setState({ kind: 'success', childName });
           },
           onError: e => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            setPinError(formatError(e.message));
+            const msg = formatError(e.message);
+            setPinError(msg);
+            Toast.show(msg, { type: 'error', duration: 4000 });
           },
         }
       );

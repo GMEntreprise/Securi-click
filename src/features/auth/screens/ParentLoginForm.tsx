@@ -19,10 +19,11 @@ interface ParentLoginFormProps {
   isLoading: boolean;
   error?: string | null;
   onForgotPassword?: () => void;
+  defaultEmail?: string;
 }
 
 export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
-  ({ onSubmit, isLoading, error, onForgotPassword }) => {
+  ({ onSubmit, isLoading, error, onForgotPassword, defaultEmail = '' }) => {
     const t = useTheme();
     const {
       control,
@@ -30,7 +31,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
       formState: { errors },
     } = useForm<LoginValues>({
       resolver: zodResolver(loginSchema),
-      defaultValues: { email: '', password: '' },
+      defaultValues: { email: defaultEmail, password: '' },
     });
 
     const submit = useCallback(

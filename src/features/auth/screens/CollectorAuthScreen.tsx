@@ -13,10 +13,26 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Mail, MailCheck } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useInviteCollector } from '../hooks/useRegister';
+import { useLastEmail } from '../hooks/useLastEmail';
 import { collectorOtpSchema } from '../schemas/auth.schema';
 import type { CollectorOtpFormData } from '../schemas/auth.schema';
 import { AuthBackButton, AuthInputField, AuthPrimaryButton } from '../components/ui';
 import { useTheme } from '@/theme';
+import { Toast } from '@/shared/ui/molecules/Toast';
+
+function formatAuthError(msg: string): string {
+  const lower = msg.toLowerCase();
+  if (lower.includes('rate limit') || lower.includes('too many') || lower.includes('429')) {
+    return 'Trop de tentatives. Attendez quelques minutes avant de réessayer.';
+  }
+  if (lower.includes('invalid email') || lower.includes('email not found')) {
+    return 'Adresse email invalide.';
+  }
+  if (lower.includes('email link') || lower.includes('otp expired')) {
+    return 'Lien expiré. Demandez un nouveau lien.';
+  }
+  return 'Une erreur est survenue. Réessayez.';
+}
 
 export const CollectorAuthScreen: React.FC = memo(() => {
   const router = useRouter();
@@ -24,28 +40,54 @@ export const CollectorAuthScreen: React.FC = memo(() => {
   const t = useTheme();
   const [sent, setSent] = useState(false);
 
+  const lastEmail = useLastEmail();
   const inviteMutation = useInviteCollector();
 
   const {
     control,
     handleSubmit,
     getValues,
+    reset,
     formState: { errors },
   } = useForm<CollectorOtpFormData>({
     resolver: zodResolver(collectorOtpSchema),
     defaultValues: { email: '' },
   });
 
+  React.useEffect(() => {
+    if (lastEmail) reset({ email: lastEmail });
+  }, [lastEmail, reset]);
+
   const onSubmit = (data: CollectorOtpFormData) => {
     inviteMutation.mutate(
       { email: data.email },
-      { onSuccess: () => setSent(true) }
+      {
+        onSuccess: () => {
+          setSent(true);
+          Toast.show('Lien envoyé ! Vérifiez votre boîte mail.', { type: 'success', duration: 3000 });
+        },
+        onError: (e) => {
+          const msg = formatAuthError((e as Error).message ?? '');
+          Toast.show(msg, { type: 'error', duration: 5000 });
+        },
+      }
     );
   };
 
   const handleResend = () => {
     const email = getValues('email');
-    inviteMutation.mutate({ email });
+    inviteMutation.mutate(
+      { email },
+      {
+        onSuccess: () => {
+          Toast.show('Nouveau lien envoyé !', { type: 'success', duration: 3000 });
+        },
+        onError: (e) => {
+          const msg = formatAuthError((e as Error).message ?? '');
+          Toast.show(msg, { type: 'error', duration: 5000 });
+        },
+      }
+    );
   };
 
   return (
@@ -134,19 +176,6 @@ export const CollectorAuthScreen: React.FC = memo(() => {
                 autoCorrect={false}
                 error={errors.email?.message}
               />
-
-              {inviteMutation.isError && (
-                <Text
-                  style={{
-                    color: t.red,
-                    fontSize: 13,
-                    marginBottom: 12,
-                    textAlign: 'center',
-                  }}
-                >
-                  {(inviteMutation.error as Error)?.message ?? 'Une erreur est survenue.'}
-                </Text>
-              )}
 
               <View style={{ marginTop: 8 }}>
                 <AuthPrimaryButton

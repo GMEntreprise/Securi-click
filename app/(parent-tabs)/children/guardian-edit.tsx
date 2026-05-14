@@ -31,6 +31,7 @@ import {
 import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSection';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import {
   useUpdateGuardian,
   useToggleGuardian,
@@ -166,9 +167,11 @@ export default function GuardianEditScreen() {
         }
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        Toast.show('Autorisation mise à jour', { type: 'success', duration: 2500 });
         router.back();
       } catch {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        Toast.show('Impossible de sauvegarder les modifications', { type: 'error', duration: 3000 });
       }
     },
     [guardianId, updateGuardian, usePinCode, router]

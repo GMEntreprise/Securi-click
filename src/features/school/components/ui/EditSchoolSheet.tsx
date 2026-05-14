@@ -2,6 +2,7 @@ import React, { memo, useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   Text,
@@ -14,8 +15,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   AlertCircle,
+  Briefcase,
   Building2,
   Check,
+  ChevronDown,
   MapPin,
   Phone,
   User,
@@ -23,7 +26,19 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { useUpdateSchool } from '../../hooks/useSchool';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import type { SchoolProfile } from '../../types';
+
+const MANAGER_FUNCTIONS = [
+  'Directeur / Directrice',
+  'Directeur adjoint',
+  'Principal',
+  'Principal adjoint',
+  'Enseignant',
+  'Enseignant référent',
+  'Responsable administratif',
+  'Autre',
+];
 
 interface EditSchoolSheetProps {
   school: SchoolProfile;
@@ -127,6 +142,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
     manager_function: school.manager_function,
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [functionPickerOpen, setFunctionPickerOpen] = useState(false);
 
   const setField = useCallback(
     (field: keyof FormState) => (value: string) => {
@@ -174,9 +190,11 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
         },
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Toast.show('Établissement mis à jour', { type: 'success', duration: 2500 });
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      Toast.show('Impossible d\'enregistrer les modifications', { type: 'error', duration: 3000 });
     }
   }, [validate, updateSchool, school.id, form, onClose]);
 
@@ -356,13 +374,125 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                 />
               </View>
             </View>
-            <InputField
-              label="Fonction"
-              value={form.manager_function}
-              onChangeText={setField('manager_function')}
-              placeholder="Directeur / Responsable"
-              error={errors.manager_function}
-            />
+            {/* Fonction picker */}
+            <View style={{ marginBottom: 14 }}>
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 13,
+                  fontWeight: '600',
+                  marginBottom: 6,
+                }}
+              >
+                Fonction
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setFunctionPickerOpen(true);
+                }}
+                activeOpacity={0.75}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: theme.input,
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 14,
+                  borderWidth: 1,
+                  borderColor: errors.manager_function
+                    ? theme.red
+                    : form.manager_function
+                    ? theme.accent
+                    : theme.inputBorder,
+                }}
+              >
+                <Briefcase size={16} color={theme.textMuted} style={{ marginRight: 10 }} />
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    color: form.manager_function ? theme.text : theme.placeholder,
+                  }}
+                  numberOfLines={1}
+                >
+                  {form.manager_function || 'Sélectionnez une fonction'}
+                </Text>
+                <ChevronDown
+                  size={16}
+                  color={form.manager_function ? theme.accent : theme.textMuted}
+                  strokeWidth={2.5}
+                />
+              </TouchableOpacity>
+              {errors.manager_function ? (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                  <AlertCircle size={13} color={theme.red} />
+                  <Text style={{ color: theme.red, fontSize: 12 }}>{errors.manager_function}</Text>
+                </View>
+              ) : null}
+            </View>
+
+            <Modal
+              visible={functionPickerOpen}
+              transparent
+              animationType="slide"
+              onRequestClose={() => setFunctionPickerOpen(false)}
+            >
+              <TouchableOpacity
+                style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }}
+                activeOpacity={1}
+                onPress={() => setFunctionPickerOpen(false)}
+              />
+              <View
+                style={{
+                  backgroundColor: theme.card,
+                  borderTopLeftRadius: 28,
+                  borderTopRightRadius: 28,
+                  paddingTop: 12,
+                  paddingBottom: insets.bottom + 24,
+                }}
+              >
+                <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                  <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.inputBorder }} />
+                </View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: theme.text, paddingHorizontal: 20, marginBottom: 12, letterSpacing: -0.3 }}>
+                  Fonction
+                </Text>
+                <ScrollView showsVerticalScrollIndicator={false} bounces={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 6, paddingBottom: 8 }}>
+                  {MANAGER_FUNCTIONS.map(opt => {
+                    const selected = form.manager_function === opt;
+                    return (
+                      <TouchableOpacity
+                        key={opt}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setField('manager_function')(opt);
+                          setFunctionPickerOpen(false);
+                        }}
+                        activeOpacity={0.75}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingVertical: 14,
+                          paddingHorizontal: 16,
+                          borderRadius: 16,
+                          borderWidth: 1.5,
+                          borderColor: selected ? theme.accent : theme.cardBorder,
+                          backgroundColor: selected
+                            ? (theme.isDark ? 'rgba(249,115,22,0.12)' : 'rgba(249,115,22,0.08)')
+                            : theme.bg,
+                        }}
+                      >
+                        <Text style={{ flex: 1, fontSize: 15, fontWeight: selected ? '700' : '500', color: selected ? theme.accent : theme.text }}>
+                          {opt}
+                        </Text>
+                        {selected && <Check size={18} color={theme.accent} strokeWidth={2.5} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            </Modal>
           </Animated.View>
 
           {/* CTA */}

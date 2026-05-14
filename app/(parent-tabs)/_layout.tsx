@@ -5,6 +5,7 @@ import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
 import { useTheme } from '@/theme';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 const ICON_SIZE = 22;
 
@@ -35,7 +36,16 @@ export default function ParentTabsLayout() {
   );
 
   return (
-    <Tabs screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
+    <Tabs
+      screenOptions={{
+        headerShown: true,
+        headerTransparent: true,
+        headerTitle: '',
+        headerRight: () => <NotificationBell />,
+        headerStyle: { backgroundColor: 'transparent' },
+      }}
+      tabBar={renderTabBar}
+    >
       <Tabs.Screen
         name="index"
         options={{

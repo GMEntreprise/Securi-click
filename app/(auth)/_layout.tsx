@@ -1,42 +1,8 @@
-import { useEffect } from 'react';
-import { Stack, useRouter } from 'expo-router';
-import {
-  useIsAuthenticated,
-  useIsLoading,
-} from '@/features/auth/store/auth.store';
-import { View, ActivityIndicator } from 'react-native';
-import { useTheme } from '@/theme';
+import { Stack } from 'expo-router';
 
-function LoadingView() {
-  const theme = useTheme();
-  return (
-    <View
-      style={{
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: theme.bg,
-      }}
-    >
-      <ActivityIndicator size="large" color={theme.accent} />
-    </View>
-  );
-}
-
+// Navigation away from (auth) is handled by NavigationGuard in _layout.tsx
+// which routes each role to its own dashboard. No redirect logic here.
 export default function AuthLayout() {
-  const router = useRouter();
-  const isAuthenticated = useIsAuthenticated();
-  const isLoading = useIsLoading();
-
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.replace('/(parent-tabs)' as any);
-    }
-  }, [isAuthenticated, isLoading, router]);
-
-  if (isLoading) return <LoadingView />;
-  if (isAuthenticated) return null;
-
   return (
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
