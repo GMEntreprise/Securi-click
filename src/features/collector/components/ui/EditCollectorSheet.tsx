@@ -181,7 +181,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
       },
       { text: 'Annuler', style: 'cancel' },
     ]);
-  }, [takePhoto, pickFromGallery, uploadAvatar]);
+  }, [takePhoto, pickFromGallery, updateAvatarUrl]);
 
   const handleSave = useCallback(async () => {
     if (!validate()) {
