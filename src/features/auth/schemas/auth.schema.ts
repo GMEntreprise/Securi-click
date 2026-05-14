@@ -57,26 +57,11 @@ export const schoolRegisterSchema = z
     path: ['confirm_password'],
   });
 
-export const collectorRegisterSchema = z
-  .object({
-    email: z.string().email('Email invalide'),
-    password: z.string().min(8, '8 caractères minimum'),
-    confirm_password: z.string(),
-    invitation_token: z.string().min(1, "Token d'invitation requis"),
-    accept_terms: z
-      .boolean()
-      .refine(val => val === true, 'Vous devez accepter les CGU'),
-    accept_privacy: z
-      .boolean()
-      .refine(
-        val => val === true,
-        'Vous devez accepter la politique de confidentialité'
-      ),
-  })
-  .refine(data => data.password === data.confirm_password, {
-    message: 'Les mots de passe ne correspondent pas',
-    path: ['confirm_password'],
-  });
+export const collectorOtpSchema = z.object({
+  email: z.string().email('Email invalide'),
+});
+
+export type CollectorOtpFormData = z.infer<typeof collectorOtpSchema>;
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Email invalide'),
@@ -95,6 +80,6 @@ export const resetPasswordSchema = z
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type ParentRegisterFormData = z.infer<typeof parentRegisterSchema>;
 export type SchoolRegisterFormData = z.infer<typeof schoolRegisterSchema>;
-export type CollectorRegisterFormData = z.infer<typeof collectorRegisterSchema>;
+
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;

@@ -60,7 +60,7 @@ export const ParentAuthScreen: React.FC = memo(() => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1, backgroundColor: t.bg }}
     >
-      <AuthBackButton onPress={() => router.back()} light />
+      <AuthBackButton onPress={() => router.back()} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

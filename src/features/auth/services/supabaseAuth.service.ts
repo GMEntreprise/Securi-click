@@ -3,7 +3,6 @@ import type {
   User,
   RegisterParentData,
   RegisterSchoolData,
-  RegisterCollectorData,
 } from '../types';
 import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '../utils/mapAuthSession';
@@ -154,68 +153,15 @@ async function registerSchool(data: RegisterSchoolData): Promise<User> {
   };
 }
 
-async function registerCollector(data: RegisterCollectorData): Promise<User> {
-  // Verify invitation token first
-  const { data: inviteData, error: inviteError } = await supabase
-    .from('invited_collectors')
-    .select('*')
-    .eq('token', data.invitation_token)
-    .eq('used', false)
-    .single();
-
-  if (inviteError || !inviteData) {
-    throw new Error('Invalid or expired invitation');
-  }
-
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: data.email,
-    password: data.password,
+async function inviteCollector(email: string): Promise<void> {
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
     options: {
       emailRedirectTo: 'securiclick://auth/callback',
-      data: {
-        role: 'collector',
-        invited_by: inviteData.parent_id,
-      },
+      data: { role: 'collector' },
     },
   });
-
-  if (authError) {
-    throw new Error(authError.message);
-  }
-
-  if (!authData.user) {
-    throw new Error('No user created');
-  }
-
-  // Mark invitation as used
-  await supabase
-    .from('invited_collectors')
-    .update({ used: true, used_at: new Date().toISOString() })
-    .eq('id', inviteData.id);
-
-  // Create user profile
-  const { error: profileError } = await supabase
-    .from('user_profiles')
-    .insert({
-      user_id: authData.user.id,
-      first_name: inviteData.first_name ?? '',
-      last_name: inviteData.last_name ?? '',
-      phone: inviteData.phone ?? null,
-      role: 'collector',
-    })
-    .select()
-    .single();
-
-  if (profileError) {
-    throw new Error(profileError.message);
-  }
-
-  return {
-    id: authData.user.id,
-    email: authData.user.email ?? data.email,
-    role: 'collector',
-    authUser: authData.user,
-  };
+  if (error) throw new Error(error.message);
 }
 
 async function restoreSession(): Promise<AuthSession | null> {
@@ -261,7 +207,7 @@ export const authService = {
   signInWithPassword,
   registerParent,
   registerSchool,
-  registerCollector,
+  inviteCollector,
   restoreSession,
   signOut,
   forgotPassword,

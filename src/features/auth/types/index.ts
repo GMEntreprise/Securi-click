@@ -70,11 +70,6 @@ export interface RegisterSchoolData {
   accept_privacy: boolean;
 }
 
-export interface RegisterCollectorData {
+export interface InviteCollectorData {
   email: string;
-  password: string;
-  confirm_password: string;
-  invitation_token: string;
-  accept_terms: boolean;
-  accept_privacy: boolean;
 }
