@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Linking } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter, useSegments, Slot } from 'expo-router';
 import {
@@ -26,40 +25,8 @@ function NavigationGuard() {
   const isRestoring = useIsRestoring();
   const loginAction = useAuthStore(s => s.login);
 
-  // Deep link handler
-  useEffect(() => {
-    async function handleUrl(url: string) {
-      const fragment = url.split('#')[1];
-      if (!fragment) return;
-      const params = new URLSearchParams(fragment);
-      const accessToken = params.get('access_token');
-      const refreshToken = params.get('refresh_token');
-      const type = params.get('type');
-      if (!accessToken || !refreshToken) return;
-      const { data, error } = await supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
-      if (error || !data.session) return;
-      const session = await mapSupabaseSessionToAuthSession(data.session);
-      loginAction(session);
-      const role = session.user.role;
-      if (type === 'recovery') {
-        router.replace('/(auth)/login' as any);
-      } else if (role === 'collector') {
-        router.replace('/(collector-tabs)' as any);
-      } else if (role === 'school_admin' || role === 'staff') {
-        router.replace('/(school-tabs)/home' as any);
-      } else {
-        router.replace('/(parent-tabs)' as any);
-      }
-    }
-    Linking.getInitialURL().then(url => {
-      if (url) handleUrl(url);
-    });
-    const sub = Linking.addEventListener('url', ({ url }) => handleUrl(url));
-    return () => sub.remove();
-  }, [loginAction, router]);
+  // Deep link tokens are handled in app/auth/callback.tsx which is the
+  // registered redirect target for Supabase magic links / OTP.
 
   // Sync Supabase auth state changes (token refresh, server-side signout)
   useEffect(() => {
@@ -84,9 +51,10 @@ function NavigationGuard() {
     if (isRestoring) return;
     const seg = segments[0] as string;
     const inAuth = seg === '(auth)';
+    const inCallback = seg === 'auth'; // app/auth/callback.tsx handles token
     const role = useAuthStore.getState().session?.user.role;
 
-    if (!isAuthenticated && !inAuth) {
+    if (!isAuthenticated && !inAuth && !inCallback) {
       router.replace('/(auth)/login' as any);
     } else if (isAuthenticated && inAuth) {
       if (role === 'collector') {
