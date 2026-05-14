@@ -182,6 +182,20 @@ export function useUploadCollectorAvatar() {
   });
 }
 
+export function useUpdateCollectorAvatarUrl() {
+  const session = useSession();
+  const uid = session?.user.id ?? '';
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (avatarUrl: string) =>
+      collectorService.updateAvatarUrl(uid, avatarUrl),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: PROFILE_KEY(uid) });
+    },
+  });
+}
+
 export function useUploadIdentity() {
   const session = useSession();
   const uid = session?.user.id ?? '';

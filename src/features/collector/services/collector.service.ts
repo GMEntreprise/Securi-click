@@ -184,4 +184,12 @@ export const collectorService = {
       .eq('user_id', userId);
     return data.publicUrl;
   },
+
+  async updateAvatarUrl(userId: string, avatarUrl: string): Promise<void> {
+    const { error } = await supabase
+      .from('user_profiles')
+      .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+      .eq('user_id', userId);
+    if (error) throw error;
+  },
 };
