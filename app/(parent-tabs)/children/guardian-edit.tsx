@@ -66,17 +66,20 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export default function GuardianDetailScreen() {
+export default function GuardianEditScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
-  const { id, childId } = useLocalSearchParams<{ id: string; childId: string }>();
+  const { guardianId, childId } = useLocalSearchParams<{
+    guardianId: string;
+    childId: string;
+  }>();
 
   const { data: guardian, isLoading } = useQuery({
-    queryKey: ['guardian', id],
-    queryFn: () => parentService.getGuardian(id ?? ''),
-    enabled: !!id,
+    queryKey: ['guardian', guardianId],
+    queryFn: () => parentService.getGuardian(guardianId ?? ''),
+    enabled: !!guardianId,
   });
 
   const updateGuardian = useUpdateGuardian(childId ?? '');
@@ -115,6 +118,7 @@ export default function GuardianDetailScreen() {
         access_code: '',
       });
       setSelectedRelationship(guardian.relationship);
+      // PIN already set on this guardian → start with toggle on
       setUsePinCode(!!(guardian as any).access_code_hash);
     }
   }, [guardian, reset]);
@@ -130,12 +134,12 @@ export default function GuardianDetailScreen() {
 
   const onSubmit = useCallback(
     async (data: FormData) => {
-      if (!id) return;
+      if (!guardianId) return;
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
       try {
         await updateGuardian.mutateAsync({
-          guardianId: id,
+          guardianId,
           payload: {
             first_name: data.first_name,
             last_name: data.last_name,
@@ -145,15 +149,17 @@ export default function GuardianDetailScreen() {
           },
         });
 
+        // If a new PIN was entered, rehash it server-side
         if (usePinCode && data.access_code?.trim()) {
           const { error: rpcError } = await supabase.rpc('update_guardian_pin', {
-            p_guardian_id: id,
+            p_guardian_id: guardianId,
             p_access_code: data.access_code.trim(),
           });
           if (rpcError) throw new Error(rpcError.message);
         } else if (!usePinCode) {
+          // PIN disabled → clear the hash
           const { error: rpcError } = await supabase.rpc('update_guardian_pin', {
-            p_guardian_id: id,
+            p_guardian_id: guardianId,
             p_access_code: null,
           });
           if (rpcError) throw new Error(rpcError.message);
@@ -165,17 +171,17 @@ export default function GuardianDetailScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     },
-    [id, updateGuardian, usePinCode, router]
+    [guardianId, updateGuardian, usePinCode, router]
   );
 
   const handleToggle = useCallback(() => {
-    if (!id || !guardian) return;
+    if (!guardianId || !guardian) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    toggleGuardian.mutate({ guardianId: id, isActive: !guardian.is_active });
-  }, [id, guardian, toggleGuardian]);
+    toggleGuardian.mutate({ guardianId, isActive: !guardian.is_active });
+  }, [guardianId, guardian, toggleGuardian]);
 
   const handleDelete = useCallback(() => {
-    if (!id || !guardian) return;
+    if (!guardianId || !guardian) return;
     Alert.alert(
       "Supprimer l'autorisation",
       `Retirer l'accès à ${guardian.first_name} ${guardian.last_name} ?`,
@@ -185,14 +191,14 @@ export default function GuardianDetailScreen() {
           text: 'Supprimer',
           style: 'destructive',
           onPress: () => {
-            deleteGuardian.mutate(id);
+            deleteGuardian.mutate(guardianId);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             router.back();
           },
         },
       ]
     );
-  }, [id, guardian, deleteGuardian, router]);
+  }, [guardianId, guardian, deleteGuardian, router]);
 
   if (isLoading) {
     return (
@@ -306,6 +312,7 @@ export default function GuardianDetailScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* Status banner */}
         {guardian && (
           <Animated.View
             entering={FadeInDown.delay(60).duration(300)}
@@ -341,6 +348,7 @@ export default function GuardianDetailScreen() {
           </Animated.View>
         )}
 
+        {/* Identity fields */}
         <Animated.View entering={FadeInDown.delay(80).duration(400)}>
           <AuthInputField
             control={control}
@@ -380,6 +388,7 @@ export default function GuardianDetailScreen() {
           />
         </Animated.View>
 
+        {/* Relation chips */}
         <Animated.View
           entering={FadeInDown.delay(160).duration(400)}
           style={{ marginBottom: 20 }}
@@ -432,6 +441,7 @@ export default function GuardianDetailScreen() {
           ) : null}
         </Animated.View>
 
+        {/* PIN section */}
         <Animated.View
           entering={FadeInDown.delay(220).duration(400)}
           style={{ marginBottom: 16 }}
@@ -449,6 +459,7 @@ export default function GuardianDetailScreen() {
         </Animated.View>
       </ScrollView>
 
+      {/* CTA */}
       <View
         style={{
           paddingHorizontal: 20,

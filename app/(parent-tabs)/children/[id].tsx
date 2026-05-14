@@ -26,7 +26,6 @@ import {
   ToggleRight,
   UserPlus,
   GraduationCap,
-  Trash2,
   Pencil,
 } from 'lucide-react-native';
 import { useChild } from '@/features/parent/hooks/useChildren';
@@ -44,11 +43,13 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
   index,
   onToggle,
   onDelete,
+  onEdit,
 }: {
   item: Guardian;
   index: number;
   onToggle: (id: string, current: boolean) => void;
   onDelete: (id: string, name: string) => void;
+  onEdit: (id: string) => void;
 }) {
   const theme = useTheme();
   const scale = useSharedValue(1);
@@ -81,7 +82,7 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
     >
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => {}}
+        onPress={() => onEdit(item.id)}
         onLongPress={handleDelete}
         delayLongPress={500}
       >
@@ -254,10 +255,20 @@ export default function ChildDetails() {
     [deletePerson]
   );
 
+  const handleEditGuardian = useCallback(
+    (guardianId: string) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      router.push(
+        `/(parent-tabs)/children/guardian-edit?guardianId=${guardianId}&childId=${childId}` as any
+      );
+    },
+    [router, childId]
+  );
+
   const handleAddPerson = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push(
-      `/(parent-tabs)/authorized-persons/add?childId=${childId}` as any
+      `/(parent-tabs)/children/guardian-add?childId=${childId}` as any
     );
   }, [router, childId]);
 
@@ -497,6 +508,7 @@ export default function ChildDetails() {
                 index={i}
                 onToggle={handleToggle}
                 onDelete={handleDelete}
+                onEdit={handleEditGuardian}
               />
             ))
           )}

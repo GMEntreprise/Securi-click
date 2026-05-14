@@ -6,6 +6,8 @@ export default function ChildrenLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="[id]" />
       <Stack.Screen name="add" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="guardian-edit" />
+      <Stack.Screen name="guardian-add" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

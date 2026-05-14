@@ -19,7 +19,7 @@ export interface Guardian {
   child_id: string;
   first_name: string;
   last_name: string;
-  phone: string;
+  phone: string | null;
   email: string | null;
   relationship: string;
   photo_url: string | null;
@@ -93,8 +93,8 @@ export interface AddGuardianPayload {
 export interface UpdateGuardianPayload {
   first_name: string;
   last_name: string;
-  phone: string;
-  email?: string | null;
+  phone?: string | null;
+  email: string;
   relationship: string;
   priority?: number;
 }

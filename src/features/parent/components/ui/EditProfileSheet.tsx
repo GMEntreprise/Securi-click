@@ -1,34 +1,33 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
+import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
+import { AuthPasswordField } from '@/features/auth/components/ui/AuthPasswordField';
+import { PasswordStrengthBar } from '@/features/auth/components/ui/PasswordStrengthBar';
+import { useSession } from '@/features/auth/store/auth.store';
+import { Avatar } from '@/shared/ui/base/avatar';
+import { useTheme } from '@/theme';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as Haptics from 'expo-haptics';
+import { Camera, Check, Phone, User, X } from 'lucide-react-native';
+import React, { memo, useCallback, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
-import { Camera, Phone, Lock, X, Check } from 'lucide-react-native';
-import { Avatar } from '@/shared/ui/base/avatar';
-import { useTheme } from '@/theme';
-import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
-import { AuthPasswordField } from '@/features/auth/components/ui/AuthPasswordField';
-import { PasswordStrengthBar } from '@/features/auth/components/ui/PasswordStrengthBar';
+import { z } from 'zod';
 import {
-  useUpdateProfile,
-  useUpdateAvatar,
   useChangePassword,
+  useUpdateAvatar,
+  useUpdateProfile,
 } from '../../hooks/useParentProfile';
 import { useUploadImage } from '../../hooks/useUploadImage';
-import { useSession } from '@/features/auth/store/auth.store';
 import type { ParentProfile } from '../../types';
 
 const profileSchema = z.object({
