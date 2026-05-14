@@ -3,20 +3,16 @@ import React, { memo, useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import {
+  loginSchema,
+  type LoginFormData as LoginValues,
+} from '../schemas/auth.schema';
 import {
   AuthInputField,
   AuthPasswordField,
   AuthPrimaryButton,
 } from '../components/ui';
 import { useTheme } from '@/theme';
-
-const loginSchema = z.object({
-  email: z.string().email('Email invalide'),
-  password: z.string().min(6, 'Mot de passe trop court'),
-});
-
-type LoginValues = z.infer<typeof loginSchema>;
 
 interface ParentLoginFormProps {
   onSubmit: (data: LoginValues) => void;

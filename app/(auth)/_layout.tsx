@@ -44,7 +44,6 @@ export default function AuthLayout() {
       <Stack.Screen name="parent" options={{ headerShown: false }} />
       <Stack.Screen name="school" options={{ headerShown: false }} />
       <Stack.Screen name="collector" options={{ headerShown: false }} />
-      <Stack.Screen name="register" options={{ headerShown: false }} />
     </Stack>
   );
 }

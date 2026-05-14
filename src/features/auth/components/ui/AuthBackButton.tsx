@@ -2,35 +2,37 @@ import { ChevronLeft } from 'lucide-react-native';
 import React, { memo } from 'react';
 import { Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '@/theme';
 
 interface AuthBackButtonProps {
   onPress: () => void;
-  light?: boolean;
 }
 
 export const AuthBackButton: React.FC<AuthBackButtonProps> = memo(
-  ({ onPress, light = true }) => {
+  ({ onPress }) => {
     const insets = useSafeAreaInsets();
+    const t = useTheme();
 
     return (
       <Pressable
         onPress={onPress}
         hitSlop={12}
         style={{
+          position: 'absolute',
           top: insets.top + 12,
           left: 16,
-          position: 'absolute',
           zIndex: 10,
+          width: 40,
+          height: 40,
+          borderRadius: 20,
+          backgroundColor: t.card,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderWidth: 1,
+          borderColor: t.cardBorder,
         }}
-        className={`w-10 h-10 rounded-full items-center justify-center ${
-          light ? 'bg-white/80' : 'bg-gray-800/80'
-        }`}
       >
-        <ChevronLeft
-          size={22}
-          color={light ? '#111827' : '#f9fafb'}
-          strokeWidth={2.5}
-        />
+        <ChevronLeft size={22} color={t.text} strokeWidth={2.5} />
       </Pressable>
     );
   }

@@ -5,6 +5,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { useTheme } from '@/theme';
 
 interface AuthPrimaryButtonProps {
   onPress: () => void;
@@ -13,7 +14,6 @@ interface AuthPrimaryButtonProps {
   disabled?: boolean;
   variant?: 'primary' | 'accent';
   icon?: React.ReactNode;
-  className?: string;
 }
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -27,6 +27,7 @@ export const AuthPrimaryButton: React.FC<AuthPrimaryButtonProps> = memo(
     variant = 'accent',
     icon,
   }) => {
+    const t = useTheme();
     const scale = useSharedValue(1);
 
     const animatedStyle = useAnimatedStyle(() => ({
@@ -35,32 +36,47 @@ export const AuthPrimaryButton: React.FC<AuthPrimaryButtonProps> = memo(
 
     const handlePressIn = useCallback(() => {
       scale.value = withSpring(0.97, { damping: 20, stiffness: 400 });
-    }, []);
+    }, [scale]);
 
     const handlePressOut = useCallback(() => {
       scale.value = withSpring(1, { damping: 20, stiffness: 400 });
-    }, []);
+    }, [scale]);
 
-    const bgColor = variant === 'accent' ? '#f97316' : '#1e3a8a';
+    const bgColor = variant === 'accent' ? t.accent : t.primary;
     const isDisabled = disabled || isLoading;
 
     return (
       <AnimatedPressable
-        style={[animatedStyle, { opacity: isDisabled ? 0.6 : 1 }]}
+        style={[animatedStyle, { opacity: isDisabled ? 0.45 : 1 }]}
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
         disabled={isDisabled}
       >
         <View
-          className="flex-row items-center justify-center rounded-full py-4 px-8"
-          style={{ backgroundColor: bgColor, minHeight: 56 }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: bgColor,
+            borderRadius: 18,
+            paddingVertical: 16,
+            paddingHorizontal: 32,
+            minHeight: 56,
+            gap: 8,
+          }}
         >
           {isLoading ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
             <>
-              <Text className="text-white font-bold text-base mr-2">
+              <Text
+                style={{
+                  color: '#fff',
+                  fontWeight: '700',
+                  fontSize: 16,
+                }}
+              >
                 {children}
               </Text>
               {icon}

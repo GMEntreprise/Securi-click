@@ -82,7 +82,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
 
     return (
       <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
-        <AuthStepBar currentStep={1} totalSteps={2} accentColor={t.accent} />
+        <AuthStepBar currentStep={1} totalSteps={2} />
 
         <Text
           style={{
@@ -185,7 +185,6 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
         <AuthCheckbox
           control={control}
           name="accept_terms"
-          accentColor={t.accent}
           error={errors.accept_terms?.message}
           label={
             <Text
@@ -203,7 +202,6 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
         <AuthCheckbox
           control={control}
           name="accept_privacy"
-          accentColor={t.accent}
           error={errors.accept_privacy?.message}
           label={
             <Text

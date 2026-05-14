@@ -4,53 +4,89 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import { useTheme } from '@/theme';
 
 interface AuthStepBarProps {
   currentStep: number;
   totalSteps: number;
-  accentColor?: string;
 }
 
 export const AuthStepBar: React.FC<AuthStepBarProps> = memo(
-  ({ currentStep, totalSteps, accentColor = '#f97316' }) => {
-    const progress = currentStep / totalSteps;
-
-    const barStyle = useAnimatedStyle(() => ({
-      width: withTiming(`${progress * 100}%` as any, { duration: 350 }),
-    }));
+  ({ currentStep, totalSteps }) => {
+    const t = useTheme();
 
     return (
-      <View className="mb-6">
-        <Text className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+      <View style={{ marginBottom: 24 }}>
+        <Text
+          style={{
+            fontSize: 12,
+            color: t.textMuted,
+            marginBottom: 10,
+            fontWeight: '600',
+          }}
+        >
           Étape {currentStep} sur {totalSteps}
         </Text>
-        <View className="flex-row gap-2">
+        <View style={{ flexDirection: 'row', gap: 6 }}>
           {Array.from({ length: totalSteps }).map((_, i) => (
-            <View
+            <StepSegment
               key={i}
-              className="flex-1 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
-            >
-              {i < currentStep && (
-                <Animated.View
-                  style={[
-                    { position: 'absolute', left: 0, top: 0, bottom: 0 },
-                    i === currentStep - 1 ? barStyle : { width: '100%' },
-                  ]}
-                  className="rounded-full"
-                />
-              )}
-              {i < currentStep && (
-                <View
-                  style={{ backgroundColor: accentColor }}
-                  className="absolute inset-0 rounded-full"
-                />
-              )}
-            </View>
+              filled={i < currentStep}
+              active={i === currentStep - 1}
+              color={t.accent}
+              trackColor={t.inputBorder}
+            />
           ))}
         </View>
       </View>
     );
   }
 );
+
+const StepSegment = memo(function StepSegment({
+  filled,
+  active,
+  color,
+  trackColor,
+}: {
+  filled: boolean;
+  active: boolean;
+  color: string;
+  trackColor: string;
+}) {
+  const fillStyle = useAnimatedStyle(() => ({
+    width: withTiming(active ? '100%' : filled ? '100%' : '0%', {
+      duration: 350,
+    }) as any,
+  }));
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        height: 4,
+        borderRadius: 4,
+        backgroundColor: trackColor,
+        overflow: 'hidden',
+      }}
+    >
+      {filled && (
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              backgroundColor: color,
+              borderRadius: 4,
+            },
+            active ? fillStyle : { width: '100%' },
+          ]}
+        />
+      )}
+    </View>
+  );
+});
 
 AuthStepBar.displayName = 'AuthStepBar';

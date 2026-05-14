@@ -3,25 +3,19 @@ import { authService } from '../services/supabaseAuth.service';
 import type { AuthSession, AuthState } from '../types';
 
 interface AuthActions {
-  initialize: () => Promise<void>;
+  initialize: () => void;
   login: (session: AuthSession) => void;
   logout: () => Promise<void>;
   setLoading: (isLoading: boolean) => void;
 }
 
-export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
+export const useAuthStore = create<AuthState & AuthActions>(set => ({
   session: null,
   isLoading: false,
   isRestoring: true,
 
-  initialize: async () => {
-    try {
-      set({ isRestoring: true });
-      const session = await authService.restoreSession();
-      if (session) set({ session });
-    } finally {
-      set({ isRestoring: false });
-    }
+  initialize: () => {
+    set({ isRestoring: false });
   },
 
   login: session => set({ session, isLoading: false }),

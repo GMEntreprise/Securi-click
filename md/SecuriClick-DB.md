@@ -18,7 +18,7 @@ parent_id uuid NOT NULL,
 school_id uuid,
 first_name character varying NOT NULL,
 last_name character varying NOT NULL,
-date_of_birth date NOT NULL,
+date_of_birth date,
 photo_url text,
 class_name character varying,
 medical_notes text,
@@ -151,11 +151,32 @@ status character varying NOT NULL CHECK (status::text = ANY (ARRAY['completed'::
 denial_reason text,
 notes text,
 created_at timestamp with time zone DEFAULT now(),
+school_id uuid,
 CONSTRAINT pickup_logs_pkey PRIMARY KEY (id),
 CONSTRAINT pickup_logs_staff_id_fkey FOREIGN KEY (staff_id) REFERENCES auth.users(id),
 CONSTRAINT pickup_logs_child_id_fkey FOREIGN KEY (child_id) REFERENCES public.children(id),
 CONSTRAINT pickup_logs_guardian_id_fkey FOREIGN KEY (guardian_id) REFERENCES public.guardians(id),
-CONSTRAINT pickup_logs_qr_code_id_fkey FOREIGN KEY (qr_code_id) REFERENCES public.qr_codes(id)
+CONSTRAINT pickup_logs_qr_code_id_fkey FOREIGN KEY (qr_code_id) REFERENCES public.qr_codes(id),
+CONSTRAINT pickup_logs_school_id_fkey FOREIGN KEY (school_id) REFERENCES public.schools(id)
+);
+CREATE TABLE public.pickup_validations (
+id uuid NOT NULL DEFAULT uuid_generate_v4(),
+school_id uuid NOT NULL,
+child_id uuid NOT NULL,
+guardian_id uuid,
+qr_code_id uuid,
+scanner_user_id uuid,
+status character varying NOT NULL CHECK (status::text = ANY (ARRAY['validated'::character varying, 'refused'::character varying, 'pending'::character varying]::text[])),
+refusal_reason text,
+scanned_at timestamp with time zone NOT NULL DEFAULT now(),
+meta jsonb,
+created_at timestamp with time zone NOT NULL DEFAULT now(),
+CONSTRAINT pickup_validations_pkey PRIMARY KEY (id),
+CONSTRAINT pickup_validations_school_id_fkey FOREIGN KEY (school_id) REFERENCES public.schools(id),
+CONSTRAINT pickup_validations_child_id_fkey FOREIGN KEY (child_id) REFERENCES public.children(id),
+CONSTRAINT pickup_validations_guardian_id_fkey FOREIGN KEY (guardian_id) REFERENCES public.guardians(id),
+CONSTRAINT pickup_validations_qr_code_id_fkey FOREIGN KEY (qr_code_id) REFERENCES public.qr_codes(id),
+CONSTRAINT pickup_validations_scanner_user_id_fkey FOREIGN KEY (scanner_user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.qr_codes (
 id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -201,6 +222,9 @@ admin_user_id uuid NOT NULL UNIQUE,
 is_active boolean DEFAULT true,
 created_at timestamp with time zone DEFAULT now(),
 updated_at timestamp with time zone DEFAULT now(),
+logo_url text,
+opening_hours jsonb,
+slug character varying,
 CONSTRAINT schools_pkey PRIMARY KEY (id),
 CONSTRAINT schools_admin_user_id_fkey FOREIGN KEY (admin_user_id) REFERENCES auth.users(id)
 );

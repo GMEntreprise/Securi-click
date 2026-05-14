@@ -1,4 +1,3 @@
-export { LoginForm } from './components/LoginForm';
 export { RoleChoiceScreen } from './screens/RoleChoiceScreen';
 export { ParentAuthScreen } from './screens/ParentAuthScreen';
 export { SchoolAuthScreen } from './screens/SchoolAuthScreen';

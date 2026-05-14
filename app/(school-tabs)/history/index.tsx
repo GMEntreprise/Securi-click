@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -61,7 +61,7 @@ export default function SchoolHistoryScreen() {
   const grouped = useMemo(() => groupByDay(validations ?? []), [validations]);
 
   const renderItem = useCallback(
-    ({ item }: { item: GroupedItem }) => {
+    ({ item }: ListRenderItemInfo<GroupedItem>) => {
       if (item.type === 'header') {
         return (
           <Text
@@ -160,10 +160,10 @@ export default function SchoolHistoryScreen() {
           </View>
         ) : (
           <FlashList
-            data={grouped as GroupedItem[]}
-            renderItem={renderItem as any}
-            keyExtractor={keyExtractor as any}
-            getItemType={(item: GroupedItem) => item.type}
+            data={grouped}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            getItemType={item => item.type}
             contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
           />
         )}

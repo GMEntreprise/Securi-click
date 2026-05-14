@@ -8,29 +8,6 @@ import type {
 import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '../utils/mapAuthSession';
 
-export type AuthListener = (session: AuthSession | null) => void;
-
-function subscribeAuth(listener: AuthListener): { unsubscribe: () => void } {
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange(async (event, sess) => {
-    if (event === 'INITIAL_SESSION') {
-      return;
-    }
-    if (!sess) {
-      listener(null);
-      return;
-    }
-    listener(await mapSupabaseSessionToAuthSession(sess));
-  });
-
-  return {
-    unsubscribe: () => {
-      subscription.unsubscribe();
-    },
-  };
-}
-
 async function signInWithPassword(
   email: string,
   password: string
@@ -287,6 +264,5 @@ export const authService = {
   registerCollector,
   restoreSession,
   signOut,
-  subscribeAuth,
   forgotPassword,
 };

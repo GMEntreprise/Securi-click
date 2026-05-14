@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -56,7 +56,7 @@ export default function StudentsScreen() {
   }, [students, classFilter, debouncedSearch]);
 
   const renderItem = useCallback(
-    ({ item }: { item: SchoolChild }) => <StudentRow item={item} />,
+    ({ item }: ListRenderItemInfo<SchoolChild>) => <StudentRow item={item} />,
     []
   );
 
@@ -206,9 +206,9 @@ export default function StudentsScreen() {
         </View>
       ) : (
         <FlashList
-          data={filtered as SchoolChild[]}
-          renderItem={renderItem as any}
-          keyExtractor={keyExtractor as any}
+          data={filtered}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
           contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
         />
       )}

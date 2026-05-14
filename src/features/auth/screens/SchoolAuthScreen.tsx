@@ -24,6 +24,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import {
+  loginSchema,
+  type LoginFormData as LoginValues,
+} from '../schemas/auth.schema';
 import { useLogin } from '../hooks/useLogin';
 import { useRegisterSchool } from '../hooks/useRegister';
 import {
@@ -39,11 +43,6 @@ import { useTheme } from '@/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.3;
-
-const loginSchema = z.object({
-  email: z.string().email('Email invalide'),
-  password: z.string().min(6, 'Mot de passe trop court'),
-});
 
 const registerSchema = z.object({
   school_name: z.string().min(2, "Nom de l'établissement requis"),
@@ -62,7 +61,6 @@ const registerSchema = z.object({
   accept_privacy: z.boolean().refine(v => v, 'Accepter la politique'),
 });
 
-type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
 
 const SchoolLoginForm: React.FC<{
@@ -186,7 +184,7 @@ const SchoolRegisterForm: React.FC<{
 
   return (
     <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
-      <AuthStepBar currentStep={1} totalSteps={2} accentColor={t.primary} />
+      <AuthStepBar currentStep={1} totalSteps={2} />
 
       <Text
         style={{
@@ -348,7 +346,6 @@ const SchoolRegisterForm: React.FC<{
       <AuthCheckbox
         control={control}
         name="accept_terms"
-        accentColor={t.primary}
         error={errors.accept_terms?.message}
         label={
           <Text
