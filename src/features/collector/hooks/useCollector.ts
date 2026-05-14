@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabase/client';
 import { useSession } from '@/features/auth/store/auth.store';
 import { collectorService } from '../services/collector.service';
 import type { CollectorGuardian, DocumentType } from '../types';
-import { InfiniteData } from '@tanstack/react-query';
 
 const GUARDIANS_KEY = (uid: string) => ['collector-guardians', uid] as const;
 const IDENTITY_KEY = (uid: string) => ['collector-identity', uid] as const;
@@ -117,13 +116,40 @@ export function useMyPickupLogs() {
 export function useCollectorProfile() {
   const session = useSession();
   const uid = session?.user.id ?? '';
+  const queryClient = useQueryClient();
 
-  return useQuery({
+  const query = useQuery({
     queryKey: PROFILE_KEY(uid),
     queryFn: () => collectorService.getCollectorProfile(uid),
     enabled: !!uid,
     staleTime: 5 * 60 * 1000,
   });
+
+  useEffect(() => {
+    if (!uid) return;
+    const ch = supabase
+      .channel(
+        `collector-profile-${uid}-${Math.random().toString(36).slice(2)}`
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_profiles',
+          filter: `user_id=eq.${uid}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: PROFILE_KEY(uid) });
+        }
+      )
+      .subscribe();
+    return () => {
+      ch.unsubscribe();
+    };
+  }, [uid, queryClient]);
+
+  return query;
 }
 
 export function useUpdateCollectorProfile() {

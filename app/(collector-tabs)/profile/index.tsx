@@ -7,13 +7,11 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
-  Image,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
-  User,
   Camera,
   ShieldCheck,
   ShieldOff,
@@ -33,6 +31,7 @@ import {
   useMyIdentity,
 } from '@/features/collector/hooks/useCollector';
 import IdentityVerificationSheet from './IdentityVerificationSheet';
+import { Avatar } from '@/shared/ui/base/avatar';
 
 export default function CollectorProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -168,25 +167,17 @@ export default function CollectorProfileScreen() {
             onPress={handleAvatarPress}
             style={{ marginBottom: 14 }}
           >
-            {profile?.avatar_url ? (
-              <Image
-                source={{ uri: profile.avatar_url }}
-                style={{ width: 90, height: 90, borderRadius: 28 }}
-              />
-            ) : (
-              <View
-                style={{
-                  width: 90,
-                  height: 90,
-                  borderRadius: 28,
-                  backgroundColor: theme.accentBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <User size={38} color={theme.accent} />
-              </View>
-            )}
+            <Avatar
+              image={{
+                uri: profile?.avatar_url ?? '',
+                name: `${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`.trim(),
+              }}
+              size={90}
+              showBorder={false}
+              backgroundColor={theme.accentBg}
+              textColor={theme.accent}
+              loading={!profile}
+            />
             <View
               style={{
                 position: 'absolute',

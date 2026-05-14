@@ -1,14 +1,14 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ShieldCheck,
   ShieldOff,
-  User,
   Calendar,
   Building2,
 } from 'lucide-react-native';
+import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
 import { useMyGuardians } from '@/features/collector/hooks/useCollector';
 
@@ -179,25 +179,16 @@ function AccessCard({
                 marginBottom: 12,
               }}
             >
-              {guardian.child?.photo_url ? (
-                <Image
-                  source={{ uri: guardian.child.photo_url }}
-                  style={{ width: 40, height: 40, borderRadius: 12 }}
-                />
-              ) : (
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    backgroundColor: theme.accentBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <User size={18} color={theme.accent} />
-                </View>
-              )}
+              <Avatar
+                image={{
+                  uri: guardian.child?.photo_url ?? '',
+                  name: `${guardian.child?.first_name ?? ''} ${guardian.child?.last_name ?? ''}`.trim(),
+                }}
+                size={40}
+                showBorder={false}
+                backgroundColor={theme.accentBg}
+                textColor={theme.accent}
+              />
               <View style={{ flex: 1 }}>
                 <Text
                   style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}

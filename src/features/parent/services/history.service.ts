@@ -215,18 +215,14 @@ export const historyService = {
 
   async searchEntries(
     parentId: string,
-    query: string,
+    search: string,
     limit = 20
   ): Promise<HistoryEntry[]> {
-    const { data, error } = await supabase
-      .from('pickup_history')
-      .select(HISTORY_SELECT)
-      .eq('parent_id', parentId)
-      .or(
-        `child.first_name.ilike.%${query}%,child.last_name.ilike.%${query}%,guardian.first_name.ilike.%${query}%,guardian.last_name.ilike.%${query}%`
-      )
-      .order('scanned_at', { ascending: false })
-      .limit(limit);
+    const { data, error } = await supabase.rpc('search_pickup_history', {
+      p_parent_id: parentId,
+      p_search: search.trim(),
+      p_limit: limit,
+    });
     if (error) throw error;
     return (data ?? []) as unknown as HistoryEntry[];
   },

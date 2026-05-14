@@ -34,6 +34,7 @@ import {
   useDeleteGuardian,
 } from '@/features/parent/hooks/useGuardians';
 import type { Guardian } from '@/features/parent/types';
+import { Avatar } from '@/shared/ui/base/avatar';
 
 const AuthorizationCard = React.memo(function AuthorizationCard({
   item,
@@ -69,8 +70,6 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
   const handleDelete = useCallback(() => {
     onDelete(item.id, `${item.first_name} ${item.last_name}`);
   }, [item.id, item.first_name, item.last_name, onDelete]);
-
-  const initials = `${item.first_name[0] ?? '?'}${item.last_name[0] ?? ''}`;
 
   return (
     <Animated.View
@@ -111,28 +110,19 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
                 marginBottom: 12,
               }}
             >
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 14,
-                  backgroundColor: item.is_active
-                    ? theme.greenBg
-                    : theme.iconBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 12,
-                }}
-              >
-                <Text
-                  style={{
-                    color: item.is_active ? theme.green : theme.textMuted,
-                    fontSize: 15,
-                    fontWeight: '800',
+              <View style={{ marginRight: 12 }}>
+                <Avatar
+                  image={{
+                    uri: '',
+                    name: `${item.first_name} ${item.last_name}`,
                   }}
-                >
-                  {initials}
-                </Text>
+                  size={44}
+                  showBorder={false}
+                  backgroundColor={
+                    item.is_active ? theme.greenBg : theme.iconBg
+                  }
+                  textColor={item.is_active ? theme.green : theme.textMuted}
+                />
               </View>
               <View style={{ flex: 1 }}>
                 <Text

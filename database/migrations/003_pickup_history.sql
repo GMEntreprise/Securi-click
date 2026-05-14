@@ -127,4 +127,12 @@ END;
 $$;
 
 -- ─── Realtime ───────────────────────────────────────────────────────────────
-ALTER PUBLICATION supabase_realtime ADD TABLE public.pickup_history;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables
+    WHERE pubname = 'supabase_realtime' AND tablename = 'pickup_history'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.pickup_history;
+  END IF;
+END$$;

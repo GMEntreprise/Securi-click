@@ -2,7 +2,6 @@ import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -17,15 +16,8 @@ import { z } from 'zod';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  Camera,
-  Image as ImageIcon,
-  User,
-  Phone,
-  Lock,
-  X,
-  Check,
-} from 'lucide-react-native';
+import { Camera, Phone, Lock, X, Check } from 'lucide-react-native';
+import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { AuthPasswordField } from '@/features/auth/components/ui/AuthPasswordField';
@@ -203,33 +195,17 @@ export const EditProfileSheet = memo(function EditProfileSheet({
           onPress={handlePickPhoto}
           disabled={isUploading || updateAvatar.isPending}
         >
-          <View
-            style={{
-              width: 88,
-              height: 88,
-              borderRadius: 28,
-              backgroundColor: theme.accentBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
+          <Avatar
+            image={{
+              uri: avatarUri ?? '',
+              name: `${profile.first_name} ${profile.last_name}`,
             }}
-          >
-            {isUploading || updateAvatar.isPending ? (
-              <ActivityIndicator color={theme.accent} />
-            ) : avatarUri ? (
-              <Image
-                source={{ uri: avatarUri }}
-                style={{ width: 88, height: 88 }}
-                resizeMode="cover"
-              />
-            ) : (
-              <Text
-                style={{ color: theme.accent, fontSize: 30, fontWeight: '800' }}
-              >
-                {initials}
-              </Text>
-            )}
-          </View>
+            size={88}
+            showBorder={false}
+            backgroundColor={theme.accentBg}
+            textColor={theme.accent}
+            loading={isUploading || updateAvatar.isPending}
+          />
           <View
             style={{
               position: 'absolute',

@@ -42,7 +42,12 @@ export function useGuardians(childId: string) {
           } else if (payload.eventType === 'INSERT') {
             queryClient.setQueryData<Guardian[]>(
               GUARDIANS_KEY(childId),
-              prev => [payload.new as Guardian, ...(prev ?? [])]
+              prev => {
+                const existing = prev ?? [];
+                if (existing.some(g => g.id === (payload.new as Guardian).id))
+                  return existing;
+                return [payload.new as Guardian, ...existing];
+              }
             );
           } else {
             queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev =>

@@ -1,6 +1,7 @@
 import { useAuthStore, useSession } from '@/features/auth/store/auth.store';
 import { EditProfileSheet } from '@/features/parent/components/ui/EditProfileSheet';
 import { useParentProfile } from '@/features/parent/hooks/useParentProfile';
+import { Avatar } from '@/shared/ui/base/avatar';
 import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { useTheme } from '@/theme';
@@ -17,7 +18,6 @@ import {
   Pencil,
   Shield,
   Smartphone,
-  User,
 } from 'lucide-react-native';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
@@ -147,8 +147,6 @@ export default function ProfileScreen() {
   const lastName = profile?.last_name ?? session?.user.profile?.last_name ?? '';
   const email = session?.user.email ?? '';
   const phone = profile?.phone ?? session?.user.profile?.phone ?? '';
-  const initials = `${firstName[0] ?? '?'}${lastName[0] ?? ''}`.toUpperCase();
-
   const toggle = useCallback((key: keyof typeof prefs, value: boolean) => {
     setPrefs(p => ({ ...p, [key]: value }));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -303,26 +301,18 @@ export default function ProfileScreen() {
                 marginBottom: 16,
               }}
             >
-              <View
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 22,
-                  backgroundColor: theme.accentBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 16,
-                }}
-              >
-                <Text
-                  style={{
-                    color: theme.accent,
-                    fontSize: 22,
-                    fontWeight: '800',
+              <View style={{ marginRight: 16 }}>
+                <Avatar
+                  image={{
+                    uri: profile?.avatar_url ?? '',
+                    name: `${firstName} ${lastName}`.trim(),
                   }}
-                >
-                  {initials}
-                </Text>
+                  size={64}
+                  showBorder={false}
+                  backgroundColor={theme.accentBg}
+                  textColor={theme.accent}
+                  loading={!profile}
+                />
               </View>
               <View style={{ flex: 1 }}>
                 <Text

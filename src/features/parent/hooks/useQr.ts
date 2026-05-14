@@ -88,15 +88,7 @@ export function useRecentScans(childId?: string) {
           schema: 'public',
           table: 'pickup_logs',
         },
-        payload => {
-          queryClient.setQueryData<RecentScan[]>(
-            SCANS_KEY(parentId, childId),
-            old => {
-              if (!old) return old;
-              const newScan = payload.new as RecentScan;
-              return [newScan, ...old].slice(0, 5);
-            }
-          );
+        () => {
           queryClient.invalidateQueries({
             queryKey: SCANS_KEY(parentId, childId),
           });

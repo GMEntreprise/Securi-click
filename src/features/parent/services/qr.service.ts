@@ -79,25 +79,22 @@ export const qrService = {
     guardianId: string | null,
     expiresInHours = 24
   ): Promise<QrCode> {
-    const token = `SC-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-    const expiresAt = new Date(
-      Date.now() + expiresInHours * 3600000
-    ).toISOString();
-
-    const { data, error } = await supabase
-      .from('qr_codes')
-      .insert({
-        parent_id: parentId,
-        child_id: childId,
-        guardian_id: guardianId,
-        token,
-        expires_at: expiresAt,
-        is_used: false,
-      })
-      .select(QR_SELECT)
-      .single();
+    const { data, error } = await supabase.rpc('generate_qr_code', {
+      p_parent_id: parentId,
+      p_child_id: childId,
+      p_guardian_id: guardianId,
+      p_expires_in_hours: expiresInHours,
+    });
     if (error) throw error;
-    return data as unknown as QrCode;
+    const qrId = data as string;
+
+    const { data: qr, error: fetchErr } = await supabase
+      .from('qr_codes')
+      .select(QR_SELECT)
+      .eq('id', qrId)
+      .single();
+    if (fetchErr) throw fetchErr;
+    return qr as unknown as QrCode;
   },
 
   async getRecentScans(

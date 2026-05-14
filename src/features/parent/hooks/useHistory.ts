@@ -107,6 +107,10 @@ export function useHistoryFeed(filters: HistoryFilters) {
             old => {
               if (!old) return old;
               const newEntry = payload.new as HistoryEntry;
+              const alreadyExists = old.pages.some(p =>
+                p.items.some(item => item.id === newEntry.id)
+              );
+              if (alreadyExists) return old;
               return {
                 ...old,
                 pages: old.pages.map((page, i) =>
@@ -159,7 +163,7 @@ export function useHistoryFeed(filters: HistoryFilters) {
     return () => {
       ch.unsubscribe();
     };
-  }, [parentId, queryClient]);
+  }, [parentId, filters, queryClient]);
 
   const flatItems = useMemo<FlatListItem[]>(() => {
     const allEntries = (query.data?.pages ?? []).flatMap(p => p.items);

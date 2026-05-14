@@ -19,26 +19,7 @@ import * as Haptics from 'expo-haptics';
 import { UserPlus, Shield, Clock, ChevronRight } from 'lucide-react-native';
 import { useChildren } from '@/features/parent/hooks/useChildren';
 import type { Child } from '@/features/parent/types';
-
-function Avatar({ initials }: { initials: string }) {
-  const t = useTheme();
-  return (
-    <View
-      style={{
-        width: 56,
-        height: 56,
-        borderRadius: 18,
-        backgroundColor: t.primaryBg,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Text style={{ color: t.primary, fontSize: 18, fontWeight: '800' }}>
-        {initials}
-      </Text>
-    </View>
-  );
-}
+import { Avatar } from '@/shared/ui/base/avatar';
 
 const ChildCard = React.memo(function ChildCard({
   item,
@@ -54,8 +35,6 @@ const ChildCard = React.memo(function ChildCard({
   const animStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
-  const initials = `${item.first_name[0] ?? '?'}${item.last_name[0] ?? ''}`;
-
   return (
     <Animated.View
       entering={FadeInDown.delay(index * 80).duration(400)}
@@ -86,7 +65,16 @@ const ChildCard = React.memo(function ChildCard({
           ]}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Avatar initials={initials} />
+            <Avatar
+              image={{
+                uri: item.photo_url ?? '',
+                name: `${item.first_name} ${item.last_name}`,
+              }}
+              size={56}
+              showBorder={false}
+              backgroundColor={theme.primaryBg}
+              textColor={theme.primary}
+            />
             <View style={{ flex: 1, marginLeft: 14 }}>
               <Text
                 style={{ color: theme.text, fontSize: 17, fontWeight: '700' }}

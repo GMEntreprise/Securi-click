@@ -1,15 +1,10 @@
 import React from 'react';
-import { View, Text, ActivityIndicator, Image } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  Clock,
-  CheckCircle,
-  XCircle,
-  MinusCircle,
-  User,
-} from 'lucide-react-native';
+import { Clock, CheckCircle, XCircle, MinusCircle } from 'lucide-react-native';
+import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
 import { useMyPickupLogs } from '@/features/collector/hooks/useCollector';
 import type { CollectorPickupLog } from '@/features/collector/types';
@@ -68,25 +63,16 @@ function LogCard({ item, index }: { item: CollectorPickupLog; index: number }) {
             <View
               style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
             >
-              {item.child?.photo_url ? (
-                <Image
-                  source={{ uri: item.child.photo_url }}
-                  style={{ width: 30, height: 30, borderRadius: 9 }}
-                />
-              ) : (
-                <View
-                  style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: 9,
-                    backgroundColor: cfg.bg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Icon size={15} color={cfg.color} strokeWidth={2.5} />
-                </View>
-              )}
+              <Avatar
+                image={{
+                  uri: item.child?.photo_url ?? '',
+                  name: `${item.child?.first_name ?? ''} ${item.child?.last_name ?? ''}`.trim(),
+                }}
+                size={30}
+                showBorder={false}
+                backgroundColor={cfg.bg}
+                textColor={cfg.color}
+              />
               <Text
                 style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}
               >

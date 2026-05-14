@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -11,8 +11,8 @@ import {
   XCircle,
   MinusCircle,
   AlertTriangle,
-  User,
 } from 'lucide-react-native';
+import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
 import {
   useMyGuardians,
@@ -256,25 +256,16 @@ export default function CollectorHomeScreen() {
                   gap: 12,
                 }}
               >
-                {g.child?.photo_url ? (
-                  <Image
-                    source={{ uri: g.child.photo_url }}
-                    style={{ width: 44, height: 44, borderRadius: 14 }}
-                  />
-                ) : (
-                  <View
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 14,
-                      backgroundColor: theme.accentBg,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <User size={20} color={theme.accent} />
-                  </View>
-                )}
+                <Avatar
+                  image={{
+                    uri: g.child?.photo_url ?? '',
+                    name: `${g.child?.first_name ?? ''} ${g.child?.last_name ?? ''}`.trim(),
+                  }}
+                  size={44}
+                  showBorder={false}
+                  backgroundColor={theme.accentBg}
+                  textColor={theme.accent}
+                />
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{

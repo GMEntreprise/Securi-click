@@ -56,6 +56,24 @@ function NavigationGuard() {
     return () => sub.remove();
   }, [loginAction, router]);
 
+  // Sync Supabase auth state changes (token refresh, server-side signout)
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, sess) => {
+      if (event === 'INITIAL_SESSION') return;
+      if (!sess || event === 'SIGNED_OUT') {
+        useAuthStore.setState({ session: null });
+        return;
+      }
+      if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+        const session = await mapSupabaseSessionToAuthSession(sess);
+        loginAction(session);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [loginAction]);
+
   // Auth guard — role-based routing
   useEffect(() => {
     if (isRestoring) return;

@@ -394,8 +394,8 @@ export default function AddGuardianScreen() {
       <View
         style={{
           paddingHorizontal: 20,
-          paddingBottom: tabBarHeight + 8,
-          paddingTop: 12,
+          paddingBottom: tabBarHeight + 20,
+          paddingTop: 14,
           backgroundColor: theme.ctaBg,
           borderTopWidth: 1,
           borderTopColor: theme.ctaBorder,
