@@ -6,6 +6,7 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/theme';
@@ -26,6 +27,7 @@ import {
   UserPlus,
   GraduationCap,
   Trash2,
+  Pencil,
 } from 'lucide-react-native';
 import { useChild } from '@/features/parent/hooks/useChildren';
 import {
@@ -35,6 +37,7 @@ import {
 } from '@/features/parent/hooks/useGuardians';
 import type { Guardian } from '@/features/parent/types';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { EditChildSheet } from '@/features/parent/components/ui/EditChildSheet';
 
 const AuthorizationCard = React.memo(function AuthorizationCard({
   item,
@@ -213,6 +216,8 @@ export default function ChildDetails() {
   const togglePerson = useToggleGuardian(childId);
   const deletePerson = useDeleteGuardian(childId);
 
+  const [editSheetVisible, setEditSheetVisible] = useState(false);
+
   const handleBack = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.back();
@@ -330,7 +335,7 @@ export default function ChildDetails() {
             >
               <ArrowLeft size={20} color={theme.text} strokeWidth={2} />
             </TouchableOpacity>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text
                 style={{
                   color: theme.textMuted,
@@ -354,6 +359,28 @@ export default function ChildDetails() {
                 {child.first_name} {child.last_name}
               </Text>
             </View>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setEditSheetVisible(true);
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                backgroundColor: theme.profileEditBg,
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+              }}
+            >
+              <Pencil size={13} color={theme.textSecondary} strokeWidth={2.5} />
+              <Text
+                style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}
+              >
+                Modifier
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
@@ -475,6 +502,18 @@ export default function ChildDetails() {
           )}
         </View>
       </ScrollView>
+
+      <Modal
+        visible={editSheetVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setEditSheetVisible(false)}
+      >
+        <EditChildSheet
+          child={child}
+          onClose={() => setEditSheetVisible(false)}
+        />
+      </Modal>
     </View>
   );
 }

@@ -36,12 +36,12 @@ CREATE INDEX IF NOT EXISTS idx_pickup_history_child
 CREATE INDEX IF NOT EXISTS idx_pickup_history_pinned
   ON public.pickup_history (parent_id, is_pinned) WHERE is_pinned = TRUE;
 
--- ─── Full-text search ───────────────────────────────────────────────────────
--- Materialized column for fast search across child/guardian names
--- (Populated via trigger or app layer; simple pattern match works for MVP)
-
 -- ─── RLS ────────────────────────────────────────────────────────────────────
 ALTER TABLE public.pickup_history ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "parent_read_own_history"   ON public.pickup_history;
+DROP POLICY IF EXISTS "parent_update_own_history" ON public.pickup_history;
+DROP POLICY IF EXISTS "staff_insert_history"      ON public.pickup_history;
 
 CREATE POLICY "parent_read_own_history" ON public.pickup_history
   FOR SELECT USING (auth.uid() = parent_id);
@@ -70,7 +70,6 @@ SELECT
 FROM public.pickup_history
 GROUP BY parent_id, year, month;
 
--- RLS on view is inherited from the underlying table via security_invoker
 ALTER VIEW public.pickup_history_monthly_counts SET (security_invoker = TRUE);
 
 -- ─── Archive RPCs ───────────────────────────────────────────────────────────

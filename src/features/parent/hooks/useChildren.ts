@@ -87,6 +87,28 @@ export function useAddChild() {
   });
 }
 
+export function useUpdateChild() {
+  const session = useSession();
+  const parentId = session?.user.id ?? '';
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      childId,
+      payload,
+    }: {
+      childId: string;
+      payload: Partial<import('../types').AddChildPayload>;
+    }) => parentService.updateChild(childId, payload),
+    onSuccess: updated => {
+      queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev =>
+        (prev ?? []).map(c => (c.id === updated.id ? updated : c))
+      );
+      queryClient.setQueryData<Child>(CHILD_KEY(updated.id), updated);
+    },
+  });
+}
+
 export function useDeleteChild() {
   const session = useSession();
   const parentId = session?.user.id ?? '';

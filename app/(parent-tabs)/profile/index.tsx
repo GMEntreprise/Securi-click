@@ -18,6 +18,7 @@ import {
   Pencil,
   Shield,
   Smartphone,
+  User,
 } from 'lucide-react-native';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
