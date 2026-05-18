@@ -1,4 +1,4 @@
-import { useAuthStore, useSession } from '@/features/auth/store/auth.store';
+import { useSession } from '@/features/auth/store/auth.store';
 import { EditProfileSheet } from '@/features/parent/components/ui/EditProfileSheet';
 import { useParentProfile } from '@/features/parent/hooks/useParentProfile';
 import { Avatar } from '@/shared/ui/base/avatar';
@@ -6,7 +6,7 @@ import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { useTheme } from '@/theme';
 import * as Haptics from 'expo-haptics';
-import { useRouter } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import {
   Bell,
   ChevronRight,
@@ -125,11 +125,10 @@ const SettingRow = React.memo(function SettingRow({
 });
 
 export default function ProfileScreen() {
-  const router = useRouter();
+  const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const session = useSession();
-  const logout = useAuthStore(s => s.logout);
   const { isDark, toggleTheme } = useThemeSwitcher();
 
   const [editSheetVisible, setEditSheetVisible] = useState(false);
@@ -162,12 +161,11 @@ export default function ProfileScreen() {
         style: 'destructive',
         onPress: async () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          await logout();
-          router.replace('/(auth)/login' as any);
+          await nav.logout();
         },
       },
     ]);
-  }, [logout, router]);
+  }, [nav]);
 
   const darkModeSwitch = useMemo(
     () => (
@@ -228,7 +226,7 @@ export default function ProfileScreen() {
             iconBg: theme.greenBg,
             title: 'Notifications',
             subtitle: 'Voir mes notifications',
-            onPress: () => router.push('./notifications' as any),
+            onPress: () => nav.goToParentNotifications(),
           },
           {
             icon: <Smartphone size={16} color="#6366f1" strokeWidth={2.5} />,
@@ -259,18 +257,18 @@ export default function ProfileScreen() {
             ),
             iconBg: theme.iconBg,
             title: 'Mentions légales',
-            onPress: () => router.push('./legal-mentions' as any),
+            onPress: () => nav.goToParentLegalMentions(),
           },
           {
             icon: <Lock size={16} color={theme.textMuted} strokeWidth={2.5} />,
             iconBg: theme.iconBg,
             title: 'Politique de confidentialité',
-            onPress: () => router.push('./privacy-policy' as any),
+            onPress: () => nav.goToParentPrivacyPolicy(),
           },
         ] as RowItem[],
       },
     ],
-    [prefs, toggle, theme, isDark, darkModeSwitch, router]
+    [prefs, toggle, theme, isDark, darkModeSwitch, nav]
   );
 
   return (

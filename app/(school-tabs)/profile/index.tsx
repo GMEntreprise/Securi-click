@@ -25,8 +25,7 @@ import {
   Phone,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/features/auth/store/auth.store';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useUnreadCount } from '@/features/notifications/stores/notification.store';
 import {
   useMySchool,
@@ -40,8 +39,7 @@ import { EditSchoolSheet } from '@/features/school/components/ui/EditSchoolSheet
 export default function SchoolProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  const router = useRouter();
-  const logout = useAuthStore(s => s.logout);
+  const nav = useAppNavigation();
   const unreadCount = useUnreadCount();
   const session = useSession();
   const userId = session?.user.id ?? '';
@@ -93,12 +91,11 @@ export default function SchoolProfileScreen() {
         text: 'Déconnecter',
         style: 'destructive',
         onPress: async () => {
-          await logout();
-          router.replace('/(auth)/login' as any);
+          await nav.logout();
         },
       },
     ]);
-  }, [logout, router]);
+  }, [nav]);
 
   if (isLoading) {
     return (
@@ -255,7 +252,7 @@ export default function SchoolProfileScreen() {
           style={{ marginBottom: 16 }}
         >
           <TouchableOpacity
-            onPress={() => router.push('./notifications' as any)}
+            onPress={() => nav.goToSchoolNotifications()}
             style={{
               backgroundColor: theme.card,
               borderRadius: 18,
@@ -323,7 +320,7 @@ export default function SchoolProfileScreen() {
             }}
           >
             <TouchableOpacity
-              onPress={() => router.push('./legal-mentions' as any)}
+              onPress={() => nav.goToSchoolLegalMentions()}
               style={{
                 padding: 16,
                 flexDirection: 'row',
@@ -351,7 +348,7 @@ export default function SchoolProfileScreen() {
               <ChevronRight size={16} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => router.push('./privacy-policy' as any)}
+              onPress={() => nav.goToSchoolPrivacyPolicy()}
               style={{
                 padding: 16,
                 flexDirection: 'row',

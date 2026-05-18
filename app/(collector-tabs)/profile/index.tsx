@@ -28,8 +28,7 @@ import {
 import { useTheme } from '@/theme';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/features/auth/store/auth.store';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useUnreadCount } from '@/features/notifications/stores/notification.store';
 import {
   useCollectorProfile,
@@ -42,8 +41,7 @@ import { Avatar } from '@/shared/ui/base/avatar';
 export default function CollectorProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  const router = useRouter();
-  const logout = useAuthStore(s => s.logout);
+  const nav = useAppNavigation();
   const unreadCount = useUnreadCount();
 
   const { isDark, toggleTheme } = useThemeSwitcher();
@@ -77,12 +75,11 @@ export default function CollectorProfileScreen() {
         text: 'Déconnecter',
         style: 'destructive',
         onPress: async () => {
-          await logout();
-          router.replace('/(auth)/login' as any);
+          await nav.logout();
         },
       },
     ]);
-  }, [logout, router]);
+  }, [nav]);
 
   const identityStatusConfig = {
     verified: {
@@ -409,7 +406,7 @@ export default function CollectorProfileScreen() {
           style={{ marginBottom: 16 }}
         >
           <TouchableOpacity
-            onPress={() => router.push('./notifications' as any)}
+            onPress={() => nav.goToCollectorNotifications()}
             style={{
               backgroundColor: theme.card,
               borderRadius: 18,
@@ -477,7 +474,7 @@ export default function CollectorProfileScreen() {
             }}
           >
             <TouchableOpacity
-              onPress={() => router.push('./legal-mentions' as any)}
+              onPress={() => nav.goToCollectorLegalMentions()}
               style={{
                 padding: 16,
                 flexDirection: 'row',
@@ -505,7 +502,7 @@ export default function CollectorProfileScreen() {
               <ChevronRight size={16} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => router.push('./privacy-policy' as any)}
+              onPress={() => nav.goToCollectorPrivacyPolicy()}
               style={{
                 padding: 16,
                 flexDirection: 'row',
