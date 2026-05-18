@@ -9,7 +9,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarHeight } from '@/hooks/useTabBarHeight';
-import { useRouter } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import * as Haptics from 'expo-haptics';
 import {
   CheckCircle2,
@@ -33,7 +33,7 @@ export default function SchoolHomeScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
   const theme = useTheme();
-  const router = useRouter();
+  const nav = useAppNavigation();
 
   const { data: school, isLoading: schoolLoading } = useMySchool();
   const schoolId = school?.id ?? '';
@@ -141,7 +141,7 @@ export default function SchoolHomeScreen() {
         <TouchableOpacity
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            router.push('/(school-tabs)/scanner' as any);
+            nav.goToSchoolScanner();
           }}
           style={{
             backgroundColor: theme.accent,
@@ -174,7 +174,7 @@ export default function SchoolHomeScreen() {
             Activité récente
           </Text>
           <TouchableOpacity
-            onPress={() => router.push('/(school-tabs)/history' as any)}
+            onPress={() => nav.goToSchoolHistory()}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
           >
             <Text

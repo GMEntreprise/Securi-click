@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import {
   CheckCircle2,
   GraduationCap,
@@ -332,7 +332,7 @@ function DevLogin() {
 }
 
 export const RoleChoiceScreen: React.FC = memo(() => {
-  const router = useRouter();
+  const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const t = useTheme();
   const [selectedId, setSelectedId] = useState<RoleItem['id'] | null>(null);
@@ -350,8 +350,8 @@ export const RoleChoiceScreen: React.FC = memo(() => {
   const handleContinue = useCallback(() => {
     if (!selectedRoute) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push(selectedRoute as any);
-  }, [selectedRoute, router]);
+    nav.pushRoute(selectedRoute);
+  }, [selectedRoute, nav]);
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>

@@ -3,7 +3,7 @@ import { TouchableOpacity, View, Text, ScrollView, ActivityIndicator } from 'rea
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarHeight } from '@/hooks/useTabBarHeight';
-import { router } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import {
   ShieldCheck,
   ShieldOff,
@@ -94,6 +94,7 @@ export default function CollectorHomeScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
   const theme = useTheme();
+  const nav = useAppNavigation();
   const { data: profile } = useCollectorProfile();
   const { data: guardians, isLoading: guardiansLoading } = useMyGuardians();
   const { data: identity } = useMyIdentity();
@@ -391,7 +392,7 @@ export default function CollectorHomeScreen() {
           </Text>
           {identityStatus !== 'verified' && (
             <Text
-              onPress={() => router.push('/(collector-tabs)/profile' as any)}
+              onPress={() => nav.goToCollectorProfile()}
               style={{
                 color: badge.color,
                 fontSize: 12,

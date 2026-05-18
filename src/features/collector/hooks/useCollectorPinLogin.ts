@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import type { AuthSession } from '@/features/auth/types';
@@ -39,7 +39,7 @@ export function formatPinError(code: string): string {
 }
 
 export function useCollectorPinLogin(onVerified: (version: number) => void) {
-  const router = useRouter();
+  const nav = useAppNavigation();
 
   return useMutation({
     onMutate: () => { collectorPinLoginInProgress = true; },
@@ -96,7 +96,7 @@ export function useCollectorPinLogin(onVerified: (version: number) => void) {
 
       useAuthStore.getState().login(authSession);
       collectorPinLoginInProgress = false;
-      router.replace('/(collector-tabs)/home' as any);
+      nav.goToCollectorDashboard();
     },
   });
 }

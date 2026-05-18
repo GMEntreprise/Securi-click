@@ -9,7 +9,8 @@ import {
   Modal,
   Switch,
 } from 'react-native';
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useTheme } from '@/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -175,7 +176,7 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
 
 export default function ChildDetails() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
+  const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
 
@@ -243,19 +244,15 @@ export default function ChildDetails() {
   const handleEditGuardian = useCallback(
     (guardianId: string) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push(
-        `/(parent-tabs)/children/guardian-edit?guardianId=${guardianId}&childId=${childId}` as any
-      );
+      nav.goToParentGuardianEdit(guardianId, childId);
     },
-    [router, childId]
+    [nav, childId]
   );
 
   const handleAddPerson = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push(
-      `/(parent-tabs)/children/guardian-add?childId=${childId}` as any
-    );
-  }, [router, childId]);
+    nav.goToParentGuardianAdd(childId);
+  }, [nav, childId]);
 
   const activeCount = useMemo(
     () => (authorizations ?? []).filter(a => a.is_active).length,

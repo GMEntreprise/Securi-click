@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useTheme } from '@/theme';
 import { useSession } from '@/features/auth/store/auth.store';
-import { router } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -190,6 +190,7 @@ export default function ParentDashboard() {
   const tabBarHeight = useTabBarHeight();
   const theme = useTheme();
   const session = useSession();
+  const nav = useAppNavigation();
 
   const firstName =
     session?.user.profile?.first_name ??
@@ -211,31 +212,31 @@ export default function ParentDashboard() {
         icon: <QrCode size={22} color={theme.accent} strokeWidth={2} />,
         label: 'QR Code',
         accentBg: theme.accentBg,
-        onPress: () => router.push('/(parent-tabs)/qr' as any),
+        onPress: () => nav.goToParentQr(),
       },
       {
         id: 'children',
         icon: <Users size={22} color={theme.primary} strokeWidth={2} />,
         label: 'Enfants',
         accentBg: theme.primaryBg,
-        onPress: () => router.push('/(parent-tabs)/children' as any),
+        onPress: () => nav.goToParentChildren(),
       },
       {
         id: 'add-guardian',
         icon: <UserPlus size={22} color={theme.green} strokeWidth={2} />,
         label: 'Autoriser',
         accentBg: theme.greenBg,
-        onPress: () => router.push('/(parent-tabs)/children' as any),
+        onPress: () => nav.goToParentChildren(),
       },
       {
         id: 'history',
         icon: <Clock size={22} color={theme.textSecondary} strokeWidth={2} />,
         label: 'Historique',
         accentBg: theme.iconBg,
-        onPress: () => router.push('/(parent-tabs)/history' as any),
+        onPress: () => nav.goToParentHistory(),
       },
     ],
-    [theme]
+    [theme, nav]
   );
 
   const stats = useMemo(
@@ -402,7 +403,7 @@ export default function ParentDashboard() {
               Activité récente
             </Text>
             <TouchableOpacity
-              onPress={() => router.push('/(parent-tabs)/history' as any)}
+              onPress={() => nav.goToParentHistory()}
             >
               <Text
                 style={{ color: theme.accent, fontSize: 13, fontWeight: '600' }}

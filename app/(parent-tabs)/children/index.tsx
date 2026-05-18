@@ -7,7 +7,7 @@ import {
   FlatList,
 } from 'react-native';
 import { useTheme } from '@/theme';
-import { router } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import Animated, {
   FadeInDown,
   useSharedValue,
@@ -165,16 +165,17 @@ const ChildCard = React.memo(function ChildCard({
 export default function ChildrenList() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const nav = useAppNavigation();
   const { data: children, isLoading } = useChildren();
 
   const handleChildPress = useCallback((child: Child) => {
-    router.push(`/(parent-tabs)/children/${child.id}` as any);
-  }, []);
+    nav.goToParentChildDetail(child.id);
+  }, [nav]);
 
   const handleAddChild = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    router.push('/(parent-tabs)/children/add' as any);
-  }, []);
+    nav.goToParentChildAdd();
+  }, [nav]);
 
   const renderChild = useCallback(
     ({ item, index }: { item: Child; index: number }) => (

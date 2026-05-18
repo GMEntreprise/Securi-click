@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import {
   AlertCircle,
   Briefcase,
@@ -426,7 +426,7 @@ const SchoolRegisterForm: React.FC<{
 SchoolRegisterForm.displayName = 'SchoolRegisterForm';
 
 export const SchoolAuthScreen: React.FC = memo(() => {
-  const router = useRouter();
+  const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const t = useTheme();
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
@@ -439,10 +439,10 @@ export const SchoolAuthScreen: React.FC = memo(() => {
   const handleLogin = useCallback(
     (data: LoginValues) => {
       loginMutation.mutate(data, {
-        onSuccess: () => router.replace('/(school-tabs)/home' as any),
+        onSuccess: () => nav.goToSchoolDashboard(),
       });
     },
-    [loginMutation, router]
+    [loginMutation, nav]
   );
 
   const handleRegister = useCallback(
@@ -476,7 +476,7 @@ export const SchoolAuthScreen: React.FC = memo(() => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={{ flex: 1, backgroundColor: t.bg }}
     >
-      <AuthBackButton onPress={() => router.back()} />
+      <AuthBackButton onPress={() => nav.pushRoute('/(auth)')} />
 
       <ScrollView
         showsVerticalScrollIndicator={false}

@@ -9,7 +9,7 @@ import {
 import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { Archive, History } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import {
@@ -78,6 +78,7 @@ function SectionHeader({ item }: { item: SectionItem }) {
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const nav = useAppNavigation();
 
   const [filters, setFilters] = useState<HistoryFilters>(EMPTY_FILTERS);
   const [search, setSearch] = useState('');
@@ -216,7 +217,7 @@ export default function HistoryScreen() {
             )}
             <TouchableOpacity
               onPress={() =>
-                router.push('/(parent-tabs)/history/archive' as any)
+                nav.goToParentHistoryArchive()
               }
               style={{
                 width: 38,
