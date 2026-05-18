@@ -7,9 +7,9 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { X, CheckCheck } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { NotificationItem } from '../components/NotificationItem';
 import {
   useNotificationsList,
@@ -25,7 +25,7 @@ import type { Notification } from '../types';
 export const NotificationCenterScreen = memo(() => {
   const t = useTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const nav = useAppNavigation();
   const closeCenter = useNotificationStore(s => s.closeCenter);
   const unread = useUnreadCount();
 
@@ -52,10 +52,10 @@ export const NotificationCenterScreen = memo(() => {
       const route = item.metadata?.route ?? NOTIFICATION_ROUTES[item.type];
       if (route) {
         closeCenter();
-        router.push(route as any);
+        nav.pushRoute(route);
       }
     },
-    [markRead, closeCenter, router]
+    [markRead, closeCenter, nav]
   );
 
   const handleMarkAllRead = useCallback(() => {

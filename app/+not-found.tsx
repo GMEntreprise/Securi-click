@@ -1,12 +1,12 @@
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 
 export default function NotFound() {
-  const router = useRouter();
+  const nav = useAppNavigation();
   useEffect(() => {
-    router.replace('/(auth)/login' as any);
-  }, [router]);
+    nav.goToLogin();
+  }, [nav]);
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
       <ActivityIndicator />

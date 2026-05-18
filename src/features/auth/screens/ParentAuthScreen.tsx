@@ -18,12 +18,14 @@ import { AuthBackButton, AuthTabToggle } from '../components/ui';
 import { ParentLoginForm } from './ParentLoginForm';
 import { ParentRegisterFormV2 } from './ParentRegisterFormV2';
 import { useTheme } from '@/theme';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.34;
 
 export const ParentAuthScreen: React.FC = memo(() => {
   const router = useRouter();
+  const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const t = useTheme();
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
@@ -47,8 +49,8 @@ export const ParentAuthScreen: React.FC = memo(() => {
   );
 
   const handleForgotPassword = useCallback(() => {
-    router.push('/(auth)/login');
-  }, [router]);
+    nav.goToLogin();
+  }, [nav]);
 
   const handleTabToggle = useCallback((index: 0 | 1) => {
     setActiveTab(index);
