@@ -12,7 +12,6 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import Animated, {
   FadeInDown,
   useAnimatedStyle,
@@ -23,6 +22,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { ArrowLeft, Eye, EyeOff, Lock, Mail, ShieldAlert } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useCollectorPinLogin, formatPinError } from '@/features/collector/hooks/useCollectorPinLogin';
 import { useCollectorSessionStore } from '@/features/collector/stores/collectorSession.store';
 
@@ -31,7 +31,7 @@ const AUTO_HIDE_MS = 8_000;
 export default memo(function CollectorPinScreen() {
   const t      = useTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const nav    = useAppNavigation();
   const markVerified = useCollectorSessionStore(s => s.markVerified);
 
   const [email,   setEmail]   = useState('');
@@ -114,7 +114,7 @@ export default memo(function CollectorPinScreen() {
         >
           {/* Back button */}
           <TouchableOpacity
-            onPress={() => router.replace('/(auth)/index' as any)}
+            onPress={() => nav.goToRoleChoice()}
             hitSlop={12}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 24, alignSelf: 'flex-start' }}
           >
@@ -223,21 +223,6 @@ export default memo(function CollectorPinScreen() {
             </TouchableOpacity>
           </Animated.View>
 
-          {/* DEV ONLY */}
-          {__DEV__ && (
-            <Animated.View entering={FadeInDown.delay(240).duration(300)} style={{ marginTop: 24, alignItems: 'center' }}>
-              <TouchableOpacity
-                onPress={async () => {
-                  await markVerified(0);
-                  router.replace('/(collector-tabs)/home' as any);
-                }}
-                hitSlop={12}
-                style={{ paddingHorizontal: 16, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: t.amber }}
-              >
-                <Text style={{ fontSize: 12, color: t.amber, fontWeight: '600' }}>⚙️ Accès dev (bypass PIN)</Text>
-              </TouchableOpacity>
-            </Animated.View>
-          )}
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
