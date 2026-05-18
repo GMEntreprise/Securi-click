@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Modal,
   ScrollView,
   Text,
@@ -14,7 +13,6 @@ import * as Haptics from 'expo-haptics';
 import {
   Bell,
   Building2,
-  Camera,
   ChevronRight,
   FileText,
   Lock,
@@ -24,6 +22,7 @@ import {
   Pencil,
   Phone,
 } from 'lucide-react-native';
+import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
 import { useTheme } from '@/theme';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useUnreadCount } from '@/features/notifications/stores/notification.store';
@@ -53,48 +52,30 @@ export default function SchoolProfileScreen() {
     userId,
   });
 
-  const handlePickLogo = useCallback(() => {
+  const [pickerVisible, setPickerVisible] = useState(false);
+
+  const uploadLogo = useCallback(
+    async (picker: () => Promise<{ signedUrl: string; filePath: string } | null>) => {
+      if (!school?.id) return;
+      const result = await picker();
+      if (!result) return;
+      await updateLogo.mutateAsync({ schoolId: school.id, logoUrl: result.signedUrl });
+    },
+    [school?.id, updateLogo]
+  );
+
+  const handleRemoveLogo = useCallback(async () => {
     if (!school?.id) return;
-    Alert.alert('Logo établissement', 'Choisir une source', [
-      {
-        text: 'Caméra',
-        onPress: async () => {
-          const result = await takePhoto();
-          if (result) {
-            await updateLogo.mutateAsync({
-              schoolId: school.id,
-              logoUrl: result.signedUrl,
-            });
-          }
-        },
-      },
-      {
-        text: 'Galerie',
-        onPress: async () => {
-          const result = await pickFromGallery();
-          if (result) {
-            await updateLogo.mutateAsync({
-              schoolId: school.id,
-              logoUrl: result.signedUrl,
-            });
-          }
-        },
-      },
-      { text: 'Annuler', style: 'cancel' },
-    ]);
-  }, [school?.id, takePhoto, pickFromGallery, updateLogo]);
+    await updateLogo.mutateAsync({ schoolId: school.id, logoUrl: '' });
+  }, [school?.id, updateLogo]);
 
   const handleLogout = useCallback(() => {
-    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
-      { text: 'Annuler', style: 'cancel' },
-      {
-        text: 'Déconnecter',
-        style: 'destructive',
-        onPress: async () => {
-          await nav.logout();
-        },
-      },
-    ]);
+    import('react-native').then(({ Alert }) => {
+      Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Déconnecter', style: 'destructive', onPress: () => nav.logout() },
+      ]);
+    });
   }, [nav]);
 
   if (isLoading) {
@@ -131,7 +112,7 @@ export default function SchoolProfileScreen() {
           style={{ alignItems: 'center', marginBottom: 28 }}
         >
           <TouchableOpacity
-            onPress={handlePickLogo}
+            onPress={() => setPickerVisible(true)}
             disabled={isLogoBusy}
             style={{ marginBottom: 14 }}
           >
@@ -161,9 +142,18 @@ export default function SchoolProfileScreen() {
                 borderColor: theme.bg,
               }}
             >
-              <Camera size={13} color="#fff" strokeWidth={2.5} />
+              <Pencil size={12} color="#fff" strokeWidth={2.5} />
             </View>
           </TouchableOpacity>
+
+          <AvatarPickerSheet
+            visible={pickerVisible}
+            hasPhoto={!!school?.logo_url}
+            onCamera={() => uploadLogo(takePhoto)}
+            onGallery={() => uploadLogo(pickFromGallery)}
+            onRemove={handleRemoveLogo}
+            onClose={() => setPickerVisible(false)}
+          />
 
           <Text
             style={{

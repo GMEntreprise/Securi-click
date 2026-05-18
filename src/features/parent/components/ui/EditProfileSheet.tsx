@@ -3,16 +3,16 @@ import { AuthPasswordField } from '@/features/auth/components/ui/AuthPasswordFie
 import { PasswordStrengthBar } from '@/features/auth/components/ui/PasswordStrengthBar';
 import { useSession } from '@/features/auth/store/auth.store';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import { useTheme } from '@/theme';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as Haptics from 'expo-haptics';
-import { Camera, Check, Phone, User, X } from 'lucide-react-native';
+import { Check, Phone, User, X } from 'lucide-react-native';
 import React, { memo, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -78,6 +78,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
 
   const [tab, setTab] = useState<Tab>('info');
   const [avatarUri, setAvatarUri] = useState<string | null>(profile.avatar_url);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const updateProfile = useUpdateProfile();
   const updateAvatar = useUpdateAvatar();
@@ -86,6 +87,8 @@ export const EditProfileSheet = memo(function EditProfileSheet({
     bucket: 'profile-images',
     userId,
   });
+
+
 
   const profileForm = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
@@ -125,10 +128,8 @@ export const EditProfileSheet = memo(function EditProfileSheet({
     [changePassword, passwordForm, onClose]
   );
 
-  const handlePickPhoto = useCallback(() => {
-    const upload = async (
-      picker: () => Promise<{ signedUrl: string; filePath: string } | null>
-    ) => {
+  const upload = useCallback(
+    async (picker: () => Promise<{ signedUrl: string; filePath: string } | null>) => {
       const result = await picker();
       if (!result) return;
       setAvatarUri(result.signedUrl);
@@ -137,13 +138,18 @@ export const EditProfileSheet = memo(function EditProfileSheet({
       } catch {
         Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
       }
-    };
-    Alert.alert('Photo de profil', 'Choisir une source', [
-      { text: 'Caméra', onPress: () => upload(takePhoto) },
-      { text: 'Galerie', onPress: () => upload(pickFromGallery) },
-      { text: 'Annuler', style: 'cancel' },
-    ]);
-  }, [takePhoto, pickFromGallery, updateAvatar]);
+    },
+    [updateAvatar]
+  );
+
+  const handleRemovePhoto = useCallback(async () => {
+    setAvatarUri(null);
+    try {
+      await updateAvatar.mutateAsync('');
+    } catch {
+      Toast.show("Impossible de supprimer la photo. Réessayez.", { type: 'error', duration: 3000 });
+    }
+  }, [updateAvatar]);
 
 
   return (
@@ -194,7 +200,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
         style={{ alignItems: 'center', paddingVertical: 20 }}
       >
         <TouchableOpacity
-          onPress={handlePickPhoto}
+          onPress={() => setPickerVisible(true)}
           disabled={isUploading || updateAvatar.isPending}
         >
           <Avatar
@@ -223,19 +229,22 @@ export const EditProfileSheet = memo(function EditProfileSheet({
               borderColor: theme.bg,
             }}
           >
-            <Camera size={14} color="#fff" />
+            <Check size={14} color="#fff" strokeWidth={2.5} />
           </View>
         </TouchableOpacity>
-        <Text
-          style={{
-            color: theme.textMuted,
-            fontSize: 12,
-            marginTop: 12,
-          }}
-        >
+        <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 12 }}>
           Appuyer pour modifier la photo
         </Text>
       </Animated.View>
+
+      <AvatarPickerSheet
+        visible={pickerVisible}
+        hasPhoto={!!avatarUri}
+        onCamera={() => upload(takePhoto)}
+        onGallery={() => upload(pickFromGallery)}
+        onRemove={handleRemovePhoto}
+        onClose={() => setPickerVisible(false)}
+      />
 
       {/* Tabs */}
       <View

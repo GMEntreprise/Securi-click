@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/lib/supabase/client';
+
+function randomId() {
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
 import { Toast } from '@/shared/ui/molecules/Toast';
 
 type Bucket = 'profile-images' | 'children-images' | 'collector-avatars';
@@ -60,7 +63,7 @@ export function useImagePicker({ bucket, userId }: UseImagePickerOptions) {
       const uri = asset.uri;
       const ext = uri.split('.').pop()?.toLowerCase().split('?')[0] ?? 'jpg';
       const contentType = ext === 'png' ? 'image/png' : 'image/jpeg';
-      const filePath = `${userId}/${uuidv4()}.${ext}`;
+      const filePath = `${userId}/${randomId()}.${ext}`;
 
       const response = await fetch(uri);
       const arrayBuffer = await response.arrayBuffer();

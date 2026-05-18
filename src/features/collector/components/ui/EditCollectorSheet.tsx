@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,13 +14,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   AlertCircle,
-  Camera,
   Check,
   Phone,
   User,
   X,
 } from 'lucide-react-native';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
 import { useTheme } from '@/theme';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import {
@@ -158,8 +157,10 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
     return Object.keys(next).length === 0;
   }, [form]);
 
-  const handlePickPhoto = useCallback(() => {
-    const upload = async (picker: () => Promise<{ signedUrl: string; filePath: string } | null>) => {
+  const [pickerVisible, setPickerVisible] = useState(false);
+
+  const uploadPhoto = useCallback(
+    async (picker: () => Promise<{ signedUrl: string; filePath: string } | null>) => {
       const result = await picker();
       if (!result) return;
       setAvatarUri(result.signedUrl);
@@ -169,13 +170,18 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
       } catch {
         Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
       }
-    };
-    Alert.alert('Photo de profil', 'Choisir une source', [
-      { text: 'Caméra', onPress: () => upload(takePhoto) },
-      { text: 'Galerie', onPress: () => upload(pickFromGallery) },
-      { text: 'Annuler', style: 'cancel' },
-    ]);
-  }, [takePhoto, pickFromGallery, updateAvatarUrl]);
+    },
+    [updateAvatarUrl]
+  );
+
+  const handleRemovePhoto = useCallback(async () => {
+    setAvatarUri(null);
+    try {
+      await updateAvatarUrl.mutateAsync('');
+    } catch {
+      Toast.show("Impossible de supprimer la photo. Réessayez.", { type: 'error', duration: 3000 });
+    }
+  }, [updateAvatarUrl]);
 
   const handleSave = useCallback(async () => {
     if (!validate()) {
@@ -262,7 +268,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
             style={{ alignItems: 'center', paddingVertical: 8 }}
           >
             <TouchableOpacity
-              onPress={handlePickPhoto}
+              onPress={() => setPickerVisible(true)}
               disabled={isBusy}
               style={{ marginBottom: 12 }}
             >
@@ -292,13 +298,22 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
                   borderColor: theme.bg,
                 }}
               >
-                <Camera size={13} color="#fff" strokeWidth={2.5} />
+                <Check size={13} color="#fff" strokeWidth={2.5} />
               </View>
             </TouchableOpacity>
             <Text style={{ color: theme.textMuted, fontSize: 12 }}>
               Appuyer pour modifier la photo
             </Text>
           </Animated.View>
+
+          <AvatarPickerSheet
+            visible={pickerVisible}
+            hasPhoto={!!avatarUri}
+            onCamera={() => uploadPhoto(takePhoto)}
+            onGallery={() => uploadPhoto(pickFromGallery)}
+            onRemove={handleRemovePhoto}
+            onClose={() => setPickerVisible(false)}
+          />
 
           {/* Identité */}
           <Animated.View
