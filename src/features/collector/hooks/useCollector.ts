@@ -4,12 +4,14 @@ import { supabase } from '@/lib/supabase/client';
 import { useSession } from '@/features/auth/store/auth.store';
 import { collectorService } from '../services/collector.service';
 import type { CollectorGuardian, DocumentType } from '../types';
-import type { PendingInvite } from '../services/collector.service';
+import type { PendingInvite, CollectorQrCode, CollectorRecentScan } from '../services/collector.service';
 
-const GUARDIANS_KEY = (uid: string) => ['collector-guardians', uid] as const;
-const IDENTITY_KEY = (uid: string) => ['collector-identity', uid] as const;
-const LOGS_KEY = (uid: string) => ['collector-logs', uid] as const;
-const PROFILE_KEY = (uid: string) => ['collector-profile', uid] as const;
+export const GUARDIANS_KEY = (uid: string) => ['collector-guardians', uid] as const;
+export const IDENTITY_KEY = (uid: string) => ['collector-identity', uid] as const;
+export const LOGS_KEY = (uid: string) => ['collector-logs', uid] as const;
+export const PROFILE_KEY = (uid: string) => ['collector-profile', uid] as const;
+export const QR_KEY = (uid: string, childId?: string) => ['collector-qr', uid, childId ?? 'all'] as const;
+export const SCANS_KEY = (uid: string, childId?: string) => ['collector-scans', uid, childId ?? 'all'] as const;
 
 export function useMyGuardians() {
   const session = useSession();
@@ -29,9 +31,7 @@ export function useMyGuardians() {
     channelRef.current?.unsubscribe();
 
     const ch = supabase
-      .channel(
-        `collector-guardians-${uid}-${Math.random().toString(36).slice(2)}`
-      )
+      .channel(`collector-guardians-${uid}`)
       .on(
         'postgres_changes',
         {
@@ -52,6 +52,18 @@ export function useMyGuardians() {
               );
             }
           );
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'guardians',
+          filter: `collector_user_id=eq.${uid}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) });
         }
       )
       .subscribe();
@@ -95,7 +107,7 @@ export function useMyPickupLogs() {
     channelRef.current?.unsubscribe();
 
     const ch = supabase
-      .channel(`collector-logs-${uid}-${Math.random().toString(36).slice(2)}`)
+      .channel(`collector-logs-${uid}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
@@ -129,9 +141,7 @@ export function useCollectorProfile() {
   useEffect(() => {
     if (!uid) return;
     const ch = supabase
-      .channel(
-        `collector-profile-${uid}-${Math.random().toString(36).slice(2)}`
-      )
+      .channel(`collector-profile-${uid}`)
       .on(
         'postgres_changes',
         {
@@ -292,4 +302,95 @@ export function useAcceptInvite() {
   });
 }
 
-export type { PendingInvite };
+// ── QR code — collector-owned, no parent dependency ─────────────────────────
+
+export function useCollectorQrCode(childId?: string) {
+  const session = useSession();
+  const uid = session?.user.id ?? '';
+  const queryClient = useQueryClient();
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const query = useQuery({
+    queryKey: QR_KEY(uid, childId),
+    queryFn: () => collectorService.getCollectorQrCode(uid, childId),
+    enabled: !!uid,
+    staleTime: 30 * 1000,
+  });
+
+  useEffect(() => {
+    if (!uid) return;
+    channelRef.current?.unsubscribe();
+
+    const ch = supabase
+      .channel(`collector-qr-${uid}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'qr_codes' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: QR_KEY(uid, childId) });
+        }
+      )
+      .subscribe();
+
+    channelRef.current = ch;
+    return () => {
+      ch.unsubscribe();
+    };
+  }, [uid, childId, queryClient]);
+
+  return query;
+}
+
+export function useCollectorRecentScans(childId?: string) {
+  const session = useSession();
+  const uid = session?.user.id ?? '';
+  const queryClient = useQueryClient();
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const query = useQuery({
+    queryKey: SCANS_KEY(uid, childId),
+    queryFn: () => collectorService.getCollectorRecentScans(uid, childId),
+    enabled: !!uid,
+    staleTime: 30 * 1000,
+  });
+
+  useEffect(() => {
+    if (!uid) return;
+    channelRef.current?.unsubscribe();
+
+    const ch = supabase
+      .channel(`collector-scans-${uid}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: SCANS_KEY(uid, childId) });
+        }
+      )
+      .subscribe();
+
+    channelRef.current = ch;
+    return () => {
+      ch.unsubscribe();
+    };
+  }, [uid, childId, queryClient]);
+
+  return query;
+}
+
+export function useCollectorGenerateQr() {
+  const session = useSession();
+  const uid = session?.user.id ?? '';
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ childId, guardianId }: { childId: string; guardianId: string }) =>
+      collectorService.generateCollectorQrCode(uid, childId, guardianId),
+    onSuccess: (_data, { childId }) => {
+      queryClient.invalidateQueries({ queryKey: QR_KEY(uid, childId) });
+      queryClient.invalidateQueries({ queryKey: QR_KEY(uid) });
+    },
+  });
+}
+
+export type { PendingInvite, CollectorQrCode, CollectorRecentScan };

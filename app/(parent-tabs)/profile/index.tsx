@@ -227,11 +227,8 @@ export default function ProfileScreen() {
             icon: <Bell size={16} color={theme.green} strokeWidth={2.5} />,
             iconBg: theme.greenBg,
             title: 'Notifications',
-            subtitle: 'Alertes push et emails',
-            toggle: true,
-            value: prefs.notifications,
-            onToggle: (v: boolean) => toggle('notifications', v),
-            onPress: () => {},
+            subtitle: 'Voir mes notifications',
+            onPress: () => router.push('/(parent-tabs)/profile/notifications' as any),
           },
           {
             icon: <Smartphone size={16} color="#6366f1" strokeWidth={2.5} />,

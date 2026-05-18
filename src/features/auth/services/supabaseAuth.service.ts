@@ -1,6 +1,5 @@
 import type {
   AuthSession,
-  User,
   RegisterParentData,
   RegisterSchoolData,
 } from '../types';
@@ -12,12 +11,19 @@ async function signInWithPassword(
   password: string
 ): Promise<AuthSession> {
   const { data, error } = await supabase.auth.signInWithPassword({
-    email,
+    email: email.trim().toLowerCase(),
     password,
   });
 
   if (error) {
-    throw new Error(error.message);
+    const msg = error.message.toLowerCase();
+    if (msg.includes('invalid') || msg.includes('credentials') || msg.includes('password')) {
+      throw new Error('Email ou mot de passe incorrect.');
+    }
+    if (msg.includes('email not confirmed')) {
+      throw new Error('Confirmez votre email avant de vous connecter.');
+    }
+    throw new Error('Une erreur est survenue. Réessayez.');
   }
 
   const session = data.session;
@@ -28,8 +34,10 @@ async function signInWithPassword(
   return mapSupabaseSessionToAuthSession(session);
 }
 
-async function registerParent(data: RegisterParentData): Promise<User> {
-  const { data: authData, error } = await supabase.auth.signUp({
+async function registerParent(data: RegisterParentData): Promise<void> {
+  // Profile INSERT is deferred to DeepLinkHandler after email confirmation.
+  // All fields are stored in user_metadata so they survive the PKCE exchange.
+  const { error } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
     options: {
@@ -43,37 +51,7 @@ async function registerParent(data: RegisterParentData): Promise<User> {
     },
   });
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  if (!authData.user) {
-    throw new Error('No user created');
-  }
-
-  // Create user profile
-  const { error: profileError } = await supabase
-    .from('user_profiles')
-    .insert({
-      user_id: authData.user.id,
-      first_name: data.first_name,
-      last_name: data.last_name,
-      phone: data.phone,
-      role: 'parent',
-    })
-    .select()
-    .single();
-
-  if (profileError) {
-    throw new Error(profileError.message);
-  }
-
-  return {
-    id: authData.user.id,
-    email: authData.user.email ?? data.email,
-    role: 'parent',
-    authUser: authData.user,
-  };
+  if (error) throw new Error(error.message);
 }
 
 async function registerSchool(data: RegisterSchoolData): Promise<void> {

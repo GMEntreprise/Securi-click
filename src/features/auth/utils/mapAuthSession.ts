@@ -1,6 +1,31 @@
 import type { Session } from '@supabase/supabase-js';
+import * as SecureStore from 'expo-secure-store';
 import { supabase } from '@/lib/supabase/client';
 import type { AuthSession, User, UserProfile, UserRole } from '../types';
+
+const DEV_ROLE_KEY = 'securiclick_dev_role_override';
+
+export async function setDevRoleOverride(role: string): Promise<void> {
+  if (!__DEV__) return;
+  await SecureStore.setItemAsync(DEV_ROLE_KEY, role);
+}
+
+export async function clearDevRoleOverride(): Promise<void> {
+  if (!__DEV__) return;
+  await SecureStore.deleteItemAsync(DEV_ROLE_KEY);
+}
+
+async function getDevRoleOverride(): Promise<UserRole | null> {
+  if (!__DEV__) return null;
+  try {
+    const stored = await SecureStore.getItemAsync(DEV_ROLE_KEY);
+    if (
+      stored === 'parent' || stored === 'collector' ||
+      stored === 'staff' || stored === 'school_admin' || stored === 'super_admin'
+    ) return stored as UserRole;
+  } catch {}
+  return null;
+}
 
 function resolveRole(
   profile: UserProfile | null,
@@ -57,10 +82,15 @@ export async function mapSupabaseSessionToAuthSession(
     }
   }
 
-  const role = resolveRole(
+  const dbRole = resolveRole(
     profile,
     authUser.user_metadata as Record<string, unknown> | undefined
   );
+
+  // In dev builds: honour the role override set by DevLogin so a test account
+  // with role=parent in DB can be used to exercise the collector dashboard.
+  const devOverride = await getDevRoleOverride();
+  const role: UserRole = devOverride ?? dbRole;
 
   const user: User = {
     id: authUser.id,

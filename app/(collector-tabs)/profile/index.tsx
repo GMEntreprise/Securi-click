@@ -12,6 +12,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
+  Bell,
   Camera,
   ShieldCheck,
   ShieldOff,
@@ -23,7 +24,9 @@ import {
   Pencil,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/features/auth/store/auth.store';
+import { useUnreadCount } from '@/features/notifications/stores/notification.store';
 import {
   useCollectorProfile,
   useMyIdentity,
@@ -35,7 +38,9 @@ import { Avatar } from '@/shared/ui/base/avatar';
 export default function CollectorProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const router = useRouter();
   const logout = useAuthStore(s => s.logout);
+  const unreadCount = useUnreadCount();
 
   const { data: profile, isLoading } = useCollectorProfile();
   const { data: identity } = useMyIdentity();
@@ -328,6 +333,65 @@ export default function CollectorProfileScreen() {
                   : 'Soumettre pour vérification'}
               </Text>
             </View>
+            <ChevronRight size={16} color={theme.textMuted} />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Notifications */}
+        <Animated.View
+          entering={FadeInDown.delay(220).duration(350)}
+          style={{ marginBottom: 16 }}
+        >
+          <TouchableOpacity
+            onPress={() => router.push('/(collector-tabs)/profile/notifications' as any)}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: theme.greenBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Bell size={18} color={theme.green} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
+                Notifications
+              </Text>
+              <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+                {unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Tout est lu'}
+              </Text>
+            </View>
+            {unreadCount > 0 && (
+              <View
+                style={{
+                  backgroundColor: theme.red,
+                  borderRadius: 10,
+                  minWidth: 20,
+                  height: 20,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingHorizontal: 5,
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            )}
             <ChevronRight size={16} color={theme.textMuted} />
           </TouchableOpacity>
         </Animated.View>

@@ -6,13 +6,13 @@ import type {
 } from '../types';
 import { authService } from '../services/supabaseAuth.service';
 import { useAuthStore } from '../store/auth.store';
-import { saveLastEmail } from './useLastEmail';
+import { saveLastEmail, saveLastCollectorEmail } from './useLastEmail';
 
 export const useRegisterParent = () => {
   const setLoading = useAuthStore(s => s.setLoading);
 
   return useMutation({
-    mutationFn: (data: RegisterParentData) => authService.registerParent(data),
+    mutationFn: (data: RegisterParentData) => authService.registerParent(data) as Promise<void>,
     onMutate: async () => { setLoading(true); },
     onSuccess: (_, variables) => {
       saveLastEmail(variables.email);
@@ -49,7 +49,7 @@ export const useInviteCollector = () => {
       authService.inviteCollector(data.email),
     onMutate: () => { setLoading(true); },
     onSuccess: (_, variables) => {
-      saveLastEmail(variables.email);
+      saveLastCollectorEmail(variables.email);
     },
     onSettled: () => { setLoading(false); },
   });

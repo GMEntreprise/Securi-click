@@ -9,13 +9,19 @@ import {
 } from 'lucide-react-native';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
   Image,
   Pressable,
   ScrollView,
   Text,
+  TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
+import { supabase } from '@/lib/supabase/client';
+import { mapSupabaseSessionToAuthSession, setDevRoleOverride, clearDevRoleOverride } from '../utils/mapAuthSession';
+import { useAuthStore } from '../store/auth.store';
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -55,7 +61,7 @@ const ROLES: RoleItem[] = [
     title: 'Collecteur',
     description: 'Validation des autorisations',
     Icon: Shield,
-    route: '/(auth)/collector',
+    route: '/(auth)/collector-pin',
   },
   {
     id: 'school',
@@ -170,6 +176,161 @@ const RoleCard: React.FC<RoleCardProps> = memo(
 
 RoleCard.displayName = 'RoleCard';
 
+const DEV_ROLES = ['collector', 'parent', 'school_admin'] as const;
+type DevRole = typeof DEV_ROLES[number];
+
+function DevLogin() {
+  const t = useTheme();
+  const loginAction = useAuthStore(s => s.login);
+  const [email, setEmail] = useState('shavod.tech@gmail.com');
+  const [password, setPassword] = useState('TestCollector123!');
+  const [forceRole, setForceRole] = useState<DevRole>('collector');
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [detectedRole, setDetectedRole] = useState<string | null>(null);
+
+  const handleLogin = useCallback(async () => {
+    if (!email || !password) {
+      setErr('Email et mot de passe requis.');
+      return;
+    }
+    setLoading(true);
+    setErr(null);
+    setDetectedRole(null);
+    try {
+      await setDevRoleOverride(forceRole);
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error || !data.session) throw new Error(error?.message ?? 'Erreur');
+      const session = await mapSupabaseSessionToAuthSession(data.session);
+      setDetectedRole(session.user.role);
+      loginAction(session);
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  }, [email, password, forceRole, loginAction]);
+
+  const handleClearOverride = useCallback(async () => {
+    await clearDevRoleOverride();
+    setDetectedRole(null);
+    setErr('Override effacé — redémarre l\'app');
+  }, []);
+
+  return (
+    <View
+      style={{
+        marginTop: 32,
+        padding: 16,
+        borderRadius: 16,
+        borderWidth: 1.5,
+        borderColor: t.amber,
+        borderStyle: 'dashed',
+        gap: 10,
+      }}
+    >
+      <Text style={{ fontSize: 11, fontWeight: '700', color: t.amber, letterSpacing: 1, textTransform: 'uppercase' }}>
+        ⚙️ Dev — connexion directe
+      </Text>
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="email@test.com"
+        placeholderTextColor={t.placeholder}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        style={{
+          backgroundColor: t.input,
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: t.inputBorder,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          fontSize: 14,
+          color: t.text,
+        }}
+      />
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="mot de passe"
+        placeholderTextColor={t.placeholder}
+        secureTextEntry
+        style={{
+          backgroundColor: t.input,
+          borderRadius: 10,
+          borderWidth: 1,
+          borderColor: t.inputBorder,
+          paddingHorizontal: 12,
+          paddingVertical: 10,
+          fontSize: 14,
+          color: t.text,
+        }}
+      />
+
+      {/* Role selector */}
+      <View style={{ flexDirection: 'row', gap: 6 }}>
+        {DEV_ROLES.map(r => (
+          <TouchableOpacity
+            key={r}
+            onPress={() => setForceRole(r)}
+            style={{
+              flex: 1,
+              paddingVertical: 6,
+              borderRadius: 8,
+              alignItems: 'center',
+              backgroundColor: forceRole === r ? t.amber : t.input,
+              borderWidth: 1,
+              borderColor: forceRole === r ? t.amber : t.inputBorder,
+            }}
+          >
+            <Text style={{ fontSize: 11, fontWeight: '700', color: forceRole === r ? '#fff' : t.textMuted }}>
+              {r === 'school_admin' ? 'école' : r}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {detectedRole && (
+        <Text style={{ fontSize: 11, color: t.textSecondary }}>
+          Rôle Supabase : <Text style={{ color: t.amber, fontWeight: '700' }}>{detectedRole}</Text>
+          {detectedRole !== forceRole ? ` → forcé : ${forceRole}` : ''}
+        </Text>
+      )}
+      {err && <Text style={{ fontSize: 12, color: t.red }}>{err}</Text>}
+
+      <TouchableOpacity
+        onPress={handleLogin}
+        disabled={loading}
+        style={{
+          backgroundColor: t.amber,
+          borderRadius: 10,
+          paddingVertical: 10,
+          alignItems: 'center',
+          opacity: loading ? 0.6 : 1,
+        }}
+      >
+        {loading ? (
+          <ActivityIndicator color="#fff" size="small" />
+        ) : (
+          <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>
+            Se connecter en tant que {forceRole === 'school_admin' ? 'école' : forceRole}
+          </Text>
+        )}
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        onPress={handleClearOverride}
+        style={{ alignItems: 'center', paddingVertical: 6 }}
+      >
+        <Text style={{ fontSize: 11, color: t.textMuted }}>
+          Effacer l'override de rôle
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
 export const RoleChoiceScreen: React.FC = memo(() => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -255,6 +416,8 @@ export const RoleChoiceScreen: React.FC = memo(() => {
               index={index}
             />
           ))}
+
+          {__DEV__ && <DevLogin />}
         </View>
       </ScrollView>
 

@@ -40,7 +40,6 @@ export default function CollectorTabsLayout() {
         headerShown: true,
         headerTransparent: true,
         headerTitle: '',
-        headerRight: () => <NotificationBell />,
         headerStyle: { backgroundColor: 'transparent' },
       }}
       tabBar={renderTabBar}
@@ -49,6 +48,7 @@ export default function CollectorTabsLayout() {
         name="home"
         options={{
           title: 'Accueil',
+          headerRight: () => <NotificationBell />,
           tabBarIcon: ({ focused, color }) => (
             <Home
               size={ICON_SIZE}

@@ -41,7 +41,6 @@ export default function ParentTabsLayout() {
         headerShown: true,
         headerTransparent: true,
         headerTitle: '',
-        headerRight: () => <NotificationBell />,
         headerStyle: { backgroundColor: 'transparent' },
       }}
       tabBar={renderTabBar}
@@ -50,6 +49,7 @@ export default function ParentTabsLayout() {
         name="index"
         options={{
           title: 'Accueil',
+          headerRight: () => <NotificationBell />,
           tabBarIcon: ({ focused, color }) => (
             <Home
               size={ICON_SIZE}

@@ -33,12 +33,10 @@ import {
 import { useTheme } from '@/theme';
 import {
   useMyGuardians,
-  useMyPickupLogs,
+  useCollectorQrCode,
+  useCollectorRecentScans,
+  useCollectorGenerateQr,
 } from '@/features/collector/hooks/useCollector';
-import {
-  useGenerateQrCode,
-  useRecentScans,
-} from '@/features/parent/hooks/useQr';
 
 const STATUS_CFG = {
   completed: { Icon: CheckCircle, color: '#10b981', label: 'Validé' },
@@ -68,9 +66,9 @@ export default function CollectorQRScreen() {
   const selectedGuardian = activeGuardians[selectedGuardianIdx] ?? null;
   const childId = selectedGuardian?.child?.id ?? undefined;
 
-  const generateMutation = useGenerateQrCode();
-  const { data: recentScans, isLoading: scansLoading } =
-    useRecentScans(childId);
+  const generateMutation = useCollectorGenerateQr();
+  const { data: recentScans, isLoading: scansLoading } = useCollectorRecentScans(childId);
+  const { data: activeQr } = useCollectorQrCode(childId);
 
   const hasAccess = !!selectedGuardian?.is_active;
 
@@ -114,7 +112,7 @@ export default function CollectorQRScreen() {
       withTiming(0, { duration: 120 })
     );
     generateMutation.mutate(
-      { childId: selectedGuardian.child.id },
+      { childId: selectedGuardian.child.id, guardianId: selectedGuardian.id },
       {
         onSuccess: () => {
           qrScale.value = withSpring(1);

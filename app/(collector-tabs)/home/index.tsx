@@ -12,6 +12,10 @@ import {
   MinusCircle,
   AlertTriangle,
   UserPlus,
+  TrendingUp,
+  CalendarDays,
+  QrCode,
+  TriangleAlert,
 } from 'lucide-react-native';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
@@ -30,6 +34,60 @@ const STATUS_CFG = {
   cancelled: { Icon: MinusCircle, color: '#f59e0b', label: 'Annulé' },
 } as const;
 
+function StatCard({
+  label,
+  value,
+  Icon,
+  color,
+  bg,
+  delay,
+}: {
+  label: string;
+  value: number | string;
+  Icon: React.ComponentType<{ size: number; color: string; strokeWidth: number }>;
+  color: string;
+  bg: string;
+  delay: number;
+}) {
+  const theme = useTheme();
+  return (
+    <Animated.View
+      entering={FadeInDown.delay(delay).duration(320)}
+      style={{ flex: 1 }}
+    >
+      <View
+        style={{
+          backgroundColor: theme.card,
+          borderRadius: 18,
+          borderWidth: 1,
+          borderColor: theme.cardBorder,
+          padding: 14,
+          gap: 8,
+        }}
+      >
+        <View
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 11,
+            backgroundColor: bg,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Icon size={17} color={color} strokeWidth={2.5} />
+        </View>
+        <Text style={{ color: theme.text, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 }}>
+          {value}
+        </Text>
+        <Text style={{ color: theme.textMuted, fontSize: 11, fontWeight: '600', lineHeight: 14 }}>
+          {label}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+
 export default function CollectorHomeScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
@@ -47,6 +105,20 @@ export default function CollectorHomeScreen() {
     () => (guardians ?? []).filter(g => g.is_active),
     [guardians]
   );
+
+  const stats = useMemo(() => {
+    const allLogs = logs ?? [];
+    const now = new Date();
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const thisWeek = allLogs.filter(l => new Date(l.pickup_time) >= weekAgo);
+    const incidents = allLogs.filter(l => l.status === 'denied' || l.status === 'cancelled');
+    return {
+      total: allLogs.filter(l => l.status === 'completed').length,
+      thisWeek: thisWeek.filter(l => l.status === 'completed').length,
+      activeAccess: (guardians ?? []).filter(g => g.is_active).length,
+      incidents: incidents.length,
+    };
+  }, [logs, guardians]);
 
   const hasAnyAccess = activeGuardians.length > 0;
   const identityStatus = identity?.verification_status ?? 'none';
@@ -134,10 +206,53 @@ export default function CollectorHomeScreen() {
         </Text>
       </Animated.View>
 
+      {/* Stats */}
+      <Animated.View
+        entering={FadeInDown.delay(40).duration(350)}
+        style={{ marginBottom: 16 }}
+      >
+        <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
+          <StatCard
+            label={'Récupérations\ntotales'}
+            value={stats.total}
+            Icon={TrendingUp}
+            color="#10b981"
+            bg="rgba(16,185,129,0.12)"
+            delay={50}
+          />
+          <StatCard
+            label={'Cette\nsemaine'}
+            value={stats.thisWeek}
+            Icon={CalendarDays}
+            color="#3b82f6"
+            bg="rgba(59,130,246,0.12)"
+            delay={90}
+          />
+        </View>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <StatCard
+            label={'Accès\nactifs'}
+            value={stats.activeAccess}
+            Icon={QrCode}
+            color={theme.accent}
+            bg={theme.accentBg}
+            delay={130}
+          />
+          <StatCard
+            label={'Incidents\n(refus/annul.)'}
+            value={stats.incidents}
+            Icon={TriangleAlert}
+            color={stats.incidents > 0 ? '#ef4444' : theme.textMuted}
+            bg={stats.incidents > 0 ? 'rgba(239,68,68,0.12)' : theme.card}
+            delay={170}
+          />
+        </View>
+      </Animated.View>
+
       {/* Pending invites banner */}
       {hasPending && (
         <Animated.View
-          entering={FadeInDown.delay(30).duration(350)}
+          entering={FadeInDown.delay(200).duration(350)}
           style={{ marginBottom: 14 }}
         >
           <TouchableOpacity
@@ -182,7 +297,7 @@ export default function CollectorHomeScreen() {
 
       {/* Access status — big clear card */}
       <Animated.View
-        entering={FadeInDown.delay(60).duration(350)}
+        entering={FadeInDown.delay(220).duration(350)}
         style={{ marginBottom: 16 }}
       >
         <View
@@ -242,7 +357,7 @@ export default function CollectorHomeScreen() {
 
       {/* Identity status */}
       <Animated.View
-        entering={FadeInDown.delay(120).duration(350)}
+        entering={FadeInDown.delay(260).duration(350)}
         style={{ marginBottom: 16 }}
       >
         <View
@@ -287,7 +402,7 @@ export default function CollectorHomeScreen() {
         <ActivityIndicator color={theme.accent} style={{ marginTop: 20 }} />
       ) : activeGuardians.length > 0 ? (
         <Animated.View
-          entering={FadeInDown.delay(180).duration(350)}
+          entering={FadeInDown.delay(300).duration(350)}
           style={{ marginBottom: 20 }}
         >
           <Text
@@ -373,7 +488,7 @@ export default function CollectorHomeScreen() {
       ) : null}
 
       {/* Recent pickups */}
-      <Animated.View entering={FadeInDown.delay(240).duration(350)}>
+      <Animated.View entering={FadeInDown.delay(340).duration(350)}>
         <Text
           style={{
             color: theme.text,

@@ -6,6 +6,28 @@ import type {
   DocumentType,
 } from '../types';
 
+export interface CollectorQrCode {
+  id: string;
+  child_id: string;
+  guardian_id: string | null;
+  token: string;
+  expires_at: string;
+  is_used: boolean;
+  created_at: string;
+  child?: { first_name: string; last_name: string; photo_url: string | null } | null;
+}
+
+export interface CollectorRecentScan {
+  id: string;
+  child_id: string;
+  guardian_id: string | null;
+  pickup_time: string;
+  status: 'completed' | 'denied' | 'cancelled';
+  denial_reason: string | null;
+  child?: { first_name: string; last_name: string } | null;
+  guardian?: { first_name: string; last_name: string; relationship: string } | null;
+}
+
 const GUARDIAN_SELECT = `
   id, parent_id, child_id, first_name, last_name, phone, email,
   relationship, photo_url, priority, is_active, identity_status,
@@ -221,5 +243,98 @@ export const collectorService = {
       .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
       .eq('user_id', userId);
     if (error) throw error;
+  },
+
+  // ── QR code — collector generates for their own child access ─────────────
+
+  async getCollectorQrCode(
+    collectorUserId: string,
+    childId?: string
+  ): Promise<CollectorQrCode | null> {
+    // Get guardian IDs for this collector
+    const { data: guardians, error: gErr } = await supabase
+      .from('guardians')
+      .select('id, child_id')
+      .eq('collector_user_id', collectorUserId)
+      .eq('is_active', true);
+    if (gErr) throw gErr;
+    if (!guardians || guardians.length === 0) return null;
+
+    const guardianIds = guardians.map(g => g.id);
+    const targetChildId = childId ?? guardians[0]?.child_id;
+    if (!targetChildId) return null;
+
+    const { data, error } = await supabase
+      .from('qr_codes')
+      .select('id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children(first_name, last_name, photo_url)')
+      .in('guardian_id', guardianIds)
+      .eq('child_id', targetChildId)
+      .eq('is_used', false)
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return data as unknown as CollectorQrCode | null;
+  },
+
+  async getCollectorRecentScans(
+    collectorUserId: string,
+    childId?: string,
+    limit = 5
+  ): Promise<CollectorRecentScan[]> {
+    const { data: guardians, error: gErr } = await supabase
+      .from('guardians')
+      .select('id, child_id')
+      .eq('collector_user_id', collectorUserId);
+    if (gErr) throw gErr;
+    if (!guardians || guardians.length === 0) return [];
+
+    const guardianIds = guardians.map(g => g.id);
+
+    let q = supabase
+      .from('pickup_logs')
+      .select('id, child_id, guardian_id, pickup_time, status, denial_reason, child:children(first_name, last_name), guardian:guardians(first_name, last_name, relationship)')
+      .in('guardian_id', guardianIds)
+      .order('pickup_time', { ascending: false })
+      .limit(limit);
+
+    if (childId) q = q.eq('child_id', childId);
+
+    const { data, error } = await q;
+    if (error) throw error;
+    return (data ?? []) as unknown as CollectorRecentScan[];
+  },
+
+  async generateCollectorQrCode(
+    collectorUserId: string,
+    childId: string,
+    guardianId: string
+  ): Promise<CollectorQrCode> {
+    // Find the parent_id via the guardian record to call the RPC correctly
+    const { data: guardian, error: gErr } = await supabase
+      .from('guardians')
+      .select('parent_id')
+      .eq('id', guardianId)
+      .eq('collector_user_id', collectorUserId)
+      .single();
+    if (gErr) throw gErr;
+
+    const { data, error } = await supabase.rpc('generate_qr_code', {
+      p_parent_id: guardian.parent_id,
+      p_child_id: childId,
+      p_guardian_id: guardianId,
+      p_expires_in_hours: 24,
+    });
+    if (error) throw error;
+
+    const qrId = data as string;
+    const { data: qr, error: fetchErr } = await supabase
+      .from('qr_codes')
+      .select('id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children(first_name, last_name, photo_url)')
+      .eq('id', qrId)
+      .single();
+    if (fetchErr) throw fetchErr;
+    return qr as unknown as CollectorQrCode;
   },
 };

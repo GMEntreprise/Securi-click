@@ -70,7 +70,6 @@ export interface CollectorPickupLog {
 }
 
 export interface UploadIdentityPayload {
-  guardianId: string;
   parentId: string;
   documentType: DocumentType;
   frontUri: string | null;

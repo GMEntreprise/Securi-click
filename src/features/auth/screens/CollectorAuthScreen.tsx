@@ -1,4 +1,10 @@
+import { Toast } from '@/shared/ui/molecules/Toast';
+import { useTheme } from '@/theme';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'expo-router';
+import { Mail, MailCheck, Send } from 'lucide-react-native';
 import React, { memo, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -6,23 +12,25 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, MailCheck } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useInviteCollector } from '../hooks/useRegister';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  AuthBackButton,
+  AuthInputField,
+  AuthPrimaryButton,
+} from '../components/ui';
 import { useLastEmail } from '../hooks/useLastEmail';
-import { collectorOtpSchema } from '../schemas/auth.schema';
+import { useInviteCollector } from '../hooks/useRegister';
 import type { CollectorOtpFormData } from '../schemas/auth.schema';
-import { AuthBackButton, AuthInputField, AuthPrimaryButton } from '../components/ui';
-import { useTheme } from '@/theme';
-import { Toast } from '@/shared/ui/molecules/Toast';
+import { collectorOtpSchema } from '../schemas/auth.schema';
 
 function formatAuthError(msg: string): string {
   const lower = msg.toLowerCase();
-  if (lower.includes('rate limit') || lower.includes('too many') || lower.includes('429')) {
+  if (
+    lower.includes('rate limit') ||
+    lower.includes('too many') ||
+    lower.includes('429')
+  ) {
     return 'Trop de tentatives. Attendez quelques minutes avant de réessayer.';
   }
   if (lower.includes('invalid email') || lower.includes('email not found')) {
@@ -64,9 +72,12 @@ export const CollectorAuthScreen: React.FC = memo(() => {
       {
         onSuccess: () => {
           setSent(true);
-          Toast.show('Lien envoyé ! Vérifiez votre boîte mail.', { type: 'success', duration: 3000 });
+          Toast.show('Lien envoyé ! Vérifiez votre boîte mail.', {
+            type: 'success',
+            duration: 3000,
+          });
         },
-        onError: (e) => {
+        onError: e => {
           const msg = formatAuthError((e as Error).message ?? '');
           Toast.show(msg, { type: 'error', duration: 5000 });
         },
@@ -80,9 +91,12 @@ export const CollectorAuthScreen: React.FC = memo(() => {
       { email },
       {
         onSuccess: () => {
-          Toast.show('Nouveau lien envoyé !', { type: 'success', duration: 3000 });
+          Toast.show('Nouveau lien envoyé !', {
+            type: 'success',
+            duration: 3000,
+          });
         },
-        onError: (e) => {
+        onError: e => {
           const msg = formatAuthError((e as Error).message ?? '');
           Toast.show(msg, { type: 'error', duration: 5000 });
         },
@@ -131,7 +145,8 @@ export const CollectorAuthScreen: React.FC = memo(() => {
                   marginBottom: 32,
                 }}
               >
-                Vérifiez votre boîte mail et cliquez sur le lien pour accéder à votre espace.
+                Vérifiez votre boîte mail et cliquez sur le lien pour accéder à
+                votre espace.
               </Text>
               <AuthPrimaryButton
                 onPress={handleResend}
@@ -152,7 +167,7 @@ export const CollectorAuthScreen: React.FC = memo(() => {
                   marginBottom: 8,
                 }}
               >
-                Accéder à mon espace
+                Lien non reçu ?
               </Text>
               <Text
                 style={{
@@ -162,7 +177,8 @@ export const CollectorAuthScreen: React.FC = memo(() => {
                   marginBottom: 32,
                 }}
               >
-                Votre parent vous a invité. Entrez votre email pour recevoir votre lien d'accès sécurisé.
+                Si vous n'avez pas reçu le lien d'invitation du parent, entrez
+                votre email pour en recevoir un nouveau.
               </Text>
 
               <AuthInputField
@@ -182,6 +198,7 @@ export const CollectorAuthScreen: React.FC = memo(() => {
                   onPress={handleSubmit(onSubmit)}
                   isLoading={inviteMutation.isPending}
                   variant="accent"
+                  icon={<Send size={16} color="#fff" strokeWidth={2} />}
                 >
                   Recevoir mon lien d'accès
                 </AuthPrimaryButton>

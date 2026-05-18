@@ -9,8 +9,10 @@ import {
   useIsRestoring,
   useSession,
 } from '@/features/auth/store/auth.store';
+import { useCollectorSessionStore } from '@/features/collector/stores/collectorSession.store';
 import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '@/features/auth/utils/mapAuthSession';
+import { passwordLoginInProgress } from '@/features/auth/hooks/useLogin';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/shared/ui/organisms/theme-switch/context';
 import { ThemeMode } from '@/shared/ui/organisms/theme-switch/types';
@@ -32,49 +34,89 @@ const queryClient = new QueryClient({
   },
 });
 
-function parseUrlCode(url: string): { code: string | null; type: string | null } {
+function parseUrlParams(url: string): {
+  code: string | null;
+  type: string | null;
+} {
   const qs = url.split('?')[1]?.split('#')[0] ?? '';
   const frag = url.split('#')[1] ?? '';
   const p = new URLSearchParams(qs || frag);
-  return { code: p.get('code'), type: p.get('type') };
+  return {
+    code: p.get('code'),
+    type: p.get('type'),
+  };
 }
 
-// Module-level flag: DeepLinkHandler sets this to true while processing a magic
-// link so AuthStateSync ignores the concurrent SIGNED_IN event (which would
-// re-fetch the profile before the INSERT is committed and resolve role: 'parent')
+function isAuthCallbackUrl(url: string | null): boolean {
+  return !!url && url.includes('auth/callback');
+}
+
+// Set to true while DeepLinkHandler is processing a magic link so AuthStateSync
+// and NavigationGuard don't interfere during session setup.
+// True while DeepLinkHandler owns session setup — guards and sync must not interfere.
 let deepLinkProcessing = false;
 
-// Handles Supabase PKCE magic link deep links
+// ─── DeepLinkHandler ─────────────────────────────────────────────────────────
+// Handles Supabase PKCE magic links (cold-start and warm-start).
+// Two paths:
+//   A) Collector invitation link (invitation_token in user_metadata) → PIN screen
+//   B) All other links (parent, school, recovery) → resolved by role
 function DeepLinkHandler() {
   const loginAction = useAuthStore(s => s.login);
   const router = useRouter();
   const codeHandled = useRef<string | null>(null);
-  // useLinkingURL captures the URL that cold-started the app
-  const coldStartUrl = Linking.useLinkingURL();
 
   const processUrl = useCallback(
     async (url: string | null) => {
-      if (!url || !url.includes('auth/callback')) return;
-
-      const { code, type } = parseUrlCode(url);
+      if (!isAuthCallbackUrl(url)) return;
+      const { code, type } = parseUrlParams(url!);
       if (!code) return;
       if (codeHandled.current === code) return;
       codeHandled.current = code;
+
       deepLinkProcessing = true;
+      router.replace('/(auth)/callback' as any);
 
       try {
         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+
         if (error || !data.session) {
           Toast.show('Lien expiré ou déjà utilisé. Demandez un nouveau lien.', {
             type: 'error',
-            duration: 5000,
+            duration: 6000,
           });
-          router.replace('/(auth)/collector' as any);
+          deepLinkProcessing = false;
+          router.replace('/(auth)/collector-pin' as any);
           return;
         }
 
         const authUser = data.session.user;
+        const meta = authUser.user_metadata ?? {};
+        const invitationToken = (meta.invitation_token as string) || null;
 
+        // ── Path A: collector invitation ───────────────────────────────────
+        if (invitationToken) {
+          // Upsert profile so mapSupabaseSessionToAuthSession resolves role=collector
+          await supabase
+            .from('user_profiles')
+            .upsert({
+              user_id: authUser.id,
+              first_name: (meta.first_name as string) || '',
+              last_name: (meta.last_name as string) || '',
+              role: 'collector',
+            }, { onConflict: 'user_id', ignoreDuplicates: true });
+
+          const session = await mapSupabaseSessionToAuthSession(data.session);
+          loginAction(session);
+          deepLinkProcessing = false;
+          router.replace({
+            pathname: '/(auth)/collector-pin' as any,
+            params: { invitation_token: invitationToken },
+          });
+          return;
+        }
+
+        // ── Path B: all other links ────────────────────────────────────────
         const { data: existingProfile } = await supabase
           .from('user_profiles')
           .select('id, first_name, last_name, phone, school_id, role')
@@ -93,11 +135,9 @@ function DeepLinkHandler() {
           : null;
 
         if (!knownProfile) {
-          const meta = authUser.user_metadata ?? {};
-          const metaRole = (meta.role as string) ?? 'collector';
-
-          // For school_admin: create the school record first, then link profile to it
+          const metaRole = (meta.role as string) ?? 'parent';
           let schoolId: string | undefined;
+
           if (metaRole === 'school_admin') {
             const { data: school } = await supabase
               .from('schools')
@@ -147,55 +187,55 @@ function DeepLinkHandler() {
         const session = await mapSupabaseSessionToAuthSession(data.session, knownProfile);
         loginAction(session);
         const role = session.user.role;
+        deepLinkProcessing = false;
 
         if (type === 'recovery') {
           router.replace('/(auth)/login' as any);
         } else if (role === 'collector') {
-          router.replace('/(collector-tabs)' as any);
+          router.replace('/(auth)/collector-pin' as any);
         } else if (role === 'school_admin' || role === 'staff') {
           router.replace('/(school-tabs)/home' as any);
         } else {
           router.replace('/(parent-tabs)' as any);
         }
-      } finally {
+      } catch {
         deepLinkProcessing = false;
+        router.replace('/(auth)/login' as any);
       }
     },
     [loginAction, router]
   );
 
-  // Cold-start: hook fires with the launch URL
   useEffect(() => {
-    processUrl(coldStartUrl);
-  }, [coldStartUrl, processUrl]);
+    Linking.getInitialURL().then(url => processUrl(url));
+  }, [processUrl]);
 
-  // Warm-start: app already running when link tapped — addEventListener catches it
   useEffect(() => {
-    const subscription = Linking.addEventListener('url', ({ url }) => {
-      processUrl(url);
-    });
+    const subscription = Linking.addEventListener('url', ({ url }) => processUrl(url));
     return () => subscription.remove();
   }, [processUrl]);
 
   return null;
 }
 
-// Syncs Supabase token refresh / signout events into the store
+// ─── AuthStateSync ────────────────────────────────────────────────────────────
+// Syncs Supabase token refresh / signout into the store.
+// Skips SIGNED_IN events fired by DeepLinkHandler (it handles those itself).
 function AuthStateSync() {
   const loginAction = useAuthStore(s => s.login);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sess) => {
+      if (__DEV__) console.log('[AuthStateSync] event=', event, 'deepLink=', deepLinkProcessing, 'pwdLogin=', passwordLoginInProgress);
       if (event === 'INITIAL_SESSION') return;
-      // Skip SIGNED_IN fired by DeepLinkHandler's exchangeCodeForSession — it
-      // handles role resolution itself with the freshly-inserted profile
-      if (event === 'SIGNED_IN' && deepLinkProcessing) return;
+      if (event === 'SIGNED_IN' && (deepLinkProcessing || passwordLoginInProgress)) return;
       if (!sess || event === 'SIGNED_OUT') {
         useAuthStore.setState({ session: null });
         return;
       }
       if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
         const session = await mapSupabaseSessionToAuthSession(sess);
+        if (__DEV__) console.log('[AuthStateSync] loginAction role=', session.user.role);
         loginAction(session);
       }
     });
@@ -205,45 +245,67 @@ function AuthStateSync() {
   return null;
 }
 
-// Role-based route guard — redirects once per auth/segment transition
+// ─── NavigationGuard ──────────────────────────────────────────────────────────
+// Single source of truth for routing.
+// lastRedirect prevents redirect loops: we only redirect if the target differs
+// from what we already navigated to. Resets when auth state changes.
 function NavigationGuard() {
   const router = useRouter();
   const segments = useSegments();
   const isAuthenticated = useIsAuthenticated();
   const isRestoring = useIsRestoring();
-  const lastRedirect = useRef<string | null>(null);
+  const pinVerified = useCollectorSessionStore(s => s.isVerified);
+  const pinRestoring = useCollectorSessionStore(s => s.isRestoring);
+
+  const lastRedirectRef = useRef<string | null>(null);
+  const prevAuthRef = useRef(isAuthenticated);
+
+  // Reset lastRedirect when auth state flips — new session needs fresh routing.
+  if (prevAuthRef.current !== isAuthenticated) {
+    lastRedirectRef.current = null;
+    prevAuthRef.current = isAuthenticated;
+  }
 
   useEffect(() => {
-    if (isRestoring) return;
+    if (isRestoring || pinRestoring || deepLinkProcessing) return;
 
-    const seg = segments[0] as string;
+    const seg = segments[0] as string | undefined;
+    if (!seg) return;
+
     const inAuth = seg === '(auth)';
-    const inCallback = seg === 'auth';
+    const sub1 = segments[1] as string | undefined;
+    if (inAuth && sub1 === 'callback') return;
+
+    const inPinScreen = inAuth && sub1 === 'collector-pin';
     const role = useAuthStore.getState().session?.user.role;
 
     let target: string | null = null;
 
-    if (!isAuthenticated && !inAuth && !inCallback) {
-      target = '/(auth)/login';
-    } else if (isAuthenticated && inAuth) {
-      if (role === 'collector') target = '/(collector-tabs)';
-      else if (role === 'school_admin' || role === 'staff') target = '/(school-tabs)/home';
-      else target = '/(parent-tabs)';
-    } else if (isAuthenticated && !inAuth) {
-      const inCollectorTabs = seg === '(collector-tabs)';
-      const inSchoolTabs = seg === '(school-tabs)';
-      const isSchool = role === 'school_admin' || role === 'staff';
-      if (role === 'collector' && !inCollectorTabs) target = '/(collector-tabs)';
-      else if (isSchool && !inSchoolTabs) target = '/(school-tabs)/home';
-      else if (!isSchool && role !== 'collector' && inSchoolTabs) target = '/(parent-tabs)';
-      else if (role !== 'collector' && !isSchool && inCollectorTabs) target = '/(parent-tabs)';
+    if (!isAuthenticated) {
+      if (!inAuth) target = '/(auth)/login';
+    } else if (role === 'collector') {
+      if (!pinVerified && !inPinScreen) {
+        target = '/(auth)/collector-pin';
+      } else if (pinVerified && (inAuth || seg !== '(collector-tabs)')) {
+        target = '/(collector-tabs)';
+      }
+    } else if (role === 'school_admin' || role === 'staff') {
+      if (inAuth || seg === '(app)' || seg === '(parent-tabs)' || seg === '(collector-tabs)') {
+        target = '/(school-tabs)/home';
+      }
+    } else {
+      if (inAuth || seg === '(app)' || seg === '(collector-tabs)' || seg === '(school-tabs)') {
+        target = '/(parent-tabs)';
+      }
     }
 
-    if (target && lastRedirect.current !== target) {
-      lastRedirect.current = target;
-      router.replace(target as any);
-    }
-  }, [isAuthenticated, isRestoring, segments, router]);
+    if (!target) return;
+    if (target === lastRedirectRef.current) return;
+
+    if (__DEV__) console.log('[NavigationGuard] redirect', target, '| seg=', seg, 'auth=', isAuthenticated, 'role=', role, 'pinVerified=', pinVerified);
+    lastRedirectRef.current = target;
+    router.replace(target as any);
+  }, [isAuthenticated, isRestoring, pinRestoring, pinVerified, segments, router]);
 
   return null;
 }
@@ -253,7 +315,6 @@ function NotificationBootstrap() {
   const session = useSession();
   const userId = session?.user.id;
   const router = useRouter();
-  const { setUnreadCount } = useNotificationStore.getState();
   useUnreadCountQuery();
 
   useEffect(() => {
@@ -310,10 +371,18 @@ function NotificationCenterModal() {
 
 export default function RootLayout() {
   const initialize = useAuthStore(s => s.initialize);
+  const initCollectorSession = useCollectorSessionStore(s => s.initialize);
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    initCollectorSession();
+    Linking.getInitialURL().then(url => {
+      if (isAuthCallbackUrl(url)) {
+        useAuthStore.setState({ isRestoring: false });
+      } else {
+        initialize();
+      }
+    });
+  }, [initialize, initCollectorSession]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

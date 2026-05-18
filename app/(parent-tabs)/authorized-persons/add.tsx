@@ -21,7 +21,6 @@ import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSection';
 import { useSession } from '@/features/auth/store/auth.store';
 import { supabase } from '@/lib/supabase/client';
-import { authService } from '@/features/auth/services/supabaseAuth.service';
 import { Toast } from '@/shared/ui/molecules/Toast';
 
 const RELATIONSHIPS = [
@@ -93,7 +92,8 @@ export default function AddGuardianScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
       try {
-        const { error: rpcError } = await supabase.rpc('invite_guardian', {
+        // Step 1: create the guardian record and get back the invitation_token
+        const { data: guardianId, error: rpcError } = await supabase.rpc('invite_guardian', {
           p_child_id: childId,
           p_first_name: data.first_name,
           p_last_name: data.last_name,
@@ -105,14 +105,40 @@ export default function AddGuardianScreen() {
 
         if (rpcError) throw new Error(rpcError.message);
 
-        try {
-          await authService.inviteCollector(data.email.trim());
-        } catch {
-          // Rate limit hit: invitation enregistrée, email sera renvoyé plus tard
+        // Step 2: fetch the invitation_token just created so we can embed it
+        // in the magic link redirect URL. The collector will land directly on
+        // the PIN screen without ever being asked for their email.
+        const { data: guardianRow, error: tokenError } = await supabase
+          .from('guardians')
+          .select('invitation_token')
+          .eq('id', guardianId)
+          .single();
+
+        if (tokenError || !guardianRow?.invitation_token) {
+          throw new Error('Impossible de récupérer le lien d\'invitation.');
         }
 
+        // Step 3: send the Supabase magic link.
+        // invitation_token is stored in user_metadata so DeepLinkHandler can
+        // reliably read it after the PKCE exchange — URL query params are
+        // stripped by Supabase before forwarding the code.
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: data.email.trim(),
+          options: {
+            emailRedirectTo: 'securiclick://auth/callback',
+            data: {
+              role: 'collector',
+              first_name: data.first_name,
+              last_name: data.last_name,
+              invitation_token: guardianRow.invitation_token,
+            },
+          },
+        });
+
+        if (otpError) throw new Error(otpError.message);
+
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Toast.show(`${data.first_name} ${data.last_name} a été ajouté(e)`, {
+        Toast.show(`Invitation envoyée à ${data.email.trim()}`, {
           type: 'success',
           duration: 3000,
         });
