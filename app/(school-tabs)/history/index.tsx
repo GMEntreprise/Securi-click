@@ -20,12 +20,17 @@ import {
   GraduationCap,
   X,
   ChevronRight,
+  ShieldCheck,
+  ShieldOff,
+  AlertTriangle,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { useMySchool } from '@/features/school/hooks/useSchool';
 import { usePickupValidations } from '@/features/school/hooks/useValidations';
 import { Avatar } from '@/shared/ui/base/avatar';
-import type { PickupValidation } from '@/features/school/types';
+import type { PickupValidation, CollectorIdentityStatus, ValidationStatus } from '@/features/school/types';
+
+type FilterKey = 'all' | ValidationStatus;
 
 type GroupedItem =
   | { type: 'header'; date: string; key: string }
@@ -53,12 +58,27 @@ export default function SchoolHistoryScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const [selected, setSelected] = useState<PickupValidation | null>(null);
+  const [filter, setFilter] = useState<FilterKey>('all');
 
   const { data: school } = useMySchool();
   const schoolId = school?.id ?? '';
   const { data: validations, isLoading } = usePickupValidations(schoolId);
 
-  const grouped = useMemo(() => groupByDay(validations ?? []), [validations]);
+  const counts = useMemo(() => {
+    const all = validations ?? [];
+    return {
+      all: all.length,
+      validated: all.filter(v => v.status === 'validated').length,
+      refused: all.filter(v => v.status === 'refused').length,
+    };
+  }, [validations]);
+
+  const filtered = useMemo(() => {
+    if (filter === 'all') return validations ?? [];
+    return (validations ?? []).filter(v => v.status === filter);
+  }, [validations, filter]);
+
+  const grouped = useMemo(() => groupByDay(filtered), [filtered]);
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<GroupedItem>) => {
@@ -118,7 +138,7 @@ export default function SchoolHistoryScreen() {
           style={{
             paddingTop: insets.top + 20,
             paddingHorizontal: 20,
-            paddingBottom: 12,
+            paddingBottom: 4,
           }}
         >
           <Text
@@ -132,9 +152,41 @@ export default function SchoolHistoryScreen() {
             Historique
           </Text>
           <Text style={{ color: theme.textMuted, fontSize: 14, marginTop: 4 }}>
-            {validations?.length ?? 0} enregistrement
-            {(validations?.length ?? 0) > 1 ? 's' : ''}
+            {filtered.length} enregistrement{filtered.length > 1 ? 's' : ''}
           </Text>
+        </Animated.View>
+
+        {/* Filter chips */}
+        <Animated.View
+          entering={FadeInDown.delay(60).duration(300)}
+          style={{
+            flexDirection: 'row',
+            gap: 8,
+            paddingHorizontal: 20,
+            paddingTop: 14,
+            paddingBottom: 8,
+          }}
+        >
+          <FilterChip
+            label="Tous"
+            count={counts.all}
+            active={filter === 'all'}
+            onPress={() => setFilter('all')}
+          />
+          <FilterChip
+            label="Validés"
+            count={counts.validated}
+            active={filter === 'validated'}
+            onPress={() => setFilter('validated')}
+            activeColor="green"
+          />
+          <FilterChip
+            label="Refusés"
+            count={counts.refused}
+            active={filter === 'refused'}
+            onPress={() => setFilter('refused')}
+            activeColor="red"
+          />
         </Animated.View>
 
         {!grouped.length ? (
@@ -155,7 +207,11 @@ export default function SchoolHistoryScreen() {
                 textAlign: 'center',
               }}
             >
-              Aucune validation enregistrée
+              {filter === 'all'
+                ? 'Aucune validation enregistrée'
+                : filter === 'validated'
+                ? 'Aucune validation réussie'
+                : 'Aucun refus enregistré'}
             </Text>
           </View>
         ) : (
@@ -185,6 +241,78 @@ export default function SchoolHistoryScreen() {
     </>
   );
 }
+
+const FilterChip = memo(function FilterChip({
+  label,
+  count,
+  active,
+  onPress,
+  activeColor = 'accent',
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onPress: () => void;
+  activeColor?: 'green' | 'red' | 'accent';
+}) {
+  const theme = useTheme();
+
+  const colorMap = {
+    green: { bg: theme.greenBg, text: theme.green, border: theme.green },
+    red: { bg: theme.redBg, text: theme.red, border: theme.red },
+    accent: { bg: theme.accentBg, text: theme.accent, border: theme.accent },
+  };
+
+  const colors = active ? colorMap[activeColor] : null;
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 12,
+        borderWidth: 1.5,
+        backgroundColor: active ? colors!.bg : theme.card,
+        borderColor: active ? colors!.border : theme.cardBorder,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 13,
+          fontWeight: '700',
+          color: active ? colors!.text : theme.textSecondary,
+        }}
+      >
+        {label}
+      </Text>
+      <View
+        style={{
+          minWidth: 20,
+          height: 20,
+          borderRadius: 10,
+          backgroundColor: active ? colors!.text : theme.inputBorder,
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingHorizontal: 4,
+        }}
+      >
+        <Text
+          style={{
+            fontSize: 11,
+            fontWeight: '800',
+            color: active ? colors!.bg : theme.textMuted,
+          }}
+        >
+          {count > 999 ? '999+' : count}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+});
 
 const HistoryRow = memo(function HistoryRow({
   item,
@@ -250,6 +378,44 @@ const HistoryRow = memo(function HistoryRow({
       </View>
       <ChevronRight size={14} color={theme.textMuted} />
     </TouchableOpacity>
+  );
+});
+
+const IdentityBadgeInline = memo(function IdentityBadgeInline({
+  status,
+}: {
+  status: CollectorIdentityStatus | undefined;
+}) {
+  const theme = useTheme();
+
+  const cfg = {
+    verified: { icon: ShieldCheck, color: theme.green, bg: theme.greenBg, label: 'Identité vérifiée' },
+    pending: { icon: Clock, color: theme.amber, bg: theme.amberBg, label: 'Vérification en attente' },
+    refused: { icon: ShieldOff, color: theme.red, bg: theme.redBg, label: 'Identité refusée' },
+    expired: { icon: ShieldOff, color: theme.red, bg: theme.redBg, label: 'Identité expirée' },
+    none: { icon: AlertTriangle, color: theme.amber, bg: theme.amberBg, label: 'Identité non vérifiée' },
+  } as const;
+
+  const key = (status ?? 'none') as keyof typeof cfg;
+  const { icon: Icon, color, bg, label } = cfg[key] ?? cfg.none;
+
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        backgroundColor: bg,
+        borderRadius: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 5,
+        alignSelf: 'flex-start',
+        marginTop: 6,
+      }}
+    >
+      <Icon size={12} color={color} strokeWidth={2.5} />
+      <Text style={{ color, fontSize: 11, fontWeight: '700' }}>{label}</Text>
+    </View>
   );
 });
 
@@ -478,6 +644,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
                       {item.guardian.phone}
                     </Text>
                   </View>
+                  <IdentityBadgeInline status={item.guardian.identity_status} />
                 </View>
               </View>
             </View>
