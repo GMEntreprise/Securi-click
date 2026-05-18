@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { TouchableOpacity, View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { router } from 'expo-router';
 import {
   ShieldCheck,
@@ -27,6 +28,7 @@ import {
   usePendingInvites,
 } from '@/features/collector/hooks/useCollector';
 import { CollectorOnboardSheet } from '@/features/collector/components/ui/CollectorOnboardSheet';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 const STATUS_CFG = {
   completed: { Icon: CheckCircle, color: '#10b981', label: 'Validé' },
@@ -90,6 +92,7 @@ function StatCard({
 
 export default function CollectorHomeScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useTabBarHeight();
   const theme = useTheme();
   const { data: profile } = useCollectorProfile();
   const { data: guardians, isLoading: guardiansLoading } = useMyGuardians();
@@ -173,7 +176,7 @@ export default function CollectorHomeScreen() {
         contentContainerStyle={{
           paddingTop: insets.top + 20,
           paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 100,
+          paddingBottom: tabBarHeight + 20,
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -182,28 +185,33 @@ export default function CollectorHomeScreen() {
         entering={FadeInDown.duration(400)}
         style={{ marginBottom: 24 }}
       >
-        <Text
-          style={{
-            color: theme.textMuted,
-            fontSize: 11,
-            fontWeight: '700',
-            letterSpacing: 1.2,
-            textTransform: 'uppercase',
-            marginBottom: 4,
-          }}
-        >
-          Tableau de bord
-        </Text>
-        <Text
-          style={{
-            color: theme.text,
-            fontSize: 26,
-            fontWeight: '800',
-            letterSpacing: -0.5,
-          }}
-        >
-          Bonjour{profile ? `, ${profile.first_name}` : ''} 👋
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: theme.textMuted,
+                fontSize: 11,
+                fontWeight: '700',
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
+                marginBottom: 4,
+              }}
+            >
+              Tableau de bord
+            </Text>
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: 26,
+                fontWeight: '800',
+                letterSpacing: -0.5,
+              }}
+            >
+              Bonjour{profile ? `, ${profile.first_name}` : ''} 👋
+            </Text>
+          </View>
+          <NotificationBell />
+        </View>
       </Animated.View>
 
       {/* Stats */}

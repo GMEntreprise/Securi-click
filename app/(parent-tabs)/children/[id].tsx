@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -9,13 +9,12 @@ import {
   Modal,
   Switch,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useTheme } from '@/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
-  ArrowLeft,
   Shield,
   Phone,
   UserPlus,
@@ -180,19 +179,21 @@ export default function ChildDetails() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
 
+  const navigation = useNavigation();
   const childId = id ?? '';
   const { data: child, isLoading: childLoading } = useChild(childId);
+
+  useEffect(() => {
+    if (child) {
+      navigation.setOptions({ title: `${child.first_name} ${child.last_name}` });
+    }
+  }, [child, navigation]);
   const { data: authorizations, isLoading: authLoading } =
     useGuardians(childId);
   const togglePerson = useToggleGuardian(childId);
   const deletePerson = useDeleteGuardian(childId);
 
   const [editSheetVisible, setEditSheetVisible] = useState(false);
-
-  const handleBack = useCallback(() => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.back();
-  }, [router]);
 
   const handleToggle = useCallback(
     (guardianId: string, currentActive: boolean) => {
@@ -297,88 +298,21 @@ export default function ChildDetails() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       >
-        {/* Header */}
+        {/* Chips: classe + autorisations actives */}
         <Animated.View
           entering={FadeInDown.duration(400)}
           style={{
             backgroundColor: theme.card,
             borderBottomWidth: 1,
             borderBottomColor: theme.cardBorder,
-            paddingTop: insets.top + 16,
-            paddingBottom: 20,
-            paddingHorizontal: 20,
+            paddingVertical: 12,
+            paddingHorizontal: 16,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
           }}
         >
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              marginBottom: 20,
-            }}
-          >
-            <TouchableOpacity
-              onPress={handleBack}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 14,
-                backgroundColor: theme.iconBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 14,
-              }}
-            >
-              <ArrowLeft size={20} color={theme.text} strokeWidth={2} />
-            </TouchableOpacity>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{
-                  color: theme.textMuted,
-                  fontSize: 11,
-                  fontWeight: '700',
-                  letterSpacing: 1.2,
-                  textTransform: 'uppercase',
-                  marginBottom: 2,
-                }}
-              >
-                Fiche enfant
-              </Text>
-              <Text
-                style={{
-                  color: theme.text,
-                  fontSize: 22,
-                  fontWeight: '800',
-                  letterSpacing: -0.5,
-                }}
-              >
-                {child.first_name} {child.last_name}
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setEditSheetVisible(true);
-              }}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 5,
-                backgroundColor: theme.profileEditBg,
-                borderRadius: 12,
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-              }}
-            >
-              <Pencil size={13} color={theme.textSecondary} strokeWidth={2.5} />
-              <Text
-                style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}
-              >
-                Modifier
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', flex: 1 }}>
             {child.class_name ? (
               <View
                 style={{
@@ -392,13 +326,7 @@ export default function ChildDetails() {
                 }}
               >
                 <GraduationCap size={13} color={theme.primary} />
-                <Text
-                  style={{
-                    color: theme.primary,
-                    fontSize: 12,
-                    fontWeight: '700',
-                  }}
-                >
+                <Text style={{ color: theme.primary, fontSize: 12, fontWeight: '700' }}>
                   {child.class_name}
                 </Text>
               </View>
@@ -415,14 +343,31 @@ export default function ChildDetails() {
               }}
             >
               <Shield size={13} color={theme.green} />
-              <Text
-                style={{ color: theme.green, fontSize: 12, fontWeight: '700' }}
-              >
-                {activeCount} autorisation{activeCount > 1 ? 's' : ''} active
-                {activeCount > 1 ? 's' : ''}
+              <Text style={{ color: theme.green, fontSize: 12, fontWeight: '700' }}>
+                {activeCount} autorisation{activeCount > 1 ? 's' : ''} active{activeCount > 1 ? 's' : ''}
               </Text>
             </View>
           </View>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setEditSheetVisible(true);
+            }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 5,
+              backgroundColor: theme.profileEditBg,
+              borderRadius: 12,
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+            }}
+          >
+            <Pencil size={13} color={theme.textSecondary} strokeWidth={2.5} />
+            <Text style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}>
+              Modifier
+            </Text>
+          </TouchableOpacity>
         </Animated.View>
 
         {/* Authorizations */}

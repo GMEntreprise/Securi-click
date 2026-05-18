@@ -14,6 +14,7 @@ import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '@/features/auth/utils/mapAuthSession';
 import { passwordLoginInProgress } from '@/features/auth/hooks/useLogin';
 import { collectorPinLoginInProgress } from '@/features/collector/hooks/useCollectorPinLogin';
+import { explicitLogoutInProgress } from '@/navigation/authFlags';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/shared/ui/organisms/theme-switch/context';
 import { ThemeMode } from '@/shared/ui/organisms/theme-switch/types';
@@ -57,6 +58,7 @@ function isAuthCallbackUrl(url: string | null): boolean {
 // and NavigationGuard don't interfere during session setup.
 // True while DeepLinkHandler owns session setup — guards and sync must not interfere.
 let deepLinkProcessing = false;
+
 
 // ─── DeepLinkHandler ─────────────────────────────────────────────────────────
 // Handles Supabase PKCE magic links (cold-start and warm-start).
@@ -231,10 +233,16 @@ function AuthStateSync() {
       if (__DEV__) console.log('[AuthStateSync] event=', event, 'deepLink=', deepLinkProcessing, 'pwdLogin=', passwordLoginInProgress);
       if (event === 'INITIAL_SESSION') return;
       if (event === 'SIGNED_IN' && (deepLinkProcessing || passwordLoginInProgress || collectorPinLoginInProgress)) return;
-      if (!sess || event === 'SIGNED_OUT') {
-        useAuthStore.setState({ session: null });
+      if (event === 'SIGNED_OUT') {
+        // Only clear session on an explicit user-triggered logout.
+        // Supabase fires SIGNED_OUT spuriously on 401s from background requests
+        // (e.g. a Realtime channel reconnect with an expired token) — ignore those.
+        if (explicitLogoutInProgress) {
+          useAuthStore.setState({ session: null });
+        }
         return;
       }
+      if (!sess) return;
       if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
         const session = await mapSupabaseSessionToAuthSession(sess);
         if (__DEV__) console.log('[AuthStateSync] loginAction role=', session.user.role);
@@ -298,6 +306,7 @@ function NavigationGuard() {
         target = '/(school-tabs)/home';
       }
     } else {
+      // parent / default
       if (inAuth || seg === '(app)' || seg === '(collector-tabs)' || seg === '(school-tabs)') {
         target = '/(parent-tabs)';
       }

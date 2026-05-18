@@ -16,6 +16,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import * as Haptics from 'expo-haptics';
 import {
   Shield,
@@ -30,6 +31,7 @@ import {
 import { useChildren } from '@/features/parent/hooks/useChildren';
 import { useRecentPickupLogs } from '@/features/parent/hooks/usePickupLogs';
 import type { PickupLog } from '@/features/parent/types';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
 interface QuickAction {
   id: string;
@@ -185,6 +187,7 @@ const ActivityRow = React.memo(function ActivityRow({
 
 export default function ParentDashboard() {
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useTabBarHeight();
   const theme = useTheme();
   const session = useSession();
 
@@ -265,7 +268,7 @@ export default function ParentDashboard() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.bg }}
-      contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+      contentContainerStyle={{ paddingBottom: tabBarHeight + 20 }}
       showsVerticalScrollIndicator={false}
     >
       <View style={{ paddingTop: insets.top + 20, paddingHorizontal: 20 }}>
@@ -274,33 +277,38 @@ export default function ParentDashboard() {
           entering={FadeInDown.duration(400)}
           style={{ marginBottom: 24 }}
         >
-          <Text
-            style={{
-              color: theme.textMuted,
-              fontSize: 13,
-              fontWeight: '600',
-              letterSpacing: 1,
-              textTransform: 'uppercase',
-              marginBottom: 4,
-            }}
-          >
-            Tableau de bord
-          </Text>
-          <Text
-            style={{
-              color: theme.text,
-              fontSize: 28,
-              fontWeight: '800',
-              letterSpacing: -0.5,
-            }}
-          >
-            Bonjour, {firstName}
-          </Text>
-          <Text
-            style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}
-          >
-            Voici l'état de sécurité de vos enfants
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontSize: 13,
+                  fontWeight: '600',
+                  letterSpacing: 1,
+                  textTransform: 'uppercase',
+                  marginBottom: 4,
+                }}
+              >
+                Tableau de bord
+              </Text>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontSize: 28,
+                  fontWeight: '800',
+                  letterSpacing: -0.5,
+                }}
+              >
+                Bonjour, {firstName}
+              </Text>
+              <Text
+                style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}
+              >
+                Voici l'état de sécurité de vos enfants
+              </Text>
+            </View>
+            <NotificationBell />
+          </View>
         </Animated.View>
 
         {/* Stats row */}

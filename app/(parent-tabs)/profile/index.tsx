@@ -228,7 +228,7 @@ export default function ProfileScreen() {
             iconBg: theme.greenBg,
             title: 'Notifications',
             subtitle: 'Voir mes notifications',
-            onPress: () => router.push('/(parent-tabs)/profile/notifications' as any),
+            onPress: () => router.push('./notifications' as any),
           },
           {
             icon: <Smartphone size={16} color="#6366f1" strokeWidth={2.5} />,
@@ -258,19 +258,19 @@ export default function ProfileScreen() {
               <FileText size={16} color={theme.textMuted} strokeWidth={2.5} />
             ),
             iconBg: theme.iconBg,
-            title: "Conditions d'utilisation",
-            onPress: () => {},
+            title: 'Mentions légales',
+            onPress: () => router.push('./legal-mentions' as any),
           },
           {
             icon: <Lock size={16} color={theme.textMuted} strokeWidth={2.5} />,
             iconBg: theme.iconBg,
-            title: 'Confidentialité',
-            onPress: () => {},
+            title: 'Politique de confidentialité',
+            onPress: () => router.push('./privacy-policy' as any),
           },
         ] as RowItem[],
       },
     ],
-    [prefs, toggle, theme, isDark, darkModeSwitch]
+    [prefs, toggle, theme, isDark, darkModeSwitch, router]
   );
 
   return (

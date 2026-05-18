@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,17 +10,15 @@ import {
   ActivityIndicator,
   Switch,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
-  ArrowLeft,
   User,
   Phone,
   Mail,
@@ -68,7 +66,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function GuardianEditScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
   const { guardianId, childId } = useLocalSearchParams<{
@@ -202,6 +200,21 @@ export default function GuardianEditScreen() {
     );
   }, [guardianId, guardian, deleteGuardian, router]);
 
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Switch
+          value={guardian?.is_active ?? false}
+          onValueChange={handleToggle}
+          trackColor={{ false: theme.switchTrackOff, true: theme.green }}
+          thumbColor="#ffffff"
+          ios_backgroundColor={theme.switchTrackOff}
+          style={{ marginRight: 4 }}
+        />
+      ),
+    });
+  }, [navigation, guardian, handleToggle, theme]);
+
   if (isLoading) {
     return (
       <View
@@ -224,81 +237,6 @@ export default function GuardianEditScreen() {
       style={{ flex: 1, backgroundColor: theme.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Header */}
-      <Animated.View
-        entering={FadeInDown.duration(400)}
-        style={{
-          backgroundColor: theme.card,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.cardBorder,
-          paddingTop: insets.top + 16,
-          paddingBottom: 16,
-          paddingHorizontal: 20,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <TouchableOpacity
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.back();
-            }}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 14,
-              backgroundColor: theme.iconBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ArrowLeft size={20} color={theme.text} strokeWidth={2} />
-          </TouchableOpacity>
-          <View>
-            <Text
-              style={{
-                color: theme.textMuted,
-                fontSize: 11,
-                fontWeight: '700',
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-                marginBottom: 2,
-              }}
-            >
-              Personne autorisée
-            </Text>
-            <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}>
-              {guardian ? `${guardian.first_name} ${guardian.last_name}` : '—'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Switch
-            value={guardian?.is_active ?? false}
-            onValueChange={handleToggle}
-            trackColor={{ false: theme.switchTrackOff, true: theme.green }}
-            thumbColor="#ffffff"
-            ios_backgroundColor={theme.switchTrackOff}
-          />
-          <TouchableOpacity
-            onPress={handleDelete}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 14,
-              backgroundColor: theme.redBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Trash2 size={18} color={theme.red} />
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: tabBarHeight + 120 }}
         keyboardShouldPersistTaps="handled"
@@ -448,6 +386,57 @@ export default function GuardianEditScreen() {
               if (!v) setValue('access_code', '');
             }}
           />
+        </Animated.View>
+
+        {/* Delete card */}
+        <Animated.View entering={FadeInDown.delay(280).duration(400)}>
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: '700',
+              color: theme.textMuted,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              marginBottom: 10,
+            }}
+          >
+            Zone dangereuse
+          </Text>
+          <TouchableOpacity
+            onPress={handleDelete}
+            activeOpacity={0.8}
+            style={{
+              backgroundColor: theme.redBg,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: 'rgba(239,68,68,0.25)',
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 14,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: 'rgba(239,68,68,0.15)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Trash2 size={18} color={theme.red} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.red, fontWeight: '700', fontSize: 14 }}>
+                Supprimer l'autorisation
+              </Text>
+              <Text style={{ color: theme.red, fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                Cette personne ne pourra plus récupérer l'enfant.
+              </Text>
+            </View>
+          </TouchableOpacity>
         </Animated.View>
       </ScrollView>
 

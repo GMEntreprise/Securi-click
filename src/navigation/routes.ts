@@ -1,0 +1,55 @@
+// Single source of truth for all route paths in the app.
+// Never hardcode route strings in screens — always use ROUTES.
+export const ROUTES = {
+  auth: {
+    index:        '/(auth)' as const,
+    login:        '/(auth)/login' as const,
+    parent:       '/(auth)/parent' as const,
+    school:       '/(auth)/school' as const,
+    collector:    '/(auth)/collector' as const,
+    collectorPin: '/(auth)/collector-pin' as const,
+    callback:     '/(auth)/callback' as const,
+  },
+  parent: {
+    root:        '/(parent-tabs)' as const,
+    home:        '/(parent-tabs)/index' as const,
+    children:    '/(parent-tabs)/children' as const,
+    childAdd:    '/(parent-tabs)/children/add' as const,
+    childDetail: (id: string) => `/(parent-tabs)/children/${id}` as const,
+    guardianAdd: (childId: string) =>
+      `/(parent-tabs)/children/guardian-add?childId=${childId}` as const,
+    guardianEdit: (guardianId: string, childId: string) =>
+      `/(parent-tabs)/children/guardian-edit?guardianId=${guardianId}&childId=${childId}` as const,
+    authorizedPersons:    '/(parent-tabs)/authorized-persons' as const,
+    authorizedPersonAdd:  '/(parent-tabs)/authorized-persons/add' as const,
+    authorizedPersonDetail: (id: string) =>
+      `/(parent-tabs)/authorized-persons/${id}` as const,
+    qr:           '/(parent-tabs)/qr' as const,
+    history:      '/(parent-tabs)/history' as const,
+    historyArchive: '/(parent-tabs)/history/archive' as const,
+    profile:      '/(parent-tabs)/profile' as const,
+    notifications: '/(parent-tabs)/profile/notifications' as const,
+    legalMentions: '/(parent-tabs)/profile/legal-mentions' as const,
+    privacyPolicy: '/(parent-tabs)/profile/privacy-policy' as const,
+  },
+  collector: {
+    home:         '/(collector-tabs)/home' as const,
+    access:       '/(collector-tabs)/access' as const,
+    qr:           '/(collector-tabs)/qr' as const,
+    history:      '/(collector-tabs)/history' as const,
+    profile:      '/(collector-tabs)/profile' as const,
+    notifications: '/(collector-tabs)/profile/notifications' as const,
+    legalMentions: '/(collector-tabs)/profile/legal-mentions' as const,
+    privacyPolicy: '/(collector-tabs)/profile/privacy-policy' as const,
+  },
+  school: {
+    home:         '/(school-tabs)/home' as const,
+    students:     '/(school-tabs)/students' as const,
+    scanner:      '/(school-tabs)/scanner' as const,
+    history:      '/(school-tabs)/history' as const,
+    profile:      '/(school-tabs)/profile' as const,
+    notifications: '/(school-tabs)/profile/notifications' as const,
+    legalMentions: '/(school-tabs)/profile/legal-mentions' as const,
+    privacyPolicy: '/(school-tabs)/profile/privacy-policy' as const,
+  },
+} as const;

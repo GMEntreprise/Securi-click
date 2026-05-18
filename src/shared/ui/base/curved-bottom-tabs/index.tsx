@@ -1,3 +1,4 @@
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import React, { memo, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
@@ -9,33 +10,33 @@ import {
   ViewStyle,
 } from 'react-native';
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   type SharedValue,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, {
   Circle,
   Defs,
-  LinearGradient as SvgGradient,
   Path,
   Stop,
+  LinearGradient as SvgGradient,
 } from 'react-native-svg';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import type {
-  BackgroundCurveProps,
-  CurvedBottomTabsProps,
-  FloatingButtonComponentProps,
-  StyleConfig,
-  Tab,
-  CurvedTabBarNavigationProps,
-} from './types';
 import {
   calculateTabPosition,
   processGradient,
   VIEWPORT_HEIGHT,
   VIEWPORT_WIDTH,
 } from './helper';
+import type {
+  BackgroundCurveProps,
+  CurvedBottomTabsProps,
+  CurvedTabBarNavigationProps,
+  FloatingButtonComponentProps,
+  StyleConfig,
+  Tab,
+} from './types';
 
 const FloatingButtonComponent: React.FC<FloatingButtonComponentProps> =
   memo<FloatingButtonComponentProps>(
@@ -219,6 +220,7 @@ const CurvedBottomTabsCore: React.FC<CurvedBottomTabsProps> =
       },
     }: CurvedBottomTabsProps) => {
       const [keyboardVisible, setKeyboardVisible] = useState<boolean>(false);
+      const insets = useSafeAreaInsets();
 
       const curvePosition = useSharedValue<number>(0);
       const floatingAnimations = useRef<SharedValue<number>[]>(
@@ -293,7 +295,7 @@ const CurvedBottomTabsCore: React.FC<CurvedBottomTabsProps> =
       }
 
       return (
-        <View style={styles.wrapper}>
+        <View style={[styles.wrapper, Platform.OS === 'android' && { bottom: insets.bottom }]}>
           <View style={styles.backgroundContainer}>
             <BackgroundCurve
               position={curvePosition}

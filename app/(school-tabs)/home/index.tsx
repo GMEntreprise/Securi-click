@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import {
@@ -19,6 +20,7 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { useMySchool } from '@/features/school/hooks/useSchool';
 import {
   useDashboardStats,
@@ -29,6 +31,7 @@ import type { PickupValidation } from '@/features/school/types';
 
 export default function SchoolHomeScreen() {
   const insets = useSafeAreaInsets();
+  const tabBarHeight = useTabBarHeight();
   const theme = useTheme();
   const router = useRouter();
 
@@ -59,7 +62,7 @@ export default function SchoolHomeScreen() {
       contentContainerStyle={{
         paddingTop: insets.top + 20,
         paddingHorizontal: 20,
-        paddingBottom: insets.bottom + 100,
+        paddingBottom: tabBarHeight + 20,
       }}
       showsVerticalScrollIndicator={false}
     >
@@ -68,33 +71,38 @@ export default function SchoolHomeScreen() {
         entering={FadeInDown.duration(350)}
         style={{ marginBottom: 28 }}
       >
-        <Text
-          style={{
-            color: theme.textMuted,
-            fontSize: 13,
-            fontWeight: '600',
-            marginBottom: 2,
-          }}
-        >
-          Bonjour,
-        </Text>
-        <Text
-          style={{
-            color: theme.text,
-            fontSize: 24,
-            fontWeight: '800',
-            letterSpacing: -0.5,
-          }}
-        >
-          {school?.name ?? 'Établissement'}
-        </Text>
-        <Text
-          style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}
-        >
-          {stats
-            ? `${stats.todayValidations} récupération${stats.todayValidations > 1 ? 's' : ''} aujourd'hui`
-            : 'Chargement…'}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <View style={{ flex: 1 }}>
+            <Text
+              style={{
+                color: theme.textMuted,
+                fontSize: 13,
+                fontWeight: '600',
+                marginBottom: 2,
+              }}
+            >
+              Bonjour,
+            </Text>
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: 24,
+                fontWeight: '800',
+                letterSpacing: -0.5,
+              }}
+            >
+              {school?.name ?? 'Établissement'}
+            </Text>
+            <Text
+              style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}
+            >
+              {stats
+                ? `${stats.todayValidations} récupération${stats.todayValidations > 1 ? 's' : ''} aujourd'hui`
+                : 'Chargement…'}
+            </Text>
+          </View>
+          <NotificationBell />
+        </View>
       </Animated.View>
 
       {/* Stats row */}

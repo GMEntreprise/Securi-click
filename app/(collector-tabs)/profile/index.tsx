@@ -21,6 +21,7 @@ import {
   LogOut,
   ChevronRight,
   FileText,
+  Lock,
   Pencil,
   Moon,
 } from 'lucide-react-native';
@@ -75,10 +76,13 @@ export default function CollectorProfileScreen() {
       {
         text: 'Déconnecter',
         style: 'destructive',
-        onPress: () => logout(),
+        onPress: async () => {
+          await logout();
+          router.replace('/(auth)/login' as any);
+        },
       },
     ]);
-  }, [logout]);
+  }, [logout, router]);
 
   const identityStatusConfig = {
     verified: {
@@ -405,7 +409,7 @@ export default function CollectorProfileScreen() {
           style={{ marginBottom: 16 }}
         >
           <TouchableOpacity
-            onPress={() => router.push('/(collector-tabs)/profile/notifications' as any)}
+            onPress={() => router.push('./notifications' as any)}
             style={{
               backgroundColor: theme.card,
               borderRadius: 18,
@@ -458,8 +462,79 @@ export default function CollectorProfileScreen() {
           </TouchableOpacity>
         </Animated.View>
 
+        {/* Légal */}
+        <Animated.View
+          entering={FadeInDown.delay(230).duration(350)}
+          style={{ marginBottom: 16 }}
+        >
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              overflow: 'hidden',
+            }}
+          >
+            <TouchableOpacity
+              onPress={() => router.push('./legal-mentions' as any)}
+              style={{
+                padding: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.separator,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 11,
+                  backgroundColor: theme.iconBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <FileText size={16} color={theme.textMuted} strokeWidth={2.5} />
+              </View>
+              <Text style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}>
+                Mentions légales
+              </Text>
+              <ChevronRight size={16} color={theme.textMuted} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.push('./privacy-policy' as any)}
+              style={{
+                padding: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 11,
+                  backgroundColor: theme.iconBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Lock size={16} color={theme.textMuted} strokeWidth={2.5} />
+              </View>
+              <Text style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}>
+                Politique de confidentialité
+              </Text>
+              <ChevronRight size={16} color={theme.textMuted} />
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
         {/* Logout */}
-        <Animated.View entering={FadeInDown.delay(240).duration(350)}>
+        <Animated.View entering={FadeInDown.delay(260).duration(350)}>
           <TouchableOpacity
             onPress={handleLogout}
             style={{

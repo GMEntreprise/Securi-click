@@ -13,9 +13,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { ArrowLeft, User, Phone, Mail, Check } from 'lucide-react-native';
+import { User, Phone, Mail, Check } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSection';
@@ -49,7 +48,6 @@ type FormData = z.infer<typeof schema>;
 
 export default function AddGuardianScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
   const session = useSession();
@@ -135,63 +133,6 @@ export default function AddGuardianScreen() {
       style={{ flex: 1, backgroundColor: theme.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Header */}
-      <Animated.View
-        entering={FadeInDown.duration(400)}
-        style={{
-          backgroundColor: theme.card,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.cardBorder,
-          paddingTop: insets.top + 16,
-          paddingBottom: 16,
-          paddingHorizontal: 20,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 14,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            router.back();
-          }}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 14,
-            backgroundColor: theme.iconBg,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <ArrowLeft size={20} color={theme.text} strokeWidth={2} />
-        </TouchableOpacity>
-        <View>
-          <Text
-            style={{
-              color: theme.textMuted,
-              fontSize: 11,
-              fontWeight: '700',
-              letterSpacing: 1.2,
-              textTransform: 'uppercase',
-              marginBottom: 2,
-            }}
-          >
-            Nouvelle autorisation
-          </Text>
-          <Text
-            style={{
-              color: theme.text,
-              fontSize: 20,
-              fontWeight: '800',
-              letterSpacing: -0.3,
-            }}
-          >
-            Ajouter une personne
-          </Text>
-        </View>
-      </Animated.View>
-
       <ScrollView
         contentContainerStyle={{
           padding: 20,

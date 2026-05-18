@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -8,25 +8,22 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
-  ArrowLeft,
   User,
   Phone,
   Mail,
   Check,
   Trash2,
-  ToggleLeft,
-  ToggleRight,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
@@ -68,7 +65,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function GuardianDetailScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
   const { id, childId } = useLocalSearchParams<{ id: string; childId: string }>();
@@ -168,10 +165,10 @@ export default function GuardianDetailScreen() {
     [id, updateGuardian, usePinCode, router]
   );
 
-  const handleToggle = useCallback(() => {
+  const handleToggle = useCallback((nextValue: boolean) => {
     if (!id || !guardian) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    toggleGuardian.mutate({ guardianId: id, isActive: !guardian.is_active });
+    toggleGuardian.mutate({ guardianId: id, isActive: nextValue });
   }, [id, guardian, toggleGuardian]);
 
   const handleDelete = useCallback(() => {
@@ -193,6 +190,21 @@ export default function GuardianDetailScreen() {
       ]
     );
   }, [id, guardian, deleteGuardian, router]);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Switch
+          value={guardian?.is_active ?? false}
+          onValueChange={handleToggle}
+          trackColor={{ false: theme.switchTrackOff, true: theme.green }}
+          thumbColor="#ffffff"
+          ios_backgroundColor={theme.switchTrackOff}
+          style={{ marginRight: 4 }}
+        />
+      ),
+    });
+  }, [navigation, guardian, handleToggle, theme]);
 
   if (isLoading) {
     return (
@@ -216,91 +228,6 @@ export default function GuardianDetailScreen() {
       style={{ flex: 1, backgroundColor: theme.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      {/* Header */}
-      <Animated.View
-        entering={FadeInDown.duration(400)}
-        style={{
-          backgroundColor: theme.card,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.cardBorder,
-          paddingTop: insets.top + 16,
-          paddingBottom: 16,
-          paddingHorizontal: 20,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <TouchableOpacity
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              router.back();
-            }}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 14,
-              backgroundColor: theme.iconBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ArrowLeft size={20} color={theme.text} strokeWidth={2} />
-          </TouchableOpacity>
-          <View>
-            <Text
-              style={{
-                color: theme.textMuted,
-                fontSize: 11,
-                fontWeight: '700',
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-                marginBottom: 2,
-              }}
-            >
-              Personne autorisée
-            </Text>
-            <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}>
-              {guardian ? `${guardian.first_name} ${guardian.last_name}` : '—'}
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity
-            onPress={handleToggle}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 14,
-              backgroundColor: guardian?.is_active ? theme.greenBg : theme.iconBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {guardian?.is_active ? (
-              <ToggleRight size={20} color={theme.green} />
-            ) : (
-              <ToggleLeft size={20} color={theme.textMuted} />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleDelete}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 14,
-              backgroundColor: theme.redBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Trash2 size={18} color={theme.red} />
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: tabBarHeight + 120 }}
         keyboardShouldPersistTaps="handled"
@@ -310,7 +237,7 @@ export default function GuardianDetailScreen() {
           <Animated.View
             entering={FadeInDown.delay(60).duration(300)}
             style={{
-              backgroundColor: guardian.is_active ? theme.greenBg : theme.iconBg,
+              backgroundColor: guardian.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.10)',
               borderRadius: 14,
               padding: 12,
               marginBottom: 20,
@@ -324,19 +251,19 @@ export default function GuardianDetailScreen() {
                 width: 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: guardian.is_active ? theme.green : theme.textMuted,
+                backgroundColor: guardian.is_active ? theme.green : theme.red,
               }}
             />
             <Text
               style={{
-                color: guardian.is_active ? theme.green : theme.textMuted,
+                color: guardian.is_active ? theme.green : theme.red,
                 fontWeight: '600',
                 fontSize: 13,
               }}
             >
               {guardian.is_active
                 ? "Accès actif — peut récupérer l'enfant"
-                : 'Accès désactivé'}
+                : "Accès désactivé — ne peut pas récupérer l'enfant"}
             </Text>
           </Animated.View>
         )}
@@ -446,6 +373,57 @@ export default function GuardianDetailScreen() {
               if (!v) setValue('access_code', '');
             }}
           />
+        </Animated.View>
+
+        {/* Delete card */}
+        <Animated.View entering={FadeInDown.delay(280).duration(400)}>
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: '700',
+              color: theme.textMuted,
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              marginBottom: 10,
+            }}
+          >
+            Zone dangereuse
+          </Text>
+          <TouchableOpacity
+            onPress={handleDelete}
+            activeOpacity={0.8}
+            style={{
+              backgroundColor: theme.redBg,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: 'rgba(239,68,68,0.25)',
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 14,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: 'rgba(239,68,68,0.15)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Trash2 size={18} color={theme.red} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.red, fontWeight: '700', fontSize: 14 }}>
+                Supprimer l'autorisation
+              </Text>
+              <Text style={{ color: theme.red, fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+                Cette personne ne pourra plus récupérer l'enfant.
+              </Text>
+            </View>
+          </TouchableOpacity>
         </Animated.View>
       </ScrollView>
 

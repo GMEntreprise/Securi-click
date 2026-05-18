@@ -36,12 +36,7 @@ export default function CollectorTabsLayout() {
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: true,
-        headerTransparent: true,
-        headerTitle: '',
-        headerStyle: { backgroundColor: 'transparent' },
-      }}
+      screenOptions={{ headerShown: false }}
       tabBar={renderTabBar}
     >
       <Tabs.Screen

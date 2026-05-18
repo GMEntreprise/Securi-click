@@ -11,7 +11,6 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import {
-  ArrowLeft,
   ArchiveRestore,
   Archive,
   ChevronRight,
@@ -219,60 +218,6 @@ export default function ArchiveScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      <Animated.View
-        entering={FadeInDown.duration(350)}
-        style={{
-          backgroundColor: theme.card,
-          borderBottomWidth: 1,
-          borderBottomColor: theme.cardBorder,
-          paddingTop: insets.top + 16,
-          paddingBottom: 14,
-          paddingHorizontal: 20,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 12,
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: 12,
-            backgroundColor: theme.iconBg,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 1,
-            borderColor: theme.cardBorder,
-          }}
-        >
-          <ArrowLeft size={18} color={theme.text} />
-        </TouchableOpacity>
-        <View>
-          <Text
-            style={{
-              color: theme.textMuted,
-              fontSize: 11,
-              fontWeight: '700',
-              letterSpacing: 1.2,
-              textTransform: 'uppercase',
-            }}
-          >
-            Historique
-          </Text>
-          <Text
-            style={{
-              color: theme.text,
-              fontSize: 20,
-              fontWeight: '800',
-              letterSpacing: -0.3,
-            }}
-          >
-            Archives
-          </Text>
-        </View>
-      </Animated.View>
-
       <ScrollView
         contentContainerStyle={{
           padding: 16,

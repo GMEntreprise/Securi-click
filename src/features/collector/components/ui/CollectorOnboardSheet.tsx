@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { CheckCircle, Mail, UserPlus } from 'lucide-react-native';
+import { CheckCircle, Mail, UserPlus, X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Toast } from '@/shared/ui/molecules/Toast';
@@ -163,6 +163,31 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
           paddingBottom: insets.bottom + 20,
         }}
       >
+        {/* Close button — always visible for Android */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'flex-end',
+            paddingHorizontal: 16,
+            paddingTop: 12,
+            paddingBottom: 4,
+          }}
+        >
+          <TouchableOpacity
+            onPress={handleDismiss}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              backgroundColor: theme.iconBg,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <X size={18} color={theme.text} strokeWidth={2} />
+          </TouchableOpacity>
+        </View>
+
         {state.kind === 'loading' && (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
             <ActivityIndicator color={theme.accent} size="large" />

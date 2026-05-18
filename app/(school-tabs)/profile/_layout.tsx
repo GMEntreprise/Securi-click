@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { useTheme } from '@/theme';
 
-export default function HistoryLayout() {
+export default function SchoolProfileLayout() {
   const theme = useTheme();
   return (
     <Stack
@@ -15,7 +15,9 @@ export default function HistoryLayout() {
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="archive" options={{ title: 'Archives' }} />
+      <Stack.Screen name="notifications" options={{ title: 'Notifications' }} />
+      <Stack.Screen name="legal-mentions" options={{ title: 'Mentions légales' }} />
+      <Stack.Screen name="privacy-policy" options={{ title: 'Confidentialité' }} />
     </Stack>
   );
 }

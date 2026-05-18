@@ -1,16 +1,15 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useLayoutEffect, useMemo } from 'react';
 import {
   ActivityIndicator,
   Pressable,
   SectionList,
   Switch,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { ArrowLeft, CheckCheck } from 'lucide-react-native';
+import { useNavigation } from 'expo-router';
+import { CheckCheck } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { NotificationItem } from '../components/NotificationItem';
 import {
@@ -22,13 +21,12 @@ import {
 import { useNotificationPref } from '../hooks/useNotificationPref';
 import { useUnreadCount } from '../stores/notification.store';
 import { groupNotificationsByDate } from '../utils/groupByDate';
-import { NOTIFICATION_ROUTES } from '../utils/constants';
 import type { Notification } from '../types';
 
 export const NotificationsScreen = memo(() => {
   const t = useTheme();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
+  const navigation = useNavigation();
   const unread = useUnreadCount();
   const { enabled, setEnabled } = useNotificationPref();
 
@@ -37,6 +35,22 @@ export const NotificationsScreen = memo(() => {
 
   const markRead = useMarkRead();
   const markAllRead = useMarkAllRead();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerBackTitle: '',
+      headerRight: () => (
+        <Switch
+          value={enabled}
+          onValueChange={setEnabled}
+          trackColor={{ false: t.inputBorder, true: t.accent }}
+          thumbColor="#fff"
+          ios_backgroundColor={t.inputBorder}
+          style={{ marginRight: 4 }}
+        />
+      ),
+    });
+  }, [navigation, enabled, setEnabled, t]);
 
   const sections = useMemo(
     () =>
@@ -50,94 +64,35 @@ export const NotificationsScreen = memo(() => {
   const handlePress = useCallback(
     (item: Notification) => {
       if (!item.is_read) markRead.mutate([item.id]);
-      const route = item.metadata?.route ?? NOTIFICATION_ROUTES[item.type];
-      if (route) router.push(route as any);
     },
-    [markRead, router]
+    [markRead]
   );
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
-      {/* Header */}
-      <View
-        style={{
-          backgroundColor: t.card,
-          borderBottomWidth: 1,
-          borderBottomColor: t.cardBorder,
-          paddingTop: insets.top + 16,
-          paddingBottom: 16,
-          paddingHorizontal: 20,
-          gap: 14,
-        }}
-      >
-        {/* Row 1 : back + titre + toggle */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 14,
-              backgroundColor: t.iconBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <ArrowLeft size={20} color={t.text} strokeWidth={2} />
-          </TouchableOpacity>
-
-          <View style={{ flex: 1 }}>
-            <Text
-              style={{
-                color: t.textMuted,
-                fontSize: 11,
-                fontWeight: '700',
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-                marginBottom: 2,
-              }}
-            >
-              Centre de
-            </Text>
-            <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.3 }}>
-              Notifications
-            </Text>
-          </View>
-
-          {/* Toggle activé/désactivé — bien visible dans le header */}
-          <View style={{ alignItems: 'flex-end', gap: 2 }}>
-            <Switch
-              value={enabled}
-              onValueChange={setEnabled}
-              trackColor={{ false: t.inputBorder, true: t.accent }}
-              thumbColor="#fff"
-              ios_backgroundColor={t.inputBorder}
-            />
-            <Text style={{ fontSize: 10, fontWeight: '600', color: enabled ? t.accent : t.textMuted }}>
-              {enabled ? 'Activées' : 'Désactivées'}
-            </Text>
-          </View>
-        </View>
-
-        {/* Row 2 : "Tout lire" — visible seulement si non-lues */}
-        {unread > 0 && (
+      {unread > 0 && (
+        <View
+          style={{
+            backgroundColor: t.card,
+            borderBottomWidth: 1,
+            borderBottomColor: t.cardBorder,
+            paddingVertical: 8,
+            paddingHorizontal: 16,
+            alignItems: 'flex-end',
+          }}
+        >
           <Pressable
             onPress={() => markAllRead.mutate()}
             hitSlop={8}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 6,
-              alignSelf: 'flex-end',
-            }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
           >
             <CheckCheck size={14} color={t.accent} strokeWidth={2} />
             <Text style={{ fontSize: 13, color: t.accent, fontWeight: '600' }}>
               Tout marquer comme lu
             </Text>
           </Pressable>
-        )}
-      </View>
+        </View>
+      )}
 
       {isLoading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
