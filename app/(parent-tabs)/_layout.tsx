@@ -110,6 +110,9 @@ export default function ParentTabsLayout() {
         name="authorized-persons"
         options={{ href: null, tabBarItemStyle: { display: 'none' } }}
       />
+      <Tabs.Screen name="profile/notifications" options={{ href: null }} />
+      <Tabs.Screen name="profile/legal-mentions" options={{ href: null }} />
+      <Tabs.Screen name="profile/privacy-policy" options={{ href: null }} />
     </Tabs>
   );
 }

@@ -39,7 +39,7 @@ export default function SchoolTabsLayout() {
       tabBar={renderTabBar}
     >
       <Tabs.Screen
-        name="home"
+        name="home/index"
         options={{
           title: 'Accueil',
           tabBarIcon: ({ focused, color }) => (
@@ -52,7 +52,7 @@ export default function SchoolTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="students"
+        name="students/index"
         options={{
           title: 'Élèves',
           tabBarIcon: ({ focused, color }) => (
@@ -65,7 +65,7 @@ export default function SchoolTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="scanner"
+        name="scanner/index"
         options={{
           title: 'Scanner',
           tabBarIcon: ({ focused, color }) => (
@@ -78,7 +78,7 @@ export default function SchoolTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="history/index"
         options={{
           title: 'Historique',
           tabBarIcon: ({ focused, color }) => (
