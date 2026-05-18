@@ -3,6 +3,7 @@ import type { LoginCredentials } from '../types';
 import { authService } from '../services/supabaseAuth.service';
 import { useAuthStore } from '../store/auth.store';
 import { saveLastEmail } from './useLastEmail';
+import { clearDevRoleOverride } from '../utils/mapAuthSession';
 
 // useLogin owns the session hydration after password login.
 // It sets a flag so AuthStateSync ignores the duplicate SIGNED_IN event
@@ -11,8 +12,12 @@ export let passwordLoginInProgress = false;
 
 export const useLogin = () =>
   useMutation({
-    mutationFn: ({ email, password }: LoginCredentials) =>
-      authService.signInWithPassword(email, password),
+    mutationFn: async ({ email, password }: LoginCredentials) => {
+      // Always clear any stale dev role override before a real password login
+      // so the resolved role comes from the DB, not a leftover test value.
+      if (__DEV__) await clearDevRoleOverride();
+      return authService.signInWithPassword(email, password);
+    },
     onMutate: () => {
       passwordLoginInProgress = true;
       if (__DEV__) console.log('[useLogin] mutate start');
