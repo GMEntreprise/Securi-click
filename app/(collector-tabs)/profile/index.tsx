@@ -13,7 +13,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   Bell,
-  Camera,
   ShieldCheck,
   ShieldOff,
   AlertTriangle,
@@ -29,12 +28,17 @@ import { useTheme } from '@/theme';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
+import { useSession } from '@/features/auth/store/auth.store';
 import { useUnreadCount } from '@/features/notifications/stores/notification.store';
 import {
   useCollectorProfile,
   useMyIdentity,
+  useUpdateCollectorAvatarUrl,
 } from '@/features/collector/hooks/useCollector';
+import { useImagePicker } from '@/hooks';
 import { EditCollectorSheet } from '@/features/collector/components/ui/EditCollectorSheet';
+import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import IdentityVerificationSheet from './IdentityVerificationSheet';
 import { Avatar } from '@/shared/ui/base/avatar';
 
@@ -67,6 +71,40 @@ export default function CollectorProfileScreen() {
 
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showIdentitySheet, setShowIdentitySheet] = useState(false);
+  const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
+  const [localAvatarUri, setLocalAvatarUri] = useState<string | null>(null);
+
+  const session = useSession();
+  const updateAvatarUrl = useUpdateCollectorAvatarUrl();
+  const { pickFromGallery, takePhoto, isUploading } = useImagePicker({
+    bucket: 'collector-avatars',
+    userId: session?.user.id ?? '',
+  });
+
+  const avatarUri = localAvatarUri ?? profile?.avatar_url ?? null;
+
+  const uploadAvatar = useCallback(
+    async (picker: () => Promise<{ signedUrl: string } | null>) => {
+      const result = await picker();
+      if (!result) return;
+      setLocalAvatarUri(result.signedUrl);
+      try {
+        await updateAvatarUrl.mutateAsync(result.signedUrl);
+      } catch {
+        Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
+      }
+    },
+    [updateAvatarUrl]
+  );
+
+  const handleRemoveAvatar = useCallback(async () => {
+    setLocalAvatarUri('');
+    try {
+      await updateAvatarUrl.mutateAsync('');
+    } catch {
+      Toast.show("Impossible de supprimer la photo. Réessayez.", { type: 'error', duration: 3000 });
+    }
+  }, [updateAvatarUrl]);
 
   const handleLogout = useCallback(() => {
     Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
@@ -154,20 +192,21 @@ export default function CollectorProfileScreen() {
           <TouchableOpacity
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setShowEditSheet(true);
+              setAvatarPickerVisible(true);
             }}
             style={{ marginBottom: 14 }}
+            activeOpacity={0.8}
           >
             <Avatar
               image={{
-                uri: profile?.avatar_url ?? '',
+                uri: avatarUri ?? '',
                 name: `${profile?.first_name ?? ''} ${profile?.last_name ?? ''}`.trim(),
               }}
               size={90}
               showBorder={false}
               backgroundColor={theme.accentBg}
               textColor={theme.accent}
-              loading={!profile}
+              loading={!profile || isUploading || updateAvatarUrl.isPending}
             />
             <View
               style={{
@@ -184,7 +223,7 @@ export default function CollectorProfileScreen() {
                 borderColor: theme.bg,
               }}
             >
-              <Camera size={13} color="#fff" strokeWidth={2.5} />
+              <Pencil size={12} color="#fff" strokeWidth={2.5} />
             </View>
           </TouchableOpacity>
 
@@ -573,6 +612,15 @@ export default function CollectorProfileScreen() {
         visible={showIdentitySheet}
         onClose={() => setShowIdentitySheet(false)}
         currentIdentity={identity}
+      />
+
+      <AvatarPickerSheet
+        visible={avatarPickerVisible}
+        hasPhoto={!!avatarUri}
+        onCamera={() => uploadAvatar(takePhoto)}
+        onGallery={() => uploadAvatar(pickFromGallery)}
+        onRemove={handleRemoveAvatar}
+        onClose={() => setAvatarPickerVisible(false)}
       />
     </>
   );

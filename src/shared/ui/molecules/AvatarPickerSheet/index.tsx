@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -57,7 +57,7 @@ function OptionRow({
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 14,
+        paddingVertical: 15,
         paddingHorizontal: 20,
         gap: 14,
         borderBottomWidth: isLast ? 0 : 1,
@@ -66,8 +66,8 @@ function OptionRow({
     >
       <View
         style={{
-          width: 44,
-          height: 44,
+          width: 46,
+          height: 46,
           borderRadius: 14,
           backgroundColor: iconBg,
           alignItems: 'center',
@@ -86,7 +86,7 @@ function OptionRow({
         >
           {label}
         </Text>
-        <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+        <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
           {description}
         </Text>
       </View>
@@ -105,40 +105,73 @@ export function AvatarPickerSheet({
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
-  const translateY = useSharedValue(400);
+  // Keep the Modal mounted during the closing animation
+  const [mounted, setMounted] = useState(false);
+  const closingRef = useRef(false);
+
+  const translateY = useSharedValue(500);
   const opacity = useSharedValue(0);
 
-  const open = useCallback(() => {
-    opacity.value = withTiming(1, { duration: 200 });
-    translateY.value = withSpring(0, { damping: 20, stiffness: 200 });
+  const animateIn = useCallback(() => {
+    closingRef.current = false;
+    opacity.value = withTiming(1, { duration: 240 });
+    translateY.value = withSpring(0, {
+      damping: 26,
+      stiffness: 280,
+      mass: 0.8,
+      overshootClamping: true,
+    });
   }, [opacity, translateY]);
 
-  const close = useCallback(
-    (cb?: () => void) => {
-      opacity.value = withTiming(0, { duration: 180 });
-      translateY.value = withTiming(400, { duration: 220 }, finished => {
-        if (finished && cb) runOnJS(cb)();
-      });
+  const animateOut = useCallback(
+    (cb: () => void) => {
+      if (closingRef.current) return;
+      closingRef.current = true;
+      opacity.value = withTiming(0, { duration: 200 });
+      translateY.value = withTiming(
+        500,
+        { duration: 240 },
+        finished => {
+          if (finished) runOnJS(cb)();
+        }
+      );
     },
     [opacity, translateY]
   );
 
   useEffect(() => {
-    if (visible) open();
-  }, [visible, open]);
+    if (visible) {
+      setMounted(true);
+      // Let the Modal fully appear before animating in
+      requestAnimationFrame(() => animateIn());
+    } else if (mounted) {
+      animateOut(() => {
+        setMounted(false);
+        onClose();
+      });
+    }
+  // onClose intentionally excluded — stable callback, avoid loop
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
-  const handleClose = useCallback(() => {
-    close(onClose);
-  }, [close, onClose]);
+  const handleBackdropPress = useCallback(() => {
+    if (!closingRef.current) {
+      animateOut(() => {
+        setMounted(false);
+        onClose();
+      });
+    }
+  }, [animateOut, onClose]);
 
   const handleOption = useCallback(
     (action: () => void) => {
-      close(() => {
+      animateOut(() => {
+        setMounted(false);
         onClose();
         action();
       });
     },
-    [close, onClose]
+    [animateOut, onClose]
   );
 
   const backdropStyle = useAnimatedStyle(() => ({
@@ -149,10 +182,15 @@ export function AvatarPickerSheet({
     transform: [{ translateY: translateY.value }],
   }));
 
-  if (!visible) return null;
+  if (!mounted) return null;
 
   return (
-    <Modal transparent animationType="none" onRequestClose={handleClose}>
+    <Modal
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={handleBackdropPress}
+    >
       {/* Backdrop */}
       <Animated.View
         style={[
@@ -162,12 +200,12 @@ export function AvatarPickerSheet({
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.45)',
+            backgroundColor: 'rgba(0,0,0,0.48)',
           },
           backdropStyle,
         ]}
       >
-        <Pressable style={{ flex: 1 }} onPress={handleClose} />
+        <Pressable style={{ flex: 1 }} onPress={handleBackdropPress} />
       </Animated.View>
 
       {/* Sheet */}
@@ -181,18 +219,18 @@ export function AvatarPickerSheet({
             backgroundColor: theme.card,
             borderTopLeftRadius: 28,
             borderTopRightRadius: 28,
-            paddingBottom: insets.bottom + 8,
+            paddingBottom: insets.bottom + 12,
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.12,
-            shadowRadius: 16,
-            elevation: 20,
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.1,
+            shadowRadius: 20,
+            elevation: 24,
           },
           sheetStyle,
         ]}
       >
-        {/* Handle */}
-        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 8 }}>
+        {/* Drag handle */}
+        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
           <View
             style={{
               width: 36,
@@ -210,14 +248,16 @@ export function AvatarPickerSheet({
             alignItems: 'center',
             justifyContent: 'space-between',
             paddingHorizontal: 20,
-            paddingBottom: 12,
+            paddingTop: 10,
+            paddingBottom: 14,
           }}
         >
           <Text style={{ color: theme.text, fontSize: 17, fontWeight: '800' }}>
             Photo de profil
           </Text>
           <TouchableOpacity
-            onPress={handleClose}
+            onPress={handleBackdropPress}
+            hitSlop={8}
             style={{
               width: 32,
               height: 32,
@@ -231,20 +271,20 @@ export function AvatarPickerSheet({
           </TouchableOpacity>
         </View>
 
-        {/* Separator */}
+        {/* Divider */}
         <View style={{ height: 1, backgroundColor: theme.separator }} />
 
         {/* Options */}
         <View>
           <OptionRow
-            icon={<Camera size={20} color={theme.accent} strokeWidth={2} />}
+            icon={<Camera size={21} color={theme.accent} strokeWidth={2} />}
             iconBg={theme.accentBg}
             label="Prendre une photo"
             description="Ouvrir l'appareil photo"
             onPress={() => handleOption(onCamera)}
           />
           <OptionRow
-            icon={<ImageIcon size={20} color={theme.primary} strokeWidth={2} />}
+            icon={<ImageIcon size={21} color={theme.primary} strokeWidth={2} />}
             iconBg={theme.primaryBg}
             label="Choisir dans la galerie"
             description="Sélectionner depuis vos photos"
@@ -252,7 +292,7 @@ export function AvatarPickerSheet({
           />
           {hasPhoto && (
             <OptionRow
-              icon={<Trash2 size={20} color={theme.red} strokeWidth={2} />}
+              icon={<Trash2 size={21} color={theme.red} strokeWidth={2} />}
               iconBg={theme.redBg}
               label="Supprimer la photo"
               description="Revenir à l'avatar par défaut"
@@ -261,9 +301,7 @@ export function AvatarPickerSheet({
               onPress={() => handleOption(onRemove)}
             />
           )}
-          {!hasPhoto && (
-            <View style={{ height: 4 }} />
-          )}
+          {!hasPhoto && <View style={{ height: 6 }} />}
         </View>
       </Animated.View>
     </Modal>

@@ -1,7 +1,10 @@
 import { useSession } from '@/features/auth/store/auth.store';
 import { EditProfileSheet } from '@/features/parent/components/ui/EditProfileSheet';
-import { useParentProfile } from '@/features/parent/hooks/useParentProfile';
+import { useParentProfile, useUpdateAvatar } from '@/features/parent/hooks/useParentProfile';
+import { useUploadImage } from '@/features/parent/hooks/useUploadImage';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { useTheme } from '@/theme';
@@ -132,12 +135,44 @@ export default function ProfileScreen() {
   const { isDark, toggleTheme } = useThemeSwitcher();
 
   const [editSheetVisible, setEditSheetVisible] = useState(false);
+  const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
   const [prefs, setPrefs] = useState({
     notifications: true,
     biometricAuth: true,
   });
 
   const { data: profile } = useParentProfile();
+  const updateAvatar = useUpdateAvatar();
+  const { pickFromGallery, takePhoto, isUploading } = useUploadImage({
+    bucket: 'profile-images',
+    userId: session?.user.id ?? '',
+  });
+
+  const [localAvatarUri, setLocalAvatarUri] = useState<string | null>(null);
+  const avatarUri = localAvatarUri ?? profile?.avatar_url ?? null;
+
+  const uploadAvatar = useCallback(
+    async (picker: () => Promise<{ signedUrl: string } | null>) => {
+      const result = await picker();
+      if (!result) return;
+      setLocalAvatarUri(result.signedUrl);
+      try {
+        await updateAvatar.mutateAsync(result.signedUrl);
+      } catch {
+        Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
+      }
+    },
+    [updateAvatar]
+  );
+
+  const handleRemoveAvatar = useCallback(async () => {
+    setLocalAvatarUri('');
+    try {
+      await updateAvatar.mutateAsync('');
+    } catch {
+      Toast.show("Impossible de supprimer la photo. Réessayez.", { type: 'error', duration: 3000 });
+    }
+  }, [updateAvatar]);
 
   const firstName =
     profile?.first_name ??
@@ -297,19 +332,43 @@ export default function ProfileScreen() {
                 marginBottom: 16,
               }}
             >
-              <View style={{ marginRight: 16 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setAvatarPickerVisible(true);
+                }}
+                style={{ marginRight: 16 }}
+                activeOpacity={0.8}
+              >
                 <Avatar
                   image={{
-                    uri: profile?.avatar_url ?? '',
+                    uri: avatarUri ?? '',
                     name: `${firstName} ${lastName}`.trim(),
                   }}
                   size={64}
                   showBorder={false}
                   backgroundColor={theme.accentBg}
                   textColor={theme.accent}
-                  loading={!profile}
+                  loading={!profile || isUploading || updateAvatar.isPending}
                 />
-              </View>
+                <View
+                  style={{
+                    position: 'absolute',
+                    bottom: -2,
+                    right: -2,
+                    width: 22,
+                    height: 22,
+                    borderRadius: 7,
+                    backgroundColor: theme.accent,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 2,
+                    borderColor: theme.card,
+                  }}
+                >
+                  <Pencil size={10} color="#fff" strokeWidth={2.5} />
+                </View>
+              </TouchableOpacity>
               <View style={{ flex: 1 }}>
                 <Text
                   style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}
@@ -450,6 +509,15 @@ export default function ProfileScreen() {
           <View style={{ flex: 1, backgroundColor: theme.bg }} />
         )}
       </Modal>
+
+      <AvatarPickerSheet
+        visible={avatarPickerVisible}
+        hasPhoto={!!avatarUri}
+        onCamera={() => uploadAvatar(takePhoto)}
+        onGallery={() => uploadAvatar(pickFromGallery)}
+        onRemove={handleRemoveAvatar}
+        onClose={() => setAvatarPickerVisible(false)}
+      />
     </View>
   );
 }
