@@ -497,7 +497,7 @@ export default function CollectorQRScreen() {
                         fontSize: 14,
                       }}
                     >
-                      {scan.guardian?.first_name} {scan.guardian?.last_name}
+                      {scan.child?.first_name ?? ''} {scan.child?.last_name ?? ''}
                     </Text>
                     <Text
                       style={{

@@ -28,10 +28,12 @@ export function useMyGuardians() {
 
   useEffect(() => {
     if (!uid) return;
-    channelRef.current?.unsubscribe();
+
+    const channelName = `collector-guardians-${uid}`;
+    supabase.removeChannel(supabase.channel(channelName));
 
     const ch = supabase
-      .channel(`collector-guardians-${uid}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -69,8 +71,24 @@ export function useMyGuardians() {
       .subscribe();
 
     channelRef.current = ch;
+
+    // Also listen for child updates (photo, class, medical_notes)
+    const childChannelName = `collector-children-${uid}`;
+    supabase.removeChannel(supabase.channel(childChannelName));
+    const childCh = supabase
+      .channel(childChannelName)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'children' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) });
+        }
+      )
+      .subscribe();
+
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
+      supabase.removeChannel(childCh);
     };
   }, [uid, queryClient]);
 
@@ -104,10 +122,12 @@ export function useMyPickupLogs() {
 
   useEffect(() => {
     if (!uid) return;
-    channelRef.current?.unsubscribe();
+
+    const channelName = `collector-logs-${uid}`;
+    supabase.removeChannel(supabase.channel(channelName));
 
     const ch = supabase
-      .channel(`collector-logs-${uid}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
@@ -119,7 +139,7 @@ export function useMyPickupLogs() {
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [uid, queryClient]);
 
@@ -140,8 +160,12 @@ export function useCollectorProfile() {
 
   useEffect(() => {
     if (!uid) return;
+
+    const channelName = `collector-profile-${uid}`;
+    supabase.removeChannel(supabase.channel(channelName));
+
     const ch = supabase
-      .channel(`collector-profile-${uid}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -156,7 +180,7 @@ export function useCollectorProfile() {
       )
       .subscribe();
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [uid, queryClient]);
 
@@ -319,10 +343,12 @@ export function useCollectorQrCode(childId?: string) {
 
   useEffect(() => {
     if (!uid) return;
-    channelRef.current?.unsubscribe();
+
+    const channelName = `collector-qr-${uid}`;
+    supabase.removeChannel(supabase.channel(channelName));
 
     const ch = supabase
-      .channel(`collector-qr-${uid}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'qr_codes' },
@@ -334,7 +360,7 @@ export function useCollectorQrCode(childId?: string) {
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [uid, childId, queryClient]);
 
@@ -356,10 +382,12 @@ export function useCollectorRecentScans(childId?: string) {
 
   useEffect(() => {
     if (!uid) return;
-    channelRef.current?.unsubscribe();
+
+    const channelName = `collector-scans-${uid}`;
+    supabase.removeChannel(supabase.channel(channelName));
 
     const ch = supabase
-      .channel(`collector-scans-${uid}`)
+      .channel(channelName)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
@@ -371,7 +399,7 @@ export function useCollectorRecentScans(childId?: string) {
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [uid, childId, queryClient]);
 

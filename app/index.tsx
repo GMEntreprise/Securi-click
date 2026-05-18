@@ -30,7 +30,7 @@ export default function Index() {
 
   if (isAuthenticated) {
     if (role === 'collector')
-      return <Redirect href={'/(collector-tabs)' as any} />;
+      return <Redirect href={'/(collector-tabs)/home' as any} />;
     if (role === 'school_admin' || role === 'staff')
       return <Redirect href={'/(school-tabs)/home' as any} />;
     return <Redirect href={'/(parent-tabs)' as any} />;

@@ -7,23 +7,17 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Switch,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '@/theme';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  FadeInDown,
-} from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   ArrowLeft,
   Shield,
   Phone,
-  ToggleLeft,
-  ToggleRight,
   UserPlus,
   GraduationCap,
   Pencil,
@@ -53,24 +47,13 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
   onEdit: (id: string) => void;
 }) {
   const theme = useTheme();
-  const scale = useSharedValue(1);
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: withSpring(scale.value, { damping: 15, stiffness: 300 }) },
-    ],
-  }));
-
-  const expiryColor = theme.green;
-  const expiryBg = theme.greenBg;
+  const expiryColor = item.is_active ? theme.green : theme.red;
+  const expiryBg = item.is_active ? theme.greenBg : theme.redBg;
 
   const handleToggle = useCallback(() => {
-    scale.value = 0.95;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTimeout(() => {
-      scale.value = 1;
-      onToggle(item.id, item.is_active);
-    }, 100);
-  }, [item.id, item.is_active, onToggle, scale]);
+    onToggle(item.id, item.is_active);
+  }, [item.id, item.is_active, onToggle]);
 
   const handleDelete = useCallback(() => {
     onDelete(item.id, `${item.first_name} ${item.last_name}`);
@@ -141,27 +124,13 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
                   {item.relationship}
                 </Text>
               </View>
-              <TouchableOpacity
-                onPress={handleToggle}
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 14,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: item.is_active
-                    ? theme.greenBg
-                    : theme.iconBg,
-                }}
-              >
-                <Animated.View style={animatedStyle}>
-                  {item.is_active ? (
-                    <ToggleRight size={22} color={theme.green} />
-                  ) : (
-                    <ToggleLeft size={22} color={theme.textMuted} />
-                  )}
-                </Animated.View>
-              </TouchableOpacity>
+              <Switch
+                value={item.is_active}
+                onValueChange={handleToggle}
+                trackColor={{ false: theme.switchTrackOff, true: theme.green }}
+                thumbColor="#ffffff"
+                ios_backgroundColor={theme.switchTrackOff}
+              />
             </View>
 
             <View
@@ -194,7 +163,7 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
                     fontWeight: '700',
                   }}
                 >
-                  Actif
+                  {item.is_active ? 'Actif' : 'Désactivé'}
                 </Text>
               </View>
             </View>

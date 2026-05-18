@@ -16,7 +16,7 @@ export default function AuthCallbackScreen() {
   useEffect(() => {
     if (!isAuthenticated) return;
     if (role === 'collector') {
-      router.replace('/(collector-tabs)' as any);
+      router.replace('/(collector-tabs)/home' as any);
     } else if (role === 'school_admin' || role === 'staff') {
       router.replace('/(school-tabs)/home' as any);
     } else {

@@ -159,27 +159,20 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
   }, [form]);
 
   const handlePickPhoto = useCallback(() => {
+    const upload = async (picker: () => Promise<{ signedUrl: string; filePath: string } | null>) => {
+      const result = await picker();
+      if (!result) return;
+      setAvatarUri(result.signedUrl);
+      try {
+        await updateAvatarUrl.mutateAsync(result.signedUrl);
+        Toast.show('Photo mise à jour', { type: 'success', duration: 2000 });
+      } catch {
+        Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
+      }
+    };
     Alert.alert('Photo de profil', 'Choisir une source', [
-      {
-        text: 'Caméra',
-        onPress: async () => {
-          const result = await takePhoto();
-          if (result) {
-            setAvatarUri(result.signedUrl);
-            await updateAvatarUrl.mutateAsync(result.signedUrl);
-          }
-        },
-      },
-      {
-        text: 'Galerie',
-        onPress: async () => {
-          const result = await pickFromGallery();
-          if (result) {
-            setAvatarUri(result.signedUrl);
-            await updateAvatarUrl.mutateAsync(result.signedUrl);
-          }
-        },
-      },
+      { text: 'Caméra', onPress: () => upload(takePhoto) },
+      { text: 'Galerie', onPress: () => upload(pickFromGallery) },
       { text: 'Annuler', style: 'cancel' },
     ]);
   }, [takePhoto, pickFromGallery, updateAvatarUrl]);

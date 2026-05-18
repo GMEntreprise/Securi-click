@@ -3,6 +3,7 @@ import { AuthPasswordField } from '@/features/auth/components/ui/AuthPasswordFie
 import { PasswordStrengthBar } from '@/features/auth/components/ui/PasswordStrengthBar';
 import { useSession } from '@/features/auth/store/auth.store';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import { useTheme } from '@/theme';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as Haptics from 'expo-haptics';
@@ -131,7 +132,11 @@ export const EditProfileSheet = memo(function EditProfileSheet({
       const result = await picker();
       if (!result) return;
       setAvatarUri(result.signedUrl);
-      await updateAvatar.mutateAsync(result.signedUrl);
+      try {
+        await updateAvatar.mutateAsync(result.signedUrl);
+      } catch {
+        Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
+      }
     };
     Alert.alert('Photo de profil', 'Choisir une source', [
       { text: 'Caméra', onPress: () => upload(takePhoto) },
@@ -140,8 +145,6 @@ export const EditProfileSheet = memo(function EditProfileSheet({
     ]);
   }, [takePhoto, pickFromGallery, updateAvatar]);
 
-  const initials =
-    `${profile.first_name[0] ?? '?'}${profile.last_name[0] ?? ''}`.toUpperCase();
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>

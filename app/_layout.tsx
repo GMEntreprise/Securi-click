@@ -13,6 +13,7 @@ import { useCollectorSessionStore } from '@/features/collector/stores/collectorS
 import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '@/features/auth/utils/mapAuthSession';
 import { passwordLoginInProgress } from '@/features/auth/hooks/useLogin';
+import { collectorPinLoginInProgress } from '@/features/collector/hooks/useCollectorPinLogin';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/shared/ui/organisms/theme-switch/context';
 import { ThemeMode } from '@/shared/ui/organisms/theme-switch/types';
@@ -229,7 +230,7 @@ function AuthStateSync() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sess) => {
       if (__DEV__) console.log('[AuthStateSync] event=', event, 'deepLink=', deepLinkProcessing, 'pwdLogin=', passwordLoginInProgress);
       if (event === 'INITIAL_SESSION') return;
-      if (event === 'SIGNED_IN' && (deepLinkProcessing || passwordLoginInProgress)) return;
+      if (event === 'SIGNED_IN' && (deepLinkProcessing || passwordLoginInProgress || collectorPinLoginInProgress)) return;
       if (!sess || event === 'SIGNED_OUT') {
         useAuthStore.setState({ session: null });
         return;
@@ -268,10 +269,12 @@ function NavigationGuard() {
   }
 
   useEffect(() => {
+    if (__DEV__) console.log('[Guard] effect | isRestoring=', isRestoring, 'pinRestoring=', pinRestoring, 'deepLink=', deepLinkProcessing, 'auth=', isAuthenticated, 'seg=', segments[0], segments[1]);
+
     if (isRestoring || pinRestoring || deepLinkProcessing) return;
 
     const seg = segments[0] as string | undefined;
-    if (!seg) return;
+    if (!seg) { if (__DEV__) console.log('[Guard] no seg, skip'); return; }
 
     const inAuth = seg === '(auth)';
     const sub1 = segments[1] as string | undefined;
@@ -288,7 +291,7 @@ function NavigationGuard() {
       if (!pinVerified && !inPinScreen) {
         target = '/(auth)/collector-pin';
       } else if (pinVerified && (inAuth || seg !== '(collector-tabs)')) {
-        target = '/(collector-tabs)';
+        target = '/(collector-tabs)/home';
       }
     } else if (role === 'school_admin' || role === 'staff') {
       if (inAuth || seg === '(app)' || seg === '(parent-tabs)' || seg === '(collector-tabs)') {
@@ -300,10 +303,12 @@ function NavigationGuard() {
       }
     }
 
-    if (!target) return;
-    if (target === lastRedirectRef.current) return;
+    if (__DEV__) console.log('[Guard] role=', role, 'target=', target, 'lastRedirect=', lastRedirectRef.current, 'seg=', seg);
 
-    if (__DEV__) console.log('[NavigationGuard] redirect', target, '| seg=', seg, 'auth=', isAuthenticated, 'role=', role, 'pinVerified=', pinVerified);
+    if (!target) return;
+    if (target === lastRedirectRef.current) { if (__DEV__) console.log('[Guard] skipped — same as lastRedirect'); return; }
+
+    if (__DEV__) console.log('[Guard] → router.replace', target);
     lastRedirectRef.current = target;
     router.replace(target as any);
   }, [isAuthenticated, isRestoring, pinRestoring, pinVerified, segments, router]);

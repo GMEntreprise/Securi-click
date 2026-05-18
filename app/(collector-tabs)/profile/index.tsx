@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -22,8 +22,11 @@ import {
   ChevronRight,
   FileText,
   Pencil,
+  Moon,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
+import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
+import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/features/auth/store/auth.store';
 import { useUnreadCount } from '@/features/notifications/stores/notification.store';
@@ -42,8 +45,26 @@ export default function CollectorProfileScreen() {
   const logout = useAuthStore(s => s.logout);
   const unreadCount = useUnreadCount();
 
+  const { isDark, toggleTheme } = useThemeSwitcher();
   const { data: profile, isLoading } = useCollectorProfile();
   const { data: identity } = useMyIdentity();
+
+  const darkModeSwitch = useMemo(
+    () => (
+      <GooeySwitch
+        active={isDark}
+        onToggle={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          toggleTheme({ animationType: 'circular' as any, animationDuration: 500 });
+        }}
+        size={64}
+        activeColor={theme.primary}
+        inactiveColor={theme.accent}
+        trackColor={isDark ? '#30363d' : '#e2e8f0'}
+      />
+    ),
+    [isDark, toggleTheme, theme]
+  );
 
   const [showEditSheet, setShowEditSheet] = useState(false);
   const [showIdentitySheet, setShowIdentitySheet] = useState(false);
@@ -335,6 +356,47 @@ export default function CollectorProfileScreen() {
             </View>
             <ChevronRight size={16} color={theme.textMuted} />
           </TouchableOpacity>
+        </Animated.View>
+
+        {/* Préférences — dark mode */}
+        <Animated.View
+          entering={FadeInDown.delay(205).duration(350)}
+          style={{ marginBottom: 16 }}
+        >
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: theme.iconBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Moon size={18} color={theme.textSecondary} strokeWidth={2.5} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
+                Mode sombre
+              </Text>
+              <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+                {isDark ? 'Activé' : 'Désactivé'}
+              </Text>
+            </View>
+            {darkModeSwitch}
+          </View>
         </Animated.View>
 
         {/* Notifications */}

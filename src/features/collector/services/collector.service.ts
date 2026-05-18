@@ -32,10 +32,9 @@ const GUARDIAN_SELECT = `
   id, parent_id, child_id, first_name, last_name, phone, email,
   relationship, photo_url, priority, is_active, identity_status,
   identity_verified, collector_user_id, created_at, updated_at,
-  child:children ( id, first_name, last_name, photo_url, class_name,
+  child:children ( id, first_name, last_name, photo_url, class_name, medical_notes,
     school:schools ( id, name, city )
-  ),
-  parent:user_profiles!guardians_parent_id_fkey ( first_name, last_name, phone )
+  )
 `.trim();
 
 const PENDING_INVITE_SELECT = `

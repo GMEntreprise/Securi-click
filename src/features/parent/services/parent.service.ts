@@ -220,10 +220,7 @@ export const parentService = {
       });
     if (error) throw error;
 
-    const { data: signedData, error: signedError } = await supabase.storage
-      .from(bucket)
-      .createSignedUrl(filePath, 60 * 60 * 24 * 7);
-    if (signedError) throw signedError;
-    return signedData.signedUrl;
+    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+    return data.publicUrl;
   },
 };

@@ -183,7 +183,7 @@ export default function ProfileScreen() {
         size={64}
         activeColor={theme.primary}
         inactiveColor={theme.accent}
-        trackColor={isDark ? theme.cardBorder : theme.accentBg}
+        trackColor={isDark ? '#30363d' : '#e2e8f0'}
       />
     ),
     [isDark, toggleTheme, theme]

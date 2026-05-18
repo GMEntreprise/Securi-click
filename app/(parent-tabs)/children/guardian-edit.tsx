@@ -8,6 +8,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
@@ -25,8 +26,6 @@ import {
   Mail,
   Check,
   Trash2,
-  ToggleLeft,
-  ToggleRight,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
@@ -177,10 +176,10 @@ export default function GuardianEditScreen() {
     [guardianId, updateGuardian, usePinCode, router]
   );
 
-  const handleToggle = useCallback(() => {
+  const handleToggle = useCallback((nextValue: boolean) => {
     if (!guardianId || !guardian) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    toggleGuardian.mutate({ guardianId, isActive: !guardian.is_active });
+    toggleGuardian.mutate({ guardianId, isActive: nextValue });
   }, [guardianId, guardian, toggleGuardian]);
 
   const handleDelete = useCallback(() => {
@@ -276,24 +275,14 @@ export default function GuardianEditScreen() {
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          <TouchableOpacity
-            onPress={handleToggle}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 14,
-              backgroundColor: guardian?.is_active ? theme.greenBg : theme.iconBg,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {guardian?.is_active ? (
-              <ToggleRight size={20} color={theme.green} />
-            ) : (
-              <ToggleLeft size={20} color={theme.textMuted} />
-            )}
-          </TouchableOpacity>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Switch
+            value={guardian?.is_active ?? false}
+            onValueChange={handleToggle}
+            trackColor={{ false: theme.switchTrackOff, true: theme.green }}
+            thumbColor="#ffffff"
+            ios_backgroundColor={theme.switchTrackOff}
+          />
           <TouchableOpacity
             onPress={handleDelete}
             style={{
@@ -320,7 +309,7 @@ export default function GuardianEditScreen() {
           <Animated.View
             entering={FadeInDown.delay(60).duration(300)}
             style={{
-              backgroundColor: guardian.is_active ? theme.greenBg : theme.iconBg,
+              backgroundColor: guardian.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.10)',
               borderRadius: 14,
               padding: 12,
               marginBottom: 20,
@@ -334,19 +323,19 @@ export default function GuardianEditScreen() {
                 width: 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: guardian.is_active ? theme.green : theme.textMuted,
+                backgroundColor: guardian.is_active ? theme.green : theme.red,
               }}
             />
             <Text
               style={{
-                color: guardian.is_active ? theme.green : theme.textMuted,
+                color: guardian.is_active ? theme.green : theme.red,
                 fontWeight: '600',
                 fontSize: 13,
               }}
             >
               {guardian.is_active
                 ? "Accès actif — peut récupérer l'enfant"
-                : 'Accès désactivé'}
+                : "Accès désactivé — ne peut pas récupérer l'enfant"}
             </Text>
           </Animated.View>
         )}

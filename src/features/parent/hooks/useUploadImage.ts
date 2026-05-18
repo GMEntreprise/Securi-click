@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { v4 as uuidv4 } from 'uuid';
-import { parentService } from '../services/parent.service';
+import { supabase } from '@/lib/supabase/client';
+import { Toast } from '@/shared/ui/molecules/Toast';
 
 type Bucket = 'profile-images' | 'children-images';
 
@@ -30,7 +31,6 @@ export function useUploadImage({ bucket, userId }: UseUploadImageOptions) {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
-      base64: true,
     });
     if (result.canceled || !result.assets[0]) return null;
     return uploadAsset(result.assets[0]);
@@ -46,7 +46,6 @@ export function useUploadImage({ bucket, userId }: UseUploadImageOptions) {
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
-      base64: true,
     });
     if (result.canceled || !result.assets[0]) return null;
     return uploadAsset(result.assets[0]);
@@ -55,32 +54,33 @@ export function useUploadImage({ bucket, userId }: UseUploadImageOptions) {
   async function uploadAsset(
     asset: ImagePicker.ImagePickerAsset
   ): Promise<UploadResult | null> {
-    if (!asset.base64) {
-      setError("Impossible de lire l'image.");
-      return null;
-    }
     setIsUploading(true);
     setError(null);
     try {
-      const binaryStr = atob(asset.base64);
-      const bytes = new Uint8Array(binaryStr.length);
-      for (let i = 0; i < binaryStr.length; i++) {
-        bytes[i] = binaryStr.charCodeAt(i);
-      }
-      const arrayBuffer = bytes.buffer;
-      const ext = asset.uri.split('.').pop()?.toLowerCase() ?? 'jpg';
+      const uri = asset.uri;
+      const ext = uri.split('.').pop()?.toLowerCase().split('?')[0] ?? 'jpg';
       const contentType = ext === 'png' ? 'image/png' : 'image/jpeg';
       const filePath = `${userId}/${uuidv4()}.${ext}`;
 
-      const signedUrl = await parentService.uploadImage(
-        bucket,
-        filePath,
-        arrayBuffer,
-        contentType
-      );
-      return { signedUrl, filePath };
-    } catch (e) {
-      setError("Échec de l'envoi. Réessayez.");
+      const response = await fetch(uri);
+      const arrayBuffer = await response.arrayBuffer();
+
+      const { error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, arrayBuffer, {
+          contentType,
+          upsert: true,
+          cacheControl: '3600',
+        });
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+      return { signedUrl: data.publicUrl, filePath };
+    } catch (e: any) {
+      const msg = "Échec de l'envoi. Réessayez.";
+      setError(msg);
+      Toast.show(msg, { type: 'error', duration: 3000 });
+      if (__DEV__) console.error('[useUploadImage] upload error:', e?.message ?? e);
       return null;
     } finally {
       setIsUploading(false);

@@ -30,12 +30,8 @@ export interface CollectorGuardian {
     last_name: string;
     photo_url: string | null;
     class_name: string | null;
+    medical_notes: string | null;
     school?: { id: string; name: string; city: string } | null;
-  } | null;
-  parent?: {
-    first_name: string;
-    last_name: string;
-    phone: string | null;
   } | null;
 }
 

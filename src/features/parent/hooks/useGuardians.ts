@@ -115,20 +115,30 @@ export function useToggleGuardian(childId: string) {
     }) => parentService.toggleGuardian(guardianId, isActive),
     onMutate: async ({ guardianId, isActive }) => {
       await queryClient.cancelQueries({ queryKey: GUARDIANS_KEY(childId) });
+      await queryClient.cancelQueries({ queryKey: ['guardian', guardianId] });
       const previous = queryClient.getQueryData<Guardian[]>(
         GUARDIANS_KEY(childId)
       );
+      // Optimistic update on the list
       queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev =>
         (prev ?? []).map(g =>
           g.id === guardianId ? { ...g, is_active: isActive } : g
         )
       );
+      // Optimistic update on the individual guardian query used by guardian-edit
+      queryClient.setQueryData<Guardian>(['guardian', guardianId], prev =>
+        prev ? { ...prev, is_active: isActive } : prev
+      );
       return { previous };
     },
-    onError: (_err, _vars, ctx) => {
+    onError: (_err, { guardianId }, ctx) => {
       if (ctx?.previous) {
         queryClient.setQueryData(GUARDIANS_KEY(childId), ctx.previous);
       }
+      queryClient.invalidateQueries({ queryKey: ['guardian', guardianId] });
+    },
+    onSettled: (_data, _err, { guardianId }) => {
+      queryClient.invalidateQueries({ queryKey: ['guardian', guardianId] });
     },
   });
 }

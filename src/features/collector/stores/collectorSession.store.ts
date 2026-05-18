@@ -29,22 +29,22 @@ export const useCollectorSessionStore = create<CollectorSessionState>(set => ({
   },
 
   markVerified: async (version: number) => {
+    set({ isVerified: true });
     try {
       await Promise.all([
         SecureStore.setItemAsync(KEY_VERIFIED, Date.now().toString()),
         SecureStore.setItemAsync(KEY_VERSION, String(version)),
       ]);
     } catch {}
-    set({ isVerified: true });
   },
 
   clear: async () => {
+    set({ isVerified: false });
     try {
       await Promise.all([
         SecureStore.deleteItemAsync(KEY_VERIFIED),
         SecureStore.deleteItemAsync(KEY_VERSION),
       ]);
     } catch {}
-    set({ isVerified: false });
   },
 }));
