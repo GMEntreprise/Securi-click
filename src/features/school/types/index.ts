@@ -75,14 +75,18 @@ export interface PickupValidation {
     phone: string;
     photo_url: string | null;
     relationship: string;
+    identity_status?: CollectorIdentityStatus;
   } | null;
 }
+
+export type CollectorIdentityStatus = 'none' | 'pending' | 'verified' | 'refused' | 'expired';
 
 export interface QrScanResult {
   success: boolean;
   refusal_reason?: string;
   validation_id?: string;
   log_id?: string;
+  scanned_at?: string;
   child?: {
     id: string;
     first_name: string;
@@ -97,6 +101,7 @@ export interface QrScanResult {
     phone: string;
     photo_url: string | null;
     relationship: string;
+    identity_status?: CollectorIdentityStatus;
   } | null;
 }
 
