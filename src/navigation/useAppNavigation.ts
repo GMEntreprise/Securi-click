@@ -16,6 +16,10 @@ export function useAppNavigation() {
     router.replace(ROUTES.auth.login as any);
   }, [router]);
 
+  const goToRoleChoice = useCallback(() => {
+    router.replace(ROUTES.auth.index as any);
+  }, [router]);
+
   const goToCollectorPin = useCallback(
     (invitationToken?: string) => {
       if (invitationToken) {
@@ -111,6 +115,10 @@ export function useAppNavigation() {
     router.push(ROUTES.parent.privacyPolicy as any);
   }, [router]);
 
+  const goToParentFaq = useCallback(() => {
+    router.push(ROUTES.parent.faq as any);
+  }, [router]);
+
   // ── Collector ───────────────────────────────────────────────────────────────
 
   const goToCollectorDashboard = useCallback(() => {
@@ -131,6 +139,10 @@ export function useAppNavigation() {
 
   const goToCollectorPrivacyPolicy = useCallback(() => {
     router.push(ROUTES.collector.privacyPolicy as any);
+  }, [router]);
+
+  const goToCollectorFaq = useCallback(() => {
+    router.push(ROUTES.collector.faq as any);
   }, [router]);
 
   // ── School ──────────────────────────────────────────────────────────────────
@@ -159,6 +171,10 @@ export function useAppNavigation() {
     router.push(ROUTES.school.privacyPolicy as any);
   }, [router]);
 
+  const goToSchoolFaq = useCallback(() => {
+    router.push(ROUTES.school.faq as any);
+  }, [router]);
+
   // ── Generic push for notification routing ───────────────────────────────────
 
   const pushRoute = useCallback(
@@ -171,6 +187,7 @@ export function useAppNavigation() {
   return {
     // auth
     goToLogin,
+    goToRoleChoice,
     goToCollectorPin,
     logout,
     // parent
@@ -188,12 +205,14 @@ export function useAppNavigation() {
     goToParentNotifications,
     goToParentLegalMentions,
     goToParentPrivacyPolicy,
+    goToParentFaq,
     // collector
     goToCollectorDashboard,
     goToCollectorProfile,
     goToCollectorNotifications,
     goToCollectorLegalMentions,
     goToCollectorPrivacyPolicy,
+    goToCollectorFaq,
     // school
     goToSchoolDashboard,
     goToSchoolScanner,
@@ -201,6 +220,7 @@ export function useAppNavigation() {
     goToSchoolNotifications,
     goToSchoolLegalMentions,
     goToSchoolPrivacyPolicy,
+    goToSchoolFaq,
     // generic
     pushRoute,
   };

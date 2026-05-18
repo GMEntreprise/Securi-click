@@ -15,6 +15,7 @@ import {
   Building2,
   ChevronRight,
   FileText,
+  HelpCircle,
   Lock,
   LogOut,
   Mail,
@@ -295,7 +296,7 @@ export default function SchoolProfileScreen() {
           </TouchableOpacity>
         </Animated.View>
 
-        {/* Légal */}
+        {/* Support & Légal */}
         <Animated.View
           entering={FadeInDown.delay(110).duration(350)}
           style={{ marginBottom: 16 }}
@@ -309,6 +310,34 @@ export default function SchoolProfileScreen() {
               overflow: 'hidden',
             }}
           >
+            <TouchableOpacity
+              onPress={() => nav.goToSchoolFaq()}
+              style={{
+                padding: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                borderBottomWidth: 1,
+                borderBottomColor: theme.separator,
+              }}
+            >
+              <View
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 11,
+                  backgroundColor: theme.amberBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <HelpCircle size={16} color={theme.amber} strokeWidth={2.5} />
+              </View>
+              <Text style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}>
+                Aide & FAQ
+              </Text>
+              <ChevronRight size={16} color={theme.textMuted} />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => nav.goToSchoolLegalMentions()}
               style={{

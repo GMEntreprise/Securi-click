@@ -284,7 +284,7 @@ export default function ProfileScreen() {
             ),
             iconBg: theme.amberBg,
             title: 'Aide & FAQ',
-            onPress: () => {},
+            onPress: () => nav.goToParentFaq(),
           },
           {
             icon: (

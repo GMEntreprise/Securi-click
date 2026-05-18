@@ -31,6 +31,7 @@ export const ROUTES = {
     notifications: '/(parent-tabs)/profile/notifications' as const,
     legalMentions: '/(parent-tabs)/profile/legal-mentions' as const,
     privacyPolicy: '/(parent-tabs)/profile/privacy-policy' as const,
+    faq:           '/(parent-tabs)/profile/faq' as const,
   },
   collector: {
     home:         '/(collector-tabs)/home' as const,
@@ -41,6 +42,7 @@ export const ROUTES = {
     notifications: '/(collector-tabs)/profile/notifications' as const,
     legalMentions: '/(collector-tabs)/profile/legal-mentions' as const,
     privacyPolicy: '/(collector-tabs)/profile/privacy-policy' as const,
+    faq:           '/(collector-tabs)/profile/faq' as const,
   },
   school: {
     home:         '/(school-tabs)/home' as const,
@@ -51,5 +53,6 @@ export const ROUTES = {
     notifications: '/(school-tabs)/profile/notifications' as const,
     legalMentions: '/(school-tabs)/profile/legal-mentions' as const,
     privacyPolicy: '/(school-tabs)/profile/privacy-policy' as const,
+    faq:           '/(school-tabs)/profile/faq' as const,
   },
 } as const;
