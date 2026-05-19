@@ -45,10 +45,12 @@ interface ParentRegisterFormV2Props {
   isLoading: boolean;
   error?: string | null;
   defaultEmail?: string;
+  onOpenLegal?: () => void;
+  onOpenPrivacy?: () => void;
 }
 
 export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
-  ({ onSubmit, isLoading, error, defaultEmail = '' }) => {
+  ({ onSubmit, isLoading, error, defaultEmail = '', onOpenLegal, onOpenPrivacy }) => {
     const t = useTheme();
     const {
       control,
@@ -192,7 +194,10 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
               style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
             >
               J'accepte les{' '}
-              <Text style={{ color: t.accent, fontWeight: '700' }}>
+              <Text
+                style={{ color: t.accent, fontWeight: '700' }}
+                onPress={onOpenLegal}
+              >
                 Conditions Générales d'Utilisation
               </Text>{' '}
               de Securi'Click.
@@ -209,7 +214,10 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
               style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
             >
               Je reconnais avoir pris connaissance de la{' '}
-              <Text style={{ color: t.accent, fontWeight: '700' }}>
+              <Text
+                style={{ color: t.accent, fontWeight: '700' }}
+                onPress={onOpenPrivacy}
+              >
                 Politique de Confidentialité
               </Text>
               .

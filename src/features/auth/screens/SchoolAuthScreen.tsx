@@ -17,6 +17,7 @@ import {
   Dimensions,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   Text,
@@ -45,15 +46,19 @@ import {
   AuthStepBar,
   AuthTabToggle,
 } from '../components/ui';
+import { LegalConsentSheet } from '../components/ui/LegalConsentSheet';
+import { LegalMentionsScreen } from '@/features/legal/screens/LegalMentionsScreen';
+import { PrivacyPolicyScreen } from '@/features/legal/screens/PrivacyPolicyScreen';
 import { useTheme } from '@/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.3;
 
 const SCHOOL_TYPES = [
-  'École maternelle',
-  'École primaire',
-  'Collège',
+  'École maternelle privée',
+  'École maternelle publique',
+  'École primaire privée',
+  'École primaire publique',
 ];
 
 const MANAGER_FUNCTIONS = [
@@ -163,7 +168,9 @@ const SchoolRegisterForm: React.FC<{
   isLoading: boolean;
   error?: string | null;
   defaultEmail?: string;
-}> = memo(({ onSubmit, isLoading, error, defaultEmail = '' }) => {
+  onOpenLegal: () => void;
+  onOpenPrivacy: () => void;
+}> = memo(({ onSubmit, isLoading, error, defaultEmail = '', onOpenLegal, onOpenPrivacy }) => {
   const t = useTheme();
   const {
     control,
@@ -181,7 +188,7 @@ const SchoolRegisterForm: React.FC<{
       email: defaultEmail,
       phone: '',
       address: '',
-      school_type: 'École primaire',
+      school_type: '',
       password: '',
       confirm_password: '',
       accept_terms: false,
@@ -386,7 +393,10 @@ const SchoolRegisterForm: React.FC<{
             style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
           >
             J'accepte les{' '}
-            <Text style={{ color: t.primary, fontWeight: '700' }}>
+            <Text
+              style={{ color: t.primary, fontWeight: '700' }}
+              onPress={onOpenLegal}
+            >
               Conditions Générales d'Utilisation
             </Text>{' '}
             professionnelles.
@@ -402,7 +412,10 @@ const SchoolRegisterForm: React.FC<{
             style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
           >
             J'accepte la{' '}
-            <Text style={{ color: t.primary, fontWeight: '700' }}>
+            <Text
+              style={{ color: t.primary, fontWeight: '700' }}
+              onPress={onOpenPrivacy}
+            >
               Politique de confidentialité
             </Text>
             .
@@ -431,6 +444,10 @@ export const SchoolAuthScreen: React.FC = memo(() => {
   const t = useTheme();
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
   const [registerEmail, setRegisterEmail] = useState<string | null>(null);
+  const [pendingData, setPendingData] = useState<RegisterValues | null>(null);
+  const [legalSheetVisible, setLegalSheetVisible] = useState(false);
+  const [legalModalVisible, setLegalModalVisible] = useState(false);
+  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
 
   const lastEmail = useLastEmail();
   const loginMutation = useLogin();
@@ -445,26 +462,37 @@ export const SchoolAuthScreen: React.FC = memo(() => {
     [loginMutation, nav]
   );
 
-  const handleRegister = useCallback(
-    (data: RegisterValues) => {
-      registerMutation.mutate(data as any, {
+  const handleRegisterFormSubmit = useCallback((data: RegisterValues) => {
+    setPendingData(data);
+    setLegalSheetVisible(true);
+  }, []);
+
+  const handleLegalAccept = useCallback(() => {
+    if (!pendingData) return;
+    setLegalSheetVisible(false);
+    registerMutation.mutate(
+      { ...pendingData, accept_terms: true, accept_privacy: true } as any,
+      {
         onSuccess: () => {
-          setRegisterEmail(data.email);
+          setRegisterEmail(pendingData.email);
+          setPendingData(null);
           Toast.show('Email de confirmation envoyé ! Vérifiez votre boîte mail.', {
             type: 'success',
             duration: 4000,
           });
         },
         onError: (e: any) => {
+          setPendingData(null);
           Toast.show(e?.message ?? 'Impossible de créer le compte. Réessayez.', {
             type: 'error',
             duration: 5000,
           });
         },
-      });
-    },
-    [registerMutation]
-  );
+      }
+    );
+  }, [pendingData, registerMutation]);
+
+  const handleRegister = handleRegisterFormSubmit;
 
   const handleTabToggle = useCallback(
     (index: 0 | 1) => setActiveTab(index),
@@ -584,12 +612,41 @@ export const SchoolAuthScreen: React.FC = memo(() => {
                   isLoading={registerMutation.isPending}
                   error={registerMutation.error?.message}
                   defaultEmail={lastEmail}
+                  onOpenLegal={() => setLegalModalVisible(true)}
+                  onOpenPrivacy={() => setPrivacyModalVisible(true)}
                 />
               )}
             </Animated.View>
           </>
         )}
       </ScrollView>
+
+      <LegalConsentSheet
+        visible={legalSheetVisible}
+        onAccept={handleLegalAccept}
+        onClose={() => setLegalSheetVisible(false)}
+        onOpenLegal={() => setLegalModalVisible(true)}
+        onOpenPrivacy={() => setPrivacyModalVisible(true)}
+        role="school"
+      />
+
+      <Modal
+        visible={legalModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setLegalModalVisible(false)}
+      >
+        <LegalMentionsScreen />
+      </Modal>
+
+      <Modal
+        visible={privacyModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setPrivacyModalVisible(false)}
+      >
+        <PrivacyPolicyScreen />
+      </Modal>
     </KeyboardAvoidingView>
   );
 });

@@ -182,28 +182,41 @@ export default function StudentsScreen() {
       </Animated.View>
 
       {!filtered.length ? (
-        <View
-          style={{
-            flex: 1,
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingBottom: 100,
-          }}
-        >
-          <Users size={48} color={theme.textMuted} strokeWidth={1.2} />
-          <Text
+        debouncedSearch || classFilter ? (
+          <View
             style={{
-              color: theme.textMuted,
-              fontSize: 16,
-              marginTop: 16,
-              textAlign: 'center',
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingBottom: 100,
             }}
           >
-            {debouncedSearch || classFilter
-              ? 'Aucun résultat'
-              : 'Aucun élève inscrit'}
-          </Text>
-        </View>
+            <Search size={40} color={theme.textMuted} strokeWidth={1.2} />
+            <Text
+              style={{
+                color: theme.textMuted,
+                fontSize: 16,
+                fontWeight: '600',
+                marginTop: 16,
+                textAlign: 'center',
+              }}
+            >
+              Aucun résultat
+            </Text>
+            <Text
+              style={{
+                color: theme.textMuted,
+                fontSize: 13,
+                marginTop: 6,
+                textAlign: 'center',
+              }}
+            >
+              Essayez un autre nom ou classe.
+            </Text>
+          </View>
+        ) : (
+          <StudentsEmptyState />
+        )
       ) : (
         <FlashList
           data={filtered}
@@ -215,6 +228,98 @@ export default function StudentsScreen() {
     </View>
   );
 }
+
+const StudentsEmptyState = memo(function StudentsEmptyState() {
+  const theme = useTheme();
+  return (
+    <Animated.View
+      entering={FadeInDown.duration(400)}
+      style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 32,
+        paddingBottom: 100,
+        gap: 16,
+      }}
+    >
+      <View
+        style={{
+          width: 88,
+          height: 88,
+          borderRadius: 28,
+          backgroundColor: theme.primaryBg,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <GraduationCap size={40} color={theme.primary} strokeWidth={1.5} />
+      </View>
+
+      <View style={{ alignItems: 'center', gap: 6 }}>
+        <Text
+          style={{
+            color: theme.text,
+            fontSize: 20,
+            fontWeight: '800',
+            textAlign: 'center',
+            letterSpacing: -0.3,
+          }}
+        >
+          Aucun élève inscrit
+        </Text>
+        <Text
+          style={{
+            color: theme.textMuted,
+            fontSize: 14,
+            textAlign: 'center',
+            lineHeight: 20,
+          }}
+        >
+          Les élèves rattachés à votre établissement par les parents apparaîtront ici.
+        </Text>
+      </View>
+
+      <View
+        style={{
+          backgroundColor: theme.card,
+          borderRadius: 18,
+          borderWidth: 1,
+          borderColor: theme.cardBorder,
+          padding: 16,
+          gap: 12,
+          width: '100%',
+        }}
+      >
+        {[
+          { step: '1', label: 'Un parent crée son compte Securi\'Click.' },
+          { step: '2', label: 'Il ajoute son enfant et le rattache à votre établissement.' },
+          { step: '3', label: 'L\'élève apparaît automatiquement dans cette liste.' },
+        ].map(({ step, label }) => (
+          <View key={step} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+            <View
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 8,
+                backgroundColor: theme.primaryBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                marginTop: 1,
+              }}
+            >
+              <Text style={{ color: theme.primary, fontSize: 12, fontWeight: '800' }}>{step}</Text>
+            </View>
+            <Text style={{ color: theme.textSecondary, fontSize: 13, lineHeight: 20, flex: 1 }}>
+              {label}
+            </Text>
+          </View>
+        ))}
+      </View>
+    </Animated.View>
+  );
+});
 
 const StudentRow = memo(function StudentRow({ item }: { item: SchoolChild }) {
   const theme = useTheme();

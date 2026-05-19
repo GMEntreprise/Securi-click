@@ -21,6 +21,7 @@ import {
   ChevronDown,
   MapPin,
   Phone,
+  School,
   User,
   X,
 } from 'lucide-react-native';
@@ -40,6 +41,13 @@ const MANAGER_FUNCTIONS = [
   'Autre',
 ];
 
+const SCHOOL_TYPES = [
+  'École maternelle privée',
+  'École maternelle publique',
+  'École primaire privée',
+  'École primaire publique',
+];
+
 interface EditSchoolSheetProps {
   school: SchoolProfile;
   onClose: () => void;
@@ -47,6 +55,7 @@ interface EditSchoolSheetProps {
 
 interface FormState {
   name: string;
+  type: string;
   phone: string;
   address: string;
   city: string;
@@ -133,6 +142,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
 
   const [form, setForm] = useState<FormState>({
     name: school.name,
+    type: school.type,
     phone: school.phone,
     address: school.address,
     city: school.city,
@@ -143,6 +153,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [functionPickerOpen, setFunctionPickerOpen] = useState(false);
+  const [typePickerOpen, setTypePickerOpen] = useState(false);
 
   const setField = useCallback(
     (field: keyof FormState) => (value: string) => {
@@ -180,6 +191,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
         schoolId: school.id,
         payload: {
           name: form.name.trim(),
+          type: form.type.trim(),
           phone: form.phone.trim(),
           address: form.address.trim(),
           city: form.city.trim(),
@@ -278,6 +290,117 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
               placeholder="École du Centre"
               error={errors.name}
             />
+
+            {/* Type picker */}
+            <View style={{ marginBottom: 14 }}>
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 13,
+                  fontWeight: '600',
+                  marginBottom: 6,
+                }}
+              >
+                Type d'établissement
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setTypePickerOpen(true);
+                }}
+                activeOpacity={0.75}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: theme.input,
+                  borderRadius: 14,
+                  paddingHorizontal: 14,
+                  paddingVertical: 14,
+                  borderWidth: 1,
+                  borderColor: form.type ? theme.accent : theme.inputBorder,
+                }}
+              >
+                <School size={16} color={theme.textMuted} style={{ marginRight: 10 }} />
+                <Text
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    color: form.type ? theme.text : theme.placeholder,
+                  }}
+                  numberOfLines={1}
+                >
+                  {form.type || 'Sélectionnez le type'}
+                </Text>
+                <ChevronDown
+                  size={16}
+                  color={form.type ? theme.accent : theme.textMuted}
+                  strokeWidth={2.5}
+                />
+              </TouchableOpacity>
+            </View>
+
+            <Modal
+              visible={typePickerOpen}
+              transparent
+              animationType="slide"
+              onRequestClose={() => setTypePickerOpen(false)}
+            >
+              <TouchableOpacity
+                style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.45)' }}
+                activeOpacity={1}
+                onPress={() => setTypePickerOpen(false)}
+              />
+              <View
+                style={{
+                  backgroundColor: theme.card,
+                  borderTopLeftRadius: 28,
+                  borderTopRightRadius: 28,
+                  paddingTop: 12,
+                  paddingBottom: insets.bottom + 24,
+                }}
+              >
+                <View style={{ alignItems: 'center', marginBottom: 16 }}>
+                  <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.inputBorder }} />
+                </View>
+                <Text style={{ fontSize: 17, fontWeight: '800', color: theme.text, paddingHorizontal: 20, marginBottom: 12, letterSpacing: -0.3 }}>
+                  Type d'établissement
+                </Text>
+                <ScrollView showsVerticalScrollIndicator={false} bounces={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 6, paddingBottom: 8 }}>
+                  {SCHOOL_TYPES.map(opt => {
+                    const selected = form.type === opt;
+                    return (
+                      <TouchableOpacity
+                        key={opt}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setField('type')(opt);
+                          setTypePickerOpen(false);
+                        }}
+                        activeOpacity={0.75}
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          paddingVertical: 14,
+                          paddingHorizontal: 16,
+                          borderRadius: 16,
+                          borderWidth: 1.5,
+                          borderColor: selected ? theme.accent : theme.cardBorder,
+                          backgroundColor: selected
+                            ? (theme.isDark ? 'rgba(249,115,22,0.12)' : 'rgba(249,115,22,0.08)')
+                            : theme.bg,
+                        }}
+                      >
+                        <Text style={{ flex: 1, fontSize: 15, fontWeight: selected ? '700' : '500', color: selected ? theme.accent : theme.text }}>
+                          {opt}
+                        </Text>
+                        {selected && <Check size={18} color={theme.accent} strokeWidth={2.5} />}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            </Modal>
+
             <InputField
               label="Téléphone"
               value={form.phone}

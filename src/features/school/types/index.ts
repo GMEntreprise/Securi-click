@@ -105,8 +105,15 @@ export interface QrScanResult {
   } | null;
 }
 
+export type SchoolType =
+  | 'École maternelle privée'
+  | 'École maternelle publique'
+  | 'École primaire privée'
+  | 'École primaire publique';
+
 export interface UpdateSchoolPayload {
   name?: string;
+  type?: string;
   phone?: string;
   address?: string;
   city?: string;

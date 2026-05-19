@@ -8,3 +8,4 @@ export { AuthBackButton } from './AuthBackButton';
 export { PasswordStrengthBar } from './PasswordStrengthBar';
 export { AuthCheckbox } from './AuthCheckbox';
 export { AuthPickerField } from './AuthPickerField';
+export { LegalConsentSheet } from './LegalConsentSheet';

@@ -6,6 +6,7 @@ import {
   Dimensions,
   Image,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
 } from 'react-native';
@@ -15,6 +16,9 @@ import { useLogin } from '../hooks/useLogin';
 import { useRegisterParent } from '../hooks/useRegister';
 import { useLastEmail } from '../hooks/useLastEmail';
 import { AuthBackButton, AuthTabToggle } from '../components/ui';
+import { LegalConsentSheet } from '../components/ui/LegalConsentSheet';
+import { LegalMentionsScreen } from '@/features/legal/screens/LegalMentionsScreen';
+import { PrivacyPolicyScreen } from '@/features/legal/screens/PrivacyPolicyScreen';
 import { ParentLoginForm } from './ParentLoginForm';
 import { ParentRegisterFormV2 } from './ParentRegisterFormV2';
 import { useTheme } from '@/theme';
@@ -29,6 +33,10 @@ export const ParentAuthScreen: React.FC = memo(() => {
   const insets = useSafeAreaInsets();
   const t = useTheme();
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
+  const [pendingData, setPendingData] = useState<any>(null);
+  const [legalSheetVisible, setLegalSheetVisible] = useState(false);
+  const [legalModalVisible, setLegalModalVisible] = useState(false);
+  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
 
   const lastEmail = useLastEmail();
   const loginMutation = useLogin();
@@ -41,12 +49,17 @@ export const ParentAuthScreen: React.FC = memo(() => {
     [loginMutation]
   );
 
-  const handleRegister = useCallback(
-    (data: any) => {
-      registerMutation.mutate(data);
-    },
-    [registerMutation]
-  );
+  const handleRegisterFormSubmit = useCallback((data: any) => {
+    setPendingData(data);
+    setLegalSheetVisible(true);
+  }, []);
+
+  const handleLegalAccept = useCallback(() => {
+    if (!pendingData) return;
+    setLegalSheetVisible(false);
+    registerMutation.mutate({ ...pendingData, accept_terms: true, accept_privacy: true });
+    setPendingData(null);
+  }, [pendingData, registerMutation]);
 
   const handleForgotPassword = useCallback(() => {
     nav.goToLogin();
@@ -112,14 +125,43 @@ export const ParentAuthScreen: React.FC = memo(() => {
           ) : (
             <ParentRegisterFormV2
               key={lastEmail}
-              onSubmit={handleRegister}
+              onSubmit={handleRegisterFormSubmit}
               isLoading={registerMutation.isPending}
               error={registerMutation.error?.message}
               defaultEmail={lastEmail}
+              onOpenLegal={() => setLegalModalVisible(true)}
+              onOpenPrivacy={() => setPrivacyModalVisible(true)}
             />
           )}
         </Animated.View>
       </ScrollView>
+
+      <LegalConsentSheet
+        visible={legalSheetVisible}
+        onAccept={handleLegalAccept}
+        onClose={() => setLegalSheetVisible(false)}
+        onOpenLegal={() => setLegalModalVisible(true)}
+        onOpenPrivacy={() => setPrivacyModalVisible(true)}
+        role="parent"
+      />
+
+      <Modal
+        visible={legalModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setLegalModalVisible(false)}
+      >
+        <LegalMentionsScreen />
+      </Modal>
+
+      <Modal
+        visible={privacyModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setPrivacyModalVisible(false)}
+      >
+        <PrivacyPolicyScreen />
+      </Modal>
     </KeyboardAvoidingView>
   );
 });
