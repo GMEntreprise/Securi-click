@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   ScrollView,
   Text,
@@ -71,12 +72,10 @@ export default function SchoolProfileScreen() {
   }, [school?.id, updateLogo]);
 
   const handleLogout = useCallback(() => {
-    import('react-native').then(({ Alert }) => {
-      Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Déconnecter', style: 'destructive', onPress: () => nav.logout() },
-      ]);
-    });
+    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Déconnecter', style: 'destructive', onPress: () => nav.logout() },
+    ]);
   }, [nav]);
 
   if (isLoading) {
