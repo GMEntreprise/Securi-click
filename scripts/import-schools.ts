@@ -22,8 +22,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 // ── API data.gouv.fr ──────────────────────────────────────────────────────────
 
 const BASE_URL = 'https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-annuaire-education/records';
-const BATCH_SIZE = 500;
-const CONCURRENCY = 3; // upserts en parallèle par batch
+const BATCH_SIZE = 100; // max autorisé par data.gouv.fr
+const CONCURRENCY = 5; // upserts en parallèle par batch
 
 interface DataGouvRecord {
   identifiant_de_l_etablissement?: string;
@@ -33,8 +33,11 @@ interface DataGouvRecord {
   libelle_nature?: string;
   adresse_1?: string;
   adresse_2?: string;
-  libelle_commune?: string;
-  code_postal_uai?: string;
+  nom_commune?: string;
+  code_postal?: string;
+  code_departement?: string;
+  ecole_maternelle?: number;
+  ecole_elementaire?: number;
   etat?: string;
 }
 
@@ -77,18 +80,36 @@ function normalize(r: DataGouvRecord): {
     external_id:  uai,
     name,
     type:         resolveType(r),
-    address:      address || r.libelle_commune?.trim() ?? '',
-    city:         r.libelle_commune?.trim() ?? '',
-    postal_code:  r.code_postal_uai?.trim() ?? '',
+    address:      address || (r.nom_commune?.trim() ?? ''),
+    city:         r.nom_commune?.trim() ?? '',
+    postal_code:  r.code_postal?.trim() ?? '',
   };
 }
 
-async function fetchPage(offset: number): Promise<{ records: DataGouvRecord[]; total: number }> {
-  const where = encodeURIComponent('type_etablissement:"Ecole" AND etat:"OUVERT"');
-  const url   = `${BASE_URL}?where=${where}&limit=${BATCH_SIZE}&offset=${offset}&timezone=Europe%2FParis`;
-  const res   = await fetch(url, { headers: { Accept: 'application/json' } });
+// Départements français — chaque tranche reste sous 10 000 records
+const DEPARTEMENTS = [
+  '001','002','003','004','005','006','007','008','009',
+  '010','011','012','013','014','015','016','017','018','019',
+  '021','022','023','024','025','026','027','028','029',
+  '030','031','032','033','034','035','036','037','038','039',
+  '040','041','042','043','044','045','046','047','048','049',
+  '050','051','052','053','054','055','056','057','058','059',
+  '060','061','062','063','064','065','066','067','068','069',
+  '070','071','072','073','074','075','076','077','078','079',
+  '080','081','082','083','084','085','086','087','088','089',
+  '090','091','092','093','094','095',
+  '971','972','973','974','976',
+  '02A','02B',
+];
+
+async function fetchDeptPage(dept: string, offset: number): Promise<{ records: DataGouvRecord[]; total: number }> {
+  const where = encodeURIComponent(
+    `type_etablissement:"Ecole" AND etat:"OUVERT" AND code_departement:"${dept}"`
+  );
+  const url = `${BASE_URL}?where=${where}&limit=${BATCH_SIZE}&offset=${offset}&timezone=Europe%2FParis`;
+  const res = await fetch(url, { headers: { Accept: 'application/json' } });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-  const body  = await res.json() as { results: DataGouvRecord[]; total_count: number };
+  const body = await res.json() as { results: DataGouvRecord[]; total_count: number };
   return { records: body.results ?? [], total: body.total_count ?? 0 };
 }
 
@@ -98,12 +119,20 @@ async function main() {
   console.log('🏫  Import établissements data.gouv.fr → Supabase\n');
 
   let inserted = 0, updated = 0, skipped = 0, errors = 0;
-  let offset = 0, total = Infinity, page = 0;
+  let page = 0;
+  let totalProcessed = 0;
 
-  while (offset < total) {
-    const { records, total: t } = await fetchPage(offset);
-    total = t;
-    page++;
+  for (const dept of DEPARTEMENTS) {
+    let offset = 0;
+    let deptTotal = Infinity;
+
+    while (offset < deptTotal) {
+      const { records, total } = await fetchDeptPage(dept, offset);
+      deptTotal = total;
+
+      if (records.length === 0) break;
+      page++;
+      totalProcessed += records.length;
 
     const schools = records.flatMap(r => {
       const n = normalize(r);
@@ -134,11 +163,11 @@ async function main() {
       }));
     }
 
-    offset += records.length;
-    const pct = Math.min(100, Math.round((offset / total) * 100));
-    process.stdout.write(`\r  Page ${page} — ${offset}/${total} (${pct}%) | +${inserted} ins / ${updated} upd / ${errors} err`);
+      offset += records.length;
+      process.stdout.write(`\r  Dept ${dept} — page ${page} | ~${totalProcessed} traités | +${inserted} ins / ${updated} upd / ${errors} err`);
 
-    if (records.length < BATCH_SIZE) break;
+      if (records.length < BATCH_SIZE) break;
+    }
   }
 
   console.log('\n\n✅  Import terminé');
@@ -146,7 +175,7 @@ async function main() {
   console.log(`   Mis à jour: ${updated}`);
   console.log(`   Ignorés  : ${skipped}`);
   console.log(`   Erreurs  : ${errors}`);
-  console.log(`   Total    : ${offset}`);
+  console.log(`   Total    : ${totalProcessed}`);
 }
 
 main().catch(err => { console.error('\n❌', err); process.exit(1); });

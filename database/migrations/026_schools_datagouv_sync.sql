@@ -11,6 +11,10 @@ ALTER TABLE schools
   ADD COLUMN IF NOT EXISTS verified        BOOLEAN NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS synced_at       TIMESTAMPTZ;
 
+-- admin_user_id nullable pour les écoles importées sans compte admin
+ALTER TABLE schools
+  ALTER COLUMN admin_user_id DROP NOT NULL;
+
 -- 2. Index unique sur external_id pour upsert idempotent
 --    (partiel : seulement quand external_id est renseigné)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_schools_external_id
