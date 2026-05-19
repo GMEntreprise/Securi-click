@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { schoolSearchService, type SchoolSearchResult } from '../services/schoolSearch.service';
 
 const SCHOOL_SEARCH_KEY = (query: string) =>
@@ -8,14 +8,13 @@ const SCHOOL_SEARCH_KEY = (query: string) =>
 export function useSchoolSearch() {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleQueryChange = useCallback((text: string) => {
     setQuery(text);
-    if (debounceTimer) clearTimeout(debounceTimer);
-    const t = setTimeout(() => setDebouncedQuery(text), 300);
-    setDebounceTimer(t);
-  }, [debounceTimer]);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setDebouncedQuery(text), 300);
+  }, []);
 
   const searchQuery = useQuery({
     queryKey: SCHOOL_SEARCH_KEY(debouncedQuery),
@@ -29,15 +28,18 @@ export function useSchoolSearch() {
   const isSearching = searchQuery.isFetching && debouncedQuery.length >= 2;
   const isEmpty = !isSearching && debouncedQuery.length >= 2 && results.length === 0;
 
+  const clear = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setQuery('');
+    setDebouncedQuery('');
+  }, []);
+
   return {
     query,
     setQuery: handleQueryChange,
     results,
     isSearching,
     isEmpty,
-    clear: useCallback(() => {
-      setQuery('');
-      setDebouncedQuery('');
-    }, []),
+    clear,
   };
 }
