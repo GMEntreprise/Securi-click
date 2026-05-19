@@ -32,7 +32,7 @@ export default function AuthCallbackScreen() {
           type: 'error',
           duration: 5000,
         });
-        router.replace('/(auth)/collector' as any);
+        router.replace('/(auth)/login' as any);
       }
     }, 10_000);
     return () => clearTimeout(timer);

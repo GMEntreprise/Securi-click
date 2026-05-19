@@ -29,11 +29,8 @@ export function useMyGuardians() {
   useEffect(() => {
     if (!uid) return;
 
-    const channelName = `collector-guardians-${uid}`;
-    supabase.removeChannel(supabase.channel(channelName));
-
     const ch = supabase
-      .channel(channelName)
+      .channel(`collector-guardians-${uid}`)
       .on(
         'postgres_changes',
         {
@@ -72,11 +69,8 @@ export function useMyGuardians() {
 
     channelRef.current = ch;
 
-    // Also listen for child updates (photo, class, medical_notes)
-    const childChannelName = `collector-children-${uid}`;
-    supabase.removeChannel(supabase.channel(childChannelName));
     const childCh = supabase
-      .channel(childChannelName)
+      .channel(`collector-children-${uid}`)
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'children' },
@@ -123,11 +117,8 @@ export function useMyPickupLogs() {
   useEffect(() => {
     if (!uid) return;
 
-    const channelName = `collector-logs-${uid}`;
-    supabase.removeChannel(supabase.channel(channelName));
-
     const ch = supabase
-      .channel(channelName)
+      .channel(`collector-logs-${uid}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
@@ -161,11 +152,8 @@ export function useCollectorProfile() {
   useEffect(() => {
     if (!uid) return;
 
-    const channelName = `collector-profile-${uid}`;
-    supabase.removeChannel(supabase.channel(channelName));
-
     const ch = supabase
-      .channel(channelName)
+      .channel(`collector-profile-${uid}`)
       .on(
         'postgres_changes',
         {
@@ -344,11 +332,8 @@ export function useCollectorQrCode(childId?: string) {
   useEffect(() => {
     if (!uid) return;
 
-    const channelName = `collector-qr-${uid}`;
-    supabase.removeChannel(supabase.channel(channelName));
-
     const ch = supabase
-      .channel(channelName)
+      .channel(`collector-qr-${uid}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'qr_codes' },
@@ -383,11 +368,8 @@ export function useCollectorRecentScans(childId?: string) {
   useEffect(() => {
     if (!uid) return;
 
-    const channelName = `collector-scans-${uid}`;
-    supabase.removeChannel(supabase.channel(channelName));
-
     const ch = supabase
-      .channel(channelName)
+      .channel(`collector-scans-${uid}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'pickup_logs' },

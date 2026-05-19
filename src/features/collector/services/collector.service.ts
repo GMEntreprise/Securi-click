@@ -218,13 +218,20 @@ export const collectorService = {
   },
 
   async uploadAvatar(userId: string, uri: string): Promise<string> {
-    const ext = uri.split('.').pop() ?? 'jpg';
+    const ALLOWED: Record<string, string> = {
+      jpg: 'image/jpeg', jpeg: 'image/jpeg',
+      png: 'image/png', webp: 'image/webp',
+    };
+    const rawExt = (uri.split('?')[0].split('.').pop() ?? '').toLowerCase();
+    const contentType = ALLOWED[rawExt];
+    if (!contentType) throw new Error('Format image non supporté. Utilisez JPG, PNG ou WebP.');
+    const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
     const path = `${userId}/avatar.${ext}`;
     const response = await fetch(uri);
     const arrayBuffer = await response.arrayBuffer();
     const { error } = await supabase.storage
       .from('collector-avatars')
-      .upload(path, arrayBuffer, { contentType: `image/${ext}`, upsert: true });
+      .upload(path, arrayBuffer, { contentType, upsert: true });
     if (error) throw error;
     const { data } = supabase.storage
       .from('collector-avatars')

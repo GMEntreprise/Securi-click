@@ -337,9 +337,11 @@ function NotificationBootstrap() {
 
     let tokenRegistered = false;
 
-    registerPushToken().then(() => {
-      tokenRegistered = true;
-    });
+    registerPushToken()
+      .then(() => { tokenRegistered = true; })
+      .catch(err => {
+        if (__DEV__) console.error('[NotificationBootstrap] push token registration failed', err);
+      });
 
     const foregroundSub = addForegroundNotificationListener(() => {
       // Badge is updated via realtime store; toast already shown by system

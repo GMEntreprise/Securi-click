@@ -14,7 +14,7 @@ export const parentService = {
   async getProfile(userId: string): Promise<ParentProfile> {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('*')
+      .select('id, user_id, first_name, last_name, phone, avatar_url, role, school_id, created_at, updated_at')
       .eq('user_id', userId)
       .single();
     if (error) throw error;
@@ -117,7 +117,7 @@ export const parentService = {
   async getGuardians(childId: string): Promise<Guardian[]> {
     const { data, error } = await supabase
       .from('guardians')
-      .select('*')
+      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at')
       .eq('child_id', childId)
       .order('priority', { ascending: true });
     if (error) throw error;
@@ -127,7 +127,7 @@ export const parentService = {
   async getGuardian(guardianId: string): Promise<Guardian> {
     const { data, error } = await supabase
       .from('guardians')
-      .select('*')
+      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at')
       .eq('id', guardianId)
       .single();
     if (error) throw error;
@@ -211,6 +211,10 @@ export const parentService = {
     arrayBuffer: ArrayBuffer,
     contentType: string
   ): Promise<string> {
+    const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!ALLOWED.includes(contentType)) {
+      throw new Error('Format image non supporté. Utilisez JPG, PNG ou WebP.');
+    }
     const { error } = await supabase.storage
       .from(bucket)
       .upload(filePath, arrayBuffer, {
