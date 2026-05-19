@@ -46,13 +46,16 @@ BEGIN
     LOOP
       CONTINUE WHEN v_drop = v_keep;
 
+      -- Vider external_id sur le doublon AVANT de le copier sur la fiche gardée
+      -- (évite la violation de contrainte unique idx_schools_external_id)
+      UPDATE schools SET external_id = NULL WHERE id = v_drop;
+
       -- Transférer external_id et verified si la fiche gardée n'en a pas
       UPDATE schools SET
         external_id     = COALESCE(schools.external_id,     d.external_id),
         external_source = COALESCE(schools.external_source, d.external_source),
         verified        = schools.verified OR d.verified,
         synced_at       = GREATEST(schools.synced_at, d.synced_at),
-        -- Transférer admin si la fiche gardée n'en a pas
         admin_user_id   = COALESCE(schools.admin_user_id,   d.admin_user_id),
         updated_at      = NOW()
       FROM schools d
