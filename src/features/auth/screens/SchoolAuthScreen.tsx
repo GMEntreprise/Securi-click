@@ -50,6 +50,8 @@ import { LegalConsentSheet } from '../components/ui/LegalConsentSheet';
 import { LegalMentionsScreen } from '@/features/legal/screens/LegalMentionsScreen';
 import { PrivacyPolicyScreen } from '@/features/legal/screens/PrivacyPolicyScreen';
 import { useTheme } from '@/theme';
+import { SchoolNameSmartField } from '@/features/school/components/ui/SchoolNameSmartField';
+import type { SchoolPrefillData } from '@/features/school/components/ui/SchoolNameSmartField';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.3;
@@ -175,6 +177,8 @@ const SchoolRegisterForm: React.FC<{
   const {
     control,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<RegisterValues>({
     resolver: zodResolver(schoolRegisterSchema),
@@ -195,6 +199,16 @@ const SchoolRegisterForm: React.FC<{
       accept_privacy: false,
     },
   });
+
+  const schoolNameValue = watch('school_name');
+
+  const handlePrefill = useCallback((data: SchoolPrefillData) => {
+    setValue('school_name', data.name, { shouldValidate: true });
+    setValue('school_type', data.type, { shouldValidate: true });
+    setValue('address', data.address, { shouldValidate: true });
+    setValue('city', data.city, { shouldValidate: true });
+    setValue('postal_code', data.postal_code, { shouldValidate: true });
+  }, [setValue]);
 
   return (
     <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
@@ -240,12 +254,10 @@ const SchoolRegisterForm: React.FC<{
         </View>
       )}
 
-      <AuthInputField
-        control={control}
-        name="school_name"
-        label="Nom de l'établissement"
-        placeholder="ex: École du Centre"
-        icon={<Building2 size={18} color={t.textMuted} />}
+      <SchoolNameSmartField
+        value={schoolNameValue}
+        onChangeText={text => setValue('school_name', text, { shouldValidate: !!errors.school_name })}
+        onPrefill={handlePrefill}
         error={errors.school_name?.message}
       />
 

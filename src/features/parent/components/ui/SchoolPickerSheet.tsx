@@ -13,9 +13,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   Building2,
+  CheckCircle2,
   MapPin,
   Search,
   ShieldCheck,
+  Sparkles,
   X,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
@@ -385,6 +387,51 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
               >
                 L'établissement n'est peut-être pas encore inscrit sur SecuriClick.{'\n'}Essayez un nom différent.
               </Text>
+            </Animated.View>
+          )}
+
+          {/* Bannière correspondance exacte */}
+          {results.length > 0 && results[0].confidence >= 95 && (
+            <Animated.View
+              entering={FadeInDown.duration(240)}
+              style={{
+                backgroundColor: theme.greenBg,
+                borderRadius: 16,
+                borderWidth: 1,
+                borderColor: 'rgba(16,185,129,0.3)',
+                padding: 14,
+                marginBottom: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 10,
+              }}
+            >
+              <Sparkles size={16} color={theme.green} strokeWidth={2} />
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: theme.green, fontSize: 13, fontWeight: '700' }}>
+                  Correspondance exacte trouvée
+                </Text>
+                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }} numberOfLines={1}>
+                  {results[0].name} · {results[0].city}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => handleSelect(results[0])}
+                style={{
+                  backgroundColor: theme.green,
+                  borderRadius: 10,
+                  paddingHorizontal: 12,
+                  paddingVertical: 7,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                }}
+              >
+                <CheckCircle2 size={13} color="#fff" strokeWidth={2.5} />
+                <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>
+                  Confirmer
+                </Text>
+              </TouchableOpacity>
             </Animated.View>
           )}
 

@@ -29,6 +29,8 @@ import { useTheme } from '@/theme';
 import { useUpdateSchool } from '../../hooks/useSchool';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import type { SchoolProfile } from '../../types';
+import { SchoolNameSmartField } from './SchoolNameSmartField';
+import type { SchoolPrefillData } from './SchoolNameSmartField';
 
 const MANAGER_FUNCTIONS = [
   'Directeur / Directrice',
@@ -163,6 +165,18 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
     []
   );
 
+  const handlePrefill = useCallback((data: SchoolPrefillData) => {
+    setForm(prev => ({
+      ...prev,
+      name: data.name,
+      type: data.type || prev.type,
+      address: data.address || prev.address,
+      city: data.city || prev.city,
+      postal_code: data.postal_code || prev.postal_code,
+    }));
+    setErrors({});
+  }, []);
+
   const validate = useCallback((): boolean => {
     const next: FormErrors = {};
     if (!form.name.trim()) next.name = 'Nom requis';
@@ -283,11 +297,10 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
               label="Établissement"
               bg={theme.accentBg}
             />
-            <InputField
-              label="Nom"
+            <SchoolNameSmartField
               value={form.name}
               onChangeText={setField('name')}
-              placeholder="École du Centre"
+              onPrefill={handlePrefill}
               error={errors.name}
             />
 
