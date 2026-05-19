@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Text,
@@ -36,6 +36,7 @@ interface Props {
   onPrefill: (data: SchoolPrefillData) => void;
   placeholder?: string;
   error?: string;
+  initialQuery?: string;
 }
 
 const PREFILL_THRESHOLD = 70;
@@ -122,12 +123,20 @@ export const SchoolNameSmartField = memo(function SchoolNameSmartField({
   onPrefill,
   placeholder = 'ex: École Saint-Joseph, Maternelle...',
   error,
+  initialQuery,
 }: Props) {
   const theme = useTheme();
   const inputRef = useRef<TextInput>(null);
   const { query, setQuery, results, isSearching, clear } = useSchoolSearch();
   const [dismissedId, setDismissedId] = useState<string | null>(null);
   const [prefillApplied, setPrefillApplied] = useState(false);
+
+  const initialQueryRef = useRef(initialQuery);
+  useEffect(() => {
+    if (initialQueryRef.current && initialQueryRef.current.trim().length >= 2) {
+      setQuery(initialQueryRef.current.trim());
+    }
+  }, [setQuery]);
 
   const handleChange = useCallback(
     (text: string) => {

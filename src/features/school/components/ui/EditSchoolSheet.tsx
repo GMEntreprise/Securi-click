@@ -302,6 +302,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
               onChangeText={setField('name')}
               onPrefill={handlePrefill}
               error={errors.name}
+              initialQuery={school.name}
             />
 
             {/* Type picker */}
