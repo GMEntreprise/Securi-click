@@ -56,7 +56,7 @@ export const parentService = {
   async getChildren(parentId: string): Promise<Child[]> {
     const { data, error } = await supabase
       .from('children')
-      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type )')
+      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )')
       .eq('parent_id', parentId)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -66,7 +66,7 @@ export const parentService = {
   async getChild(childId: string): Promise<Child> {
     const { data, error } = await supabase
       .from('children')
-      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type )')
+      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )')
       .eq('id', childId)
       .single();
     if (error) throw error;

@@ -31,7 +31,7 @@ export interface CollectorGuardian {
     photo_url: string | null;
     class_name: string | null;
     medical_notes: string | null;
-    school?: { id: string; name: string; city: string } | null;
+    school?: { id: string; name: string; city: string; type: string; verified: boolean; external_id: string | null } | null;
   } | null;
 }
 

@@ -15,6 +15,8 @@ export interface SchoolProfile {
   opening_hours: OpeningHours | null;
   slug: string | null;
   is_active: boolean;
+  verified: boolean;
+  external_id: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -9,7 +9,7 @@ import type {
 } from '../types';
 
 const SCHOOL_SELECT =
-  'id, name, type, email, phone, address, city, postal_code, manager_first_name, manager_last_name, manager_function, admin_user_id, logo_url, opening_hours, slug, is_active, created_at, updated_at';
+  'id, name, type, email, phone, address, city, postal_code, manager_first_name, manager_last_name, manager_function, admin_user_id, logo_url, opening_hours, slug, is_active, verified, external_id, created_at, updated_at';
 
 const CHILD_SELECT =
   'id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, parent:user_profiles!children_parent_id_fkey(first_name, last_name, phone)';
