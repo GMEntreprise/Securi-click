@@ -62,7 +62,7 @@ export const ParentAuthScreen: React.FC = memo(() => {
   }, [pendingData, registerMutation]);
 
   const handleForgotPassword = useCallback(() => {
-    nav.goToLogin();
+    nav.goToForgotPassword();
   }, [nav]);
 
   const handleTabToggle = useCallback((index: 0 | 1) => {

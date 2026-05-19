@@ -19,6 +19,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  Pressable,
   ScrollView,
   Text,
   View,
@@ -80,7 +81,8 @@ const SchoolLoginForm: React.FC<{
   isLoading: boolean;
   error?: string | null;
   defaultEmail?: string;
-}> = memo(({ onSubmit, isLoading, error, defaultEmail = '' }) => {
+  onForgotPassword: () => void;
+}> = memo(({ onSubmit, isLoading, error, defaultEmail = '', onForgotPassword }) => {
   const t = useTheme();
   const {
     control,
@@ -148,6 +150,13 @@ const SchoolLoginForm: React.FC<{
         name="password"
         label="Mot de passe"
         error={errors.password?.message}
+        rightLabel={
+          <Pressable onPress={onForgotPassword} hitSlop={8}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: t.primary }}>
+              Oublié ?
+            </Text>
+          </Pressable>
+        }
       />
 
       <View style={{ marginTop: 8 }}>
@@ -616,6 +625,7 @@ export const SchoolAuthScreen: React.FC = memo(() => {
                   isLoading={loginMutation.isPending}
                   error={loginMutation.error?.message}
                   defaultEmail={lastEmail}
+                  onForgotPassword={() => nav.goToForgotPassword()}
                 />
               ) : (
                 <SchoolRegisterForm

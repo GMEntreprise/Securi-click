@@ -8,7 +8,9 @@ export const ROUTES = {
     school:       '/(auth)/school' as const,
     collector:    '/(auth)/collector' as const,
     collectorPin: '/(auth)/collector-pin' as const,
-    callback:     '/(auth)/callback' as const,
+    callback:        '/(auth)/callback' as const,
+    forgotPassword:  '/(auth)/forgot-password' as const,
+    resetPassword:   '/(auth)/reset-password' as const,
   },
   parent: {
     root:        '/(parent-tabs)' as const,

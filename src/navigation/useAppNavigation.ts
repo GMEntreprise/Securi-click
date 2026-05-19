@@ -20,6 +20,10 @@ export function useAppNavigation() {
     router.replace(ROUTES.auth.index as any);
   }, [router]);
 
+  const goToForgotPassword = useCallback(() => {
+    router.push(ROUTES.auth.forgotPassword as any);
+  }, [router]);
+
   const goToCollectorPin = useCallback(
     (invitationToken?: string) => {
       if (invitationToken) {
@@ -188,6 +192,7 @@ export function useAppNavigation() {
     // auth
     goToLogin,
     goToRoleChoice,
+    goToForgotPassword,
     goToCollectorPin,
     logout,
     // parent

@@ -194,7 +194,7 @@ function DeepLinkHandler() {
         deepLinkProcessing = false;
 
         if (type === 'recovery') {
-          router.replace('/(auth)/login' as any);
+          router.replace('/(auth)/reset-password' as any);
         } else if (role === 'collector') {
           router.replace('/(auth)/collector-pin' as any);
         } else if (role === 'school_admin' || role === 'staff') {
@@ -286,7 +286,7 @@ function NavigationGuard() {
 
     const inAuth = seg === '(auth)';
     const sub1 = segments[1] as string | undefined;
-    if (inAuth && sub1 === 'callback') return;
+    if (inAuth && (sub1 === 'callback' || sub1 === 'reset-password')) return;
 
     const inPinScreen = inAuth && sub1 === 'collector-pin';
     const role = useAuthStore.getState().session?.user.role;

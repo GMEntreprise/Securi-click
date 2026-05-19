@@ -124,7 +124,9 @@ async function signOut(): Promise<void> {
 }
 
 async function forgotPassword(email: string): Promise<void> {
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: 'securiclick://auth/callback',
+  });
   if (error) {
     throw new Error(error.message);
   }
