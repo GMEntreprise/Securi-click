@@ -22,10 +22,15 @@ import {
   AlertCircle,
   Save,
   Camera,
+  Building2,
+  ChevronRight,
+  CheckCircle2,
 } from 'lucide-react-native';
 import { useSession } from '@/features/auth/store/auth.store';
 import { useAddChild } from '@/features/parent/hooks/useChildren';
 import { useImagePicker } from '@/hooks';
+import { SchoolPickerSheet } from '@/features/parent/components/ui/SchoolPickerSheet';
+import type { SchoolSearchResult } from '@/features/school/services/schoolSearch.service';
 
 interface FormData {
   firstName: string;
@@ -134,6 +139,8 @@ export default function AddChild() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
+  const [selectedSchool, setSelectedSchool] = useState<SchoolSearchResult | null>(null);
+  const [schoolPickerVisible, setSchoolPickerVisible] = useState(false);
 
   const setField = useCallback(
     (field: keyof FormData) => (value: string) => {
@@ -178,6 +185,12 @@ export default function AddChild() {
     ]);
   }, [takePhoto, pickFromGallery]);
 
+  const handleSchoolSelect = useCallback((school: SchoolSearchResult) => {
+    setSelectedSchool(school);
+    setSchoolPickerVisible(false);
+    if (__DEV__) console.log('[AddChild] école liée:', school.name, school.id);
+  }, []);
+
   const handleSave = useCallback(async () => {
     if (!validate()) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -190,14 +203,22 @@ export default function AddChild() {
       date_of_birth: null,
       class_name: form.className.trim(),
       photo_url: photoUrl,
+      school_id: selectedSchool?.id ?? null,
     });
+    if (__DEV__) console.log('[AddChild] enfant créé, school_id:', selectedSchool?.id ?? 'null');
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
-  }, [validate, addChild, form, photoUrl, router]);
+  }, [validate, addChild, form, photoUrl, selectedSchool, router]);
 
   const isBusy = addChild.isPending || isUploading;
 
   return (
+    <>
+      <SchoolPickerSheet
+        visible={schoolPickerVisible}
+        onSelect={handleSchoolSelect}
+        onClose={() => setSchoolPickerVisible(false)}
+      />
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: theme.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -429,8 +450,116 @@ export default function AddChild() {
             ) : null}
           </Animated.View>
 
+          {/* Établissement */}
+          <Animated.View
+            entering={FadeInDown.delay(190).duration(400)}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: selectedSchool ? 'rgba(16,185,129,0.3)' : theme.cardBorder,
+              padding: 16,
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 14,
+              }}
+            >
+              <View
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 9,
+                  backgroundColor: theme.primaryBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Building2 size={14} color={theme.primary} />
+              </View>
+              <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}>
+                Établissement
+              </Text>
+              <Text style={{ color: theme.textMuted, fontSize: 12, marginLeft: 4 }}>
+                (optionnel)
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSchoolPickerVisible(true);
+              }}
+              activeOpacity={0.75}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                backgroundColor: theme.iconBg,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: selectedSchool ? 'rgba(16,185,129,0.25)' : theme.cardBorder,
+                padding: 14,
+              }}
+            >
+              <View
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 11,
+                  backgroundColor: selectedSchool ? theme.greenBg : theme.primaryBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                {selectedSchool
+                  ? <CheckCircle2 size={18} color={theme.green} strokeWidth={2} />
+                  : <Building2 size={18} color={theme.primary} strokeWidth={1.8} />
+                }
+              </View>
+              <View style={{ flex: 1 }}>
+                {selectedSchool ? (
+                  <>
+                    <Text style={{ color: theme.text, fontSize: 14, fontWeight: '700' }} numberOfLines={1}>
+                      {selectedSchool.name}
+                    </Text>
+                    <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }} numberOfLines={1}>
+                      {selectedSchool.city} · {selectedSchool.type}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={{ color: theme.text, fontSize: 14, fontWeight: '600' }}>
+                      Rechercher l'école
+                    </Text>
+                    <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
+                      L'établissement verra votre enfant automatiquement
+                    </Text>
+                  </>
+                )}
+              </View>
+              <ChevronRight size={16} color={theme.textMuted} strokeWidth={2} />
+            </TouchableOpacity>
+
+            {selectedSchool && (
+              <TouchableOpacity
+                onPress={() => setSelectedSchool(null)}
+                style={{ marginTop: 10, alignSelf: 'flex-start' }}
+              >
+                <Text style={{ color: theme.red, fontSize: 12, fontWeight: '600' }}>
+                  Retirer l'établissement
+                </Text>
+              </TouchableOpacity>
+            )}
+          </Animated.View>
+
           {/* Save */}
-          <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+          <Animated.View entering={FadeInDown.delay(230).duration(400)}>
             <TouchableOpacity
               onPress={handleSave}
               disabled={isBusy}
@@ -474,5 +603,6 @@ export default function AddChild() {
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
+    </>
   );
 }

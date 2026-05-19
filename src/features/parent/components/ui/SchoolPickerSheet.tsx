@@ -1,0 +1,407 @@
+import React, { memo, useCallback, useRef } from 'react';
+import {
+  ActivityIndicator,
+  Modal,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
+import {
+  Building2,
+  MapPin,
+  Search,
+  ShieldCheck,
+  X,
+} from 'lucide-react-native';
+import { useTheme } from '@/theme';
+import { useSchoolSearch } from '@/features/school/hooks/useSchoolSearch';
+import type { SchoolSearchResult } from '@/features/school/services/schoolSearch.service';
+
+interface Props {
+  visible: boolean;
+  onSelect: (school: SchoolSearchResult) => void;
+  onClose: () => void;
+}
+
+const SCHOOL_TYPE_LABELS: Record<string, string> = {
+  maternelle: 'Maternelle',
+  elementaire: 'Élémentaire',
+  primaire: 'Primaire',
+  college: 'Collège',
+  lycee: 'Lycée',
+  creche: 'Crèche',
+  garderie: 'Garderie',
+  centre_aere: 'Centre aéré',
+};
+
+function typeLabel(type: string): string {
+  return SCHOOL_TYPE_LABELS[type.toLowerCase()] ?? type;
+}
+
+const ConfidenceBadge = memo(function ConfidenceBadge({
+  score,
+}: {
+  score: number;
+}) {
+  const theme = useTheme();
+  if (score >= 95) {
+    return (
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 3,
+          backgroundColor: theme.greenBg,
+          paddingHorizontal: 7,
+          paddingVertical: 2,
+          borderRadius: 6,
+        }}
+      >
+        <ShieldCheck size={10} color={theme.green} strokeWidth={2.5} />
+        <Text style={{ color: theme.green, fontSize: 10, fontWeight: '700' }}>
+          Correspondance exacte
+        </Text>
+      </View>
+    );
+  }
+  if (score >= 70) {
+    return (
+      <View
+        style={{
+          backgroundColor: theme.accentBg,
+          paddingHorizontal: 7,
+          paddingVertical: 2,
+          borderRadius: 6,
+        }}
+      >
+        <Text style={{ color: theme.accent, fontSize: 10, fontWeight: '700' }}>
+          Suggestion proche
+        </Text>
+      </View>
+    );
+  }
+  return null;
+});
+
+const SchoolCard = memo(function SchoolCard({
+  school,
+  onPress,
+}: {
+  school: SchoolSearchResult;
+  onPress: () => void;
+}) {
+  const theme = useTheme();
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      style={{
+        backgroundColor: theme.card,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: theme.cardBorder,
+        padding: 14,
+        marginBottom: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+      }}
+    >
+      <View
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 13,
+          backgroundColor: theme.primaryBg,
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        <Building2 size={20} color={theme.primary} strokeWidth={1.8} />
+      </View>
+
+      <View style={{ flex: 1, gap: 3 }}>
+        <View
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}
+        >
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 14,
+              fontWeight: '700',
+              flexShrink: 1,
+            }}
+            numberOfLines={1}
+          >
+            {school.name}
+          </Text>
+          <ConfidenceBadge score={school.confidence} />
+        </View>
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <MapPin size={11} color={theme.textMuted} strokeWidth={2} />
+          <Text style={{ color: theme.textMuted, fontSize: 12 }} numberOfLines={1}>
+            {school.address}, {school.city}
+            {school.postal_code ? ` (${school.postal_code})` : ''}
+          </Text>
+        </View>
+
+        <Text
+          style={{
+            color: theme.textSecondary,
+            fontSize: 11,
+            fontWeight: '600',
+            textTransform: 'uppercase',
+            letterSpacing: 0.4,
+          }}
+        >
+          {typeLabel(school.type)}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+});
+
+export const SchoolPickerSheet = memo(function SchoolPickerSheet({
+  visible,
+  onSelect,
+  onClose,
+}: Props) {
+  const theme = useTheme();
+  const insets = useSafeAreaInsets();
+  const inputRef = useRef<TextInput>(null);
+  const { query, setQuery, results, isSearching, isEmpty, clear } =
+    useSchoolSearch();
+
+  const handleSelect = useCallback(
+    (school: SchoolSearchResult) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      if (__DEV__) console.log('[SchoolPicker] sélectionné:', school.name, `(${school.confidence}%)`);
+      clear();
+      onSelect(school);
+    },
+    [clear, onSelect]
+  );
+
+  const handleClose = useCallback(() => {
+    clear();
+    onClose();
+  }, [clear, onClose]);
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={handleClose}
+    >
+      <View style={{ flex: 1, backgroundColor: theme.bg }}>
+        {/* Handle */}
+        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+          <View
+            style={{
+              width: 36,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: theme.cardBorder,
+            }}
+          />
+        </View>
+
+        {/* Header */}
+        <Animated.View
+          entering={FadeInDown.duration(280)}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingVertical: 12,
+          }}
+        >
+          <View>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '700',
+                color: theme.textMuted,
+                textTransform: 'uppercase',
+                letterSpacing: 1.2,
+                marginBottom: 2,
+              }}
+            >
+              Établissement
+            </Text>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '800',
+                color: theme.text,
+                letterSpacing: -0.3,
+              }}
+            >
+              Rechercher l'école
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={handleClose}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              backgroundColor: theme.iconBg,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <X size={16} color={theme.textMuted} strokeWidth={2.5} />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Search input */}
+        <Animated.View
+          entering={FadeInDown.delay(60).duration(280)}
+          style={{ paddingHorizontal: 20, marginBottom: 16 }}
+        >
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: theme.input,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: theme.inputBorder,
+              paddingHorizontal: 14,
+              gap: 10,
+            }}
+          >
+            <Search size={16} color={theme.textMuted} strokeWidth={2} />
+            <TextInput
+              ref={inputRef}
+              value={query}
+              onChangeText={setQuery}
+              placeholder="Ex. École Saint-Joseph, Collège..."
+              placeholderTextColor={theme.placeholder}
+              autoFocus
+              autoCapitalize="words"
+              returnKeyType="search"
+              style={{
+                flex: 1,
+                paddingVertical: 14,
+                fontSize: 15,
+                color: theme.text,
+              }}
+            />
+            {query.length > 0 && (
+              <TouchableOpacity onPress={clear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <X size={14} color={theme.textMuted} strokeWidth={2.5} />
+              </TouchableOpacity>
+            )}
+            {isSearching && <ActivityIndicator size="small" color={theme.accent} />}
+          </View>
+        </Animated.View>
+
+        {/* Results */}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingBottom: insets.bottom + 40,
+          }}
+        >
+          {/* Hint initial */}
+          {query.length < 2 && (
+            <Animated.View
+              entering={FadeInDown.delay(100).duration(280)}
+              style={{ alignItems: 'center', marginTop: 40, gap: 12 }}
+            >
+              <View
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 18,
+                  backgroundColor: theme.primaryBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Building2 size={26} color={theme.primary} strokeWidth={1.5} />
+              </View>
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontSize: 14,
+                  textAlign: 'center',
+                  lineHeight: 20,
+                }}
+              >
+                Tapez au moins 2 caractères{'\n'}pour rechercher un établissement
+              </Text>
+            </Animated.View>
+          )}
+
+          {/* État vide */}
+          {isEmpty && (
+            <Animated.View
+              entering={FadeInDown.duration(280)}
+              style={{ alignItems: 'center', marginTop: 40, gap: 12 }}
+            >
+              <View
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 18,
+                  backgroundColor: theme.iconBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Search size={24} color={theme.textMuted} strokeWidth={1.5} />
+              </View>
+              <Text
+                style={{
+                  color: theme.text,
+                  fontSize: 15,
+                  fontWeight: '700',
+                  textAlign: 'center',
+                }}
+              >
+                Aucun résultat
+              </Text>
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontSize: 13,
+                  textAlign: 'center',
+                  lineHeight: 19,
+                }}
+              >
+                L'établissement n'est peut-être pas encore inscrit sur SecuriClick.{'\n'}Essayez un nom différent.
+              </Text>
+            </Animated.View>
+          )}
+
+          {/* Résultats */}
+          {results.map((school, idx) => (
+            <Animated.View
+              key={school.id}
+              entering={FadeInDown.delay(idx * 40).duration(260)}
+            >
+              <SchoolCard
+                school={school}
+                onPress={() => handleSelect(school)}
+              />
+            </Animated.View>
+          ))}
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+});
