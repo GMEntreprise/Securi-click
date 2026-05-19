@@ -31,11 +31,10 @@ export function usePickupAuthorization(
 
   useEffect(() => {
     if (!enableRealtime || !childId || !guardianId) return;
-    channelRef.current?.unsubscribe();
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
-    const channelName = `pickup-auth-${childId}-${guardianId}`;
     const ch = supabase
-      .channel(channelName)
+      .channel(`pickup-auth-${childId}-${guardianId}`)
       .on(
         'postgres_changes',
         {
@@ -64,7 +63,7 @@ export function usePickupAuthorization(
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
       channelRef.current = null;
     };
   }, [enableRealtime, childId, guardianId, queryClient]);

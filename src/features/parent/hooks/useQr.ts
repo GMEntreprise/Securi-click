@@ -31,10 +31,10 @@ export function useActiveQrCodes(childId?: string) {
 
   useEffect(() => {
     if (!parentId) return;
-    channelRef.current?.unsubscribe();
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
     const ch = supabase
-      .channel(`qr-codes-${parentId}-${Math.random().toString(36).slice(2)}`)
+      .channel(`qr-codes-${parentId}${childId ? `-${childId}` : ''}`)
       .on(
         'postgres_changes',
         {
@@ -53,7 +53,7 @@ export function useActiveQrCodes(childId?: string) {
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [parentId, childId, queryClient]);
 
@@ -75,12 +75,10 @@ export function useRecentScans(childId?: string) {
 
   useEffect(() => {
     if (!parentId) return;
-    channelRef.current?.unsubscribe();
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
     const ch = supabase
-      .channel(
-        `pickup-logs-qr-${parentId}-${Math.random().toString(36).slice(2)}`
-      )
+      .channel(`pickup-logs-qr-${parentId}${childId ? `-${childId}` : ''}`)
       .on(
         'postgres_changes',
         {
@@ -98,7 +96,7 @@ export function useRecentScans(childId?: string) {
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [parentId, childId, queryClient]);
 

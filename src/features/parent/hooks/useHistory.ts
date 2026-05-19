@@ -87,12 +87,10 @@ export function useHistoryFeed(filters: HistoryFilters) {
 
   useEffect(() => {
     if (!parentId) return;
-    channelRef.current?.unsubscribe();
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
     const ch = supabase
-      .channel(
-        `pickup-history-${parentId}-${Math.random().toString(36).slice(2)}`
-      )
+      .channel(`pickup-history-${parentId}`)
       .on(
         'postgres_changes',
         {
@@ -161,7 +159,7 @@ export function useHistoryFeed(filters: HistoryFilters) {
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [parentId, filters, queryClient]);
 

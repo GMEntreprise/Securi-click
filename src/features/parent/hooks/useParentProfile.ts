@@ -23,9 +23,7 @@ export function useParentProfile() {
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
-      .channel(
-        `parent-profile-${userId}-${Math.random().toString(36).slice(2)}`
-      )
+      .channel(`parent-profile-${userId}`)
       .on(
         'postgres_changes',
         {

@@ -25,12 +25,10 @@ export function useMySchool() {
   useEffect(() => {
     const schoolId = query.data?.id;
     if (!uid || !schoolId) return;
-    channelRef.current?.unsubscribe();
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
     const ch = supabase
-      .channel(
-        `school-profile-${schoolId}-${Math.random().toString(36).slice(2)}`
-      )
+      .channel(`school-profile-${schoolId}`)
       .on(
         'postgres_changes',
         {
@@ -48,7 +46,7 @@ export function useMySchool() {
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [uid, query.data?.id, queryClient]);
 

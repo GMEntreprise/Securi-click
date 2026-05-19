@@ -25,7 +25,7 @@ export function useChildren() {
   useEffect(() => {
     if (!parentId) return;
     const channel = supabase
-      .channel(`children-${parentId}-${Math.random().toString(36).slice(2)}`)
+      .channel(`children-${parentId}`)
       .on(
         'postgres_changes',
         {

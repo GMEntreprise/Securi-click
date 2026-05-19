@@ -25,12 +25,10 @@ export function usePickupValidations(schoolId: string) {
 
   useEffect(() => {
     if (!schoolId) return;
-    channelRef.current?.unsubscribe();
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
     const ch = supabase
-      .channel(
-        `school-validations-${schoolId}-${Math.random().toString(36).slice(2)}`
-      )
+      .channel(`school-validations-${schoolId}`)
       .on(
         'postgres_changes',
         {
@@ -57,7 +55,7 @@ export function usePickupValidations(schoolId: string) {
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [schoolId, queryClient]);
 

@@ -88,7 +88,7 @@ export function useCollectorPickupSchedules() {
 
   useEffect(() => {
     if (!collectorUserId) return;
-    channelRef.current?.unsubscribe();
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
     const ch = supabase
       .channel(`collector-schedules-${collectorUserId}`)
@@ -109,7 +109,7 @@ export function useCollectorPickupSchedules() {
 
     channelRef.current = ch;
     return () => {
-      ch.unsubscribe();
+      supabase.removeChannel(ch);
     };
   }, [collectorUserId, queryClient]);
 

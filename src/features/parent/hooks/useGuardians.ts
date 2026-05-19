@@ -25,7 +25,7 @@ export function useGuardians(childId: string) {
   useEffect(() => {
     if (!childId) return;
     const channel = supabase
-      .channel(`guardians-${childId}-${Math.random().toString(36).slice(2)}`)
+      .channel(`guardians-${childId}`)
       .on(
         'postgres_changes',
         {
