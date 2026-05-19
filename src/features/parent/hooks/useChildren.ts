@@ -47,11 +47,7 @@ export function useChildren() {
               return [payload.new as Child, ...existing];
             });
           } else {
-            queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev =>
-              (prev ?? []).map(c =>
-                c.id === payload.new.id ? (payload.new as Child) : c
-              )
-            );
+            queryClient.invalidateQueries({ queryKey: CHILDREN_KEY(parentId) });
           }
         }
       )

@@ -15,7 +15,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
   AlertCircle,
+  Building2,
   Camera,
+  CheckCircle2,
+  ChevronRight,
   GraduationCap,
   User,
   X,
@@ -29,6 +32,8 @@ import { useSession } from '@/features/auth/store/auth.store';
 import { useImagePicker } from '@/hooks';
 import type { Child } from '../../types';
 import { Toast } from '@/shared/ui/molecules/Toast';
+import { SchoolPickerSheet } from './SchoolPickerSheet';
+import type { SchoolSearchResult } from '@/features/school/services/schoolSearch.service';
 
 const GRADES = [
   'TPS',
@@ -151,6 +156,12 @@ export const EditChildSheet = memo(function EditChildSheet({
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [photoUri, setPhotoUri] = useState<string | null>(child.photo_url);
+  const [selectedSchool, setSelectedSchool] = useState<SchoolSearchResult | null>(
+    child.school
+      ? { id: child.school.id, name: child.school.name, city: child.school.city, type: child.school.type, normalized_name: '', address: '', postal_code: '', logo_url: null, is_active: true, confidence: 100 }
+      : null
+  );
+  const [schoolPickerVisible, setSchoolPickerVisible] = useState(false);
 
   const setField = useCallback(
     (field: keyof FormState) => (value: string) => {
@@ -189,6 +200,11 @@ export const EditChildSheet = memo(function EditChildSheet({
     ]);
   }, [takePhoto, pickFromGallery]);
 
+  const handleSchoolSelect = useCallback((school: SchoolSearchResult) => {
+    setSelectedSchool(school);
+    setSchoolPickerVisible(false);
+  }, []);
+
   const handleSave = useCallback(async () => {
     if (!validate()) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -204,6 +220,7 @@ export const EditChildSheet = memo(function EditChildSheet({
           class_name: form.className.trim(),
           medical_notes: form.medicalNotes.trim() || null,
           photo_url: photoUri,
+          school_id: selectedSchool?.id ?? null,
         },
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -213,11 +230,17 @@ export const EditChildSheet = memo(function EditChildSheet({
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Toast.show('Impossible de sauvegarder les modifications', { type: 'error', duration: 3000 });
     }
-  }, [validate, updateChild, child.id, form, photoUri, onClose]);
+  }, [validate, updateChild, child.id, form, photoUri, selectedSchool, onClose]);
 
   const isBusy = updateChild.isPending || isUploading;
 
   return (
+    <>
+      <SchoolPickerSheet
+        visible={schoolPickerVisible}
+        onSelect={handleSchoolSelect}
+        onClose={() => setSchoolPickerVisible(false)}
+      />
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Handle */}
       <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
@@ -509,6 +532,88 @@ export const EditChildSheet = memo(function EditChildSheet({
             ) : null}
           </Animated.View>
 
+          {/* Établissement */}
+          <Animated.View
+            entering={FadeInDown.delay(150).duration(300)}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 22,
+              borderWidth: 1,
+              borderColor: selectedSchool ? 'rgba(16,185,129,0.3)' : theme.cardBorder,
+              padding: 16,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: theme.primaryBg, alignItems: 'center', justifyContent: 'center' }}>
+                <Building2 size={14} color={theme.primary} />
+              </View>
+              <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}>
+                Établissement
+              </Text>
+              <Text style={{ color: theme.textMuted, fontSize: 12, marginLeft: 4 }}>
+                (optionnel)
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSchoolPickerVisible(true);
+              }}
+              activeOpacity={0.75}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 12,
+                backgroundColor: theme.iconBg,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: selectedSchool ? 'rgba(16,185,129,0.25)' : theme.cardBorder,
+                padding: 14,
+              }}
+            >
+              <View style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: selectedSchool ? theme.greenBg : theme.primaryBg, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                {selectedSchool
+                  ? <CheckCircle2 size={18} color={theme.green} strokeWidth={2} />
+                  : <Building2 size={18} color={theme.primary} strokeWidth={1.8} />
+                }
+              </View>
+              <View style={{ flex: 1 }}>
+                {selectedSchool ? (
+                  <>
+                    <Text style={{ color: theme.text, fontSize: 14, fontWeight: '700' }} numberOfLines={1}>
+                      {selectedSchool.name}
+                    </Text>
+                    <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }} numberOfLines={1}>
+                      {selectedSchool.city} · {selectedSchool.type}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text style={{ color: theme.text, fontSize: 14, fontWeight: '600' }}>
+                      Rechercher l'école
+                    </Text>
+                    <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
+                      L'établissement verra votre enfant automatiquement
+                    </Text>
+                  </>
+                )}
+              </View>
+              <ChevronRight size={16} color={theme.textMuted} strokeWidth={2} />
+            </TouchableOpacity>
+
+            {selectedSchool && (
+              <TouchableOpacity
+                onPress={() => setSelectedSchool(null)}
+                style={{ marginTop: 10, alignSelf: 'flex-start' }}
+              >
+                <Text style={{ color: theme.red, fontSize: 12, fontWeight: '600' }}>
+                  Retirer l'établissement
+                </Text>
+              </TouchableOpacity>
+            )}
+          </Animated.View>
+
           {/* Notes médicales */}
           <Animated.View
             entering={FadeInDown.delay(180).duration(300)}
@@ -600,5 +705,6 @@ export const EditChildSheet = memo(function EditChildSheet({
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
+    </>
   );
 });

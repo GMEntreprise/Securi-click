@@ -11,6 +11,7 @@ export interface Child {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  school?: { id: string; name: string; city: string; type: string } | null;
 }
 
 export interface Guardian {
