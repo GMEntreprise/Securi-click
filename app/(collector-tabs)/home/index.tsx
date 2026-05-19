@@ -29,6 +29,7 @@ import {
   usePendingInvites,
 } from '@/features/collector/hooks/useCollector';
 import { CollectorOnboardSheet } from '@/features/collector/components/ui/CollectorOnboardSheet';
+import { QueryError } from '@/shared/ui/base/query-error';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import {
   useCollectorPickupSchedules,
@@ -104,9 +105,9 @@ export default function CollectorHomeScreen() {
   const theme = useTheme();
   const nav = useAppNavigation();
   const { data: profile } = useCollectorProfile();
-  const { data: guardians, isLoading: guardiansLoading } = useMyGuardians();
+  const { data: guardians, isLoading: guardiansLoading, isError: guardiansError, refetch: refetchGuardians } = useMyGuardians();
   const { data: identity } = useMyIdentity();
-  const { data: logs, isLoading: logsLoading } = useMyPickupLogs();
+  const { data: logs, isLoading: logsLoading, isError: logsError, refetch: refetchLogs } = useMyPickupLogs();
   const { data: pendingInvites } = usePendingInvites();
   const { data: schedules } = useCollectorPickupSchedules();
 
@@ -174,6 +175,10 @@ export default function CollectorHomeScreen() {
   const BadgeIcon = badge.Icon;
 
   const recentLogs = (logs ?? []).slice(0, 5);
+
+  if (guardiansError || logsError) {
+    return <QueryError onRetry={() => { refetchGuardians(); refetchLogs(); }} />;
+  }
 
   return (
     <>

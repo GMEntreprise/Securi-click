@@ -20,6 +20,7 @@ import { UserPlus, Shield, Clock, ChevronRight } from 'lucide-react-native';
 import { useChildren } from '@/features/parent/hooks/useChildren';
 import type { Child } from '@/features/parent/types';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { QueryError } from '@/shared/ui/base/query-error';
 
 const ChildCard = React.memo(function ChildCard({
   item,
@@ -166,7 +167,7 @@ export default function ChildrenList() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const nav = useAppNavigation();
-  const { data: children, isLoading } = useChildren();
+  const { data: children, isLoading, isError, refetch } = useChildren();
 
   const handleChildPress = useCallback((child: Child) => {
     nav.goToParentChildDetail(child.id);
@@ -185,6 +186,8 @@ export default function ChildrenList() {
   );
 
   const count = children?.length ?? 0;
+
+  if (isError) return <QueryError onRetry={refetch} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>

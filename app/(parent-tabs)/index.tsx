@@ -32,6 +32,7 @@ import { useChildren } from '@/features/parent/hooks/useChildren';
 import { useRecentPickupLogs } from '@/features/parent/hooks/usePickupLogs';
 import type { PickupLog } from '@/features/parent/types';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
+import { QueryError } from '@/shared/ui/base/query-error';
 
 interface QuickAction {
   id: string;
@@ -197,8 +198,12 @@ export default function ParentDashboard() {
     session?.user.email?.split('@')[0] ??
     'Parent';
 
-  const { data: children } = useChildren();
-  const { data: recentLogs, isLoading: logsLoading } = useRecentPickupLogs(5);
+  const { data: children, isError: childrenError, refetch: refetchChildren } = useChildren();
+  const { data: recentLogs, isLoading: logsLoading, isError: logsError, refetch: refetchLogs } = useRecentPickupLogs(5);
+
+  if (childrenError || logsError) {
+    return <QueryError onRetry={() => { refetchChildren(); refetchLogs(); }} />;
+  }
 
   const childrenCount = children?.length ?? 0;
   const completedCount = (recentLogs ?? []).filter(

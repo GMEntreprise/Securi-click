@@ -22,6 +22,7 @@ import {
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
+import { QueryError } from '@/shared/ui/base/query-error';
 import { useMySchool } from '@/features/school/hooks/useSchool';
 import {
   useDashboardStats,
@@ -40,9 +41,9 @@ export default function SchoolHomeScreen() {
   const theme = useTheme();
   const nav = useAppNavigation();
 
-  const { data: school, isLoading: schoolLoading } = useMySchool();
+  const { data: school, isLoading: schoolLoading, isError: schoolError, refetch: refetchSchool } = useMySchool();
   const schoolId = school?.id ?? '';
-  const { data: stats, isLoading: statsLoading } = useDashboardStats(schoolId);
+  const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useDashboardStats(schoolId);
   const { data: students } = useStudents(schoolId);
 
   const { data: todayAuths } = useQuery({
@@ -60,6 +61,10 @@ export default function SchoolHomeScreen() {
     enabled: !!schoolId && !!students && students.length > 0,
     staleTime: 2 * 60 * 1000,
   });
+
+  if (schoolError || statsError) {
+    return <QueryError onRetry={() => { refetchSchool(); refetchStats(); }} />;
+  }
 
   const isLoading = schoolLoading || (!!schoolId && statsLoading && !stats);
 

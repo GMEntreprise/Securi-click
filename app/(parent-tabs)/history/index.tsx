@@ -24,6 +24,7 @@ import { HistoryCard } from '@/components/history/HistoryCard';
 import { FiltersBar } from '@/components/history/FiltersBar';
 import { HistoryDetailsBottomSheet } from '@/components/bottom-sheets/HistoryDetailsBottomSheet';
 import { HistoryEntry } from '@/features/parent/services/history.service';
+import { QueryError } from '@/shared/ui/base/query-error';
 
 const EMPTY_FILTERS: HistoryFilters = {
   status: null,
@@ -95,6 +96,7 @@ export default function HistoryScreen() {
     flatItems,
     total,
     isLoading,
+    isError,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -147,6 +149,8 @@ export default function HistoryScreen() {
     (item: FlatListItem, _index: number) => item.type,
     []
   );
+
+  if (isError) return <QueryError onRetry={refetch} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>

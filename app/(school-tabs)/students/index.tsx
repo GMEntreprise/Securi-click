@@ -16,6 +16,7 @@ import { useTheme } from '@/theme';
 import { useMySchool } from '@/features/school/hooks/useSchool';
 import { useStudents } from '@/features/school/hooks/useStudents';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { QueryError } from '@/shared/ui/base/query-error';
 import { useDebounce } from '@/hooks/useDebounce';
 import type { SchoolChild } from '@/features/school/types';
 
@@ -28,7 +29,7 @@ export default function StudentsScreen() {
 
   const { data: school } = useMySchool();
   const schoolId = school?.id ?? '';
-  const { data: students, isLoading } = useStudents(schoolId);
+  const { data: students, isLoading, isError, refetch } = useStudents(schoolId);
 
   const classes = useMemo(() => {
     const set = new Set<string>();
@@ -61,6 +62,8 @@ export default function StudentsScreen() {
   );
 
   const keyExtractor = useCallback((item: SchoolChild) => item.id, []);
+
+  if (isError) return <QueryError onRetry={refetch} />;
 
   if (isLoading && !students) {
     return (
