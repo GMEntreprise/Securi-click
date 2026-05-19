@@ -19,10 +19,18 @@ import {
   User,
   Heart,
   AlertCircle,
+  Clock,
+  CalendarDays,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { Avatar } from '@/shared/ui/base/avatar';
 import type { CollectorGuardian } from '@/features/collector/types';
+import { usePickupAuthorization } from '@/features/parent/hooks/usePickupAuthorization';
+import {
+  getActiveDayLabels,
+  formatTimeWindows,
+  getNextPickupLabel,
+} from '@/features/collector/hooks/usePickupSchedule';
 
 interface Props {
   guardian: CollectorGuardian | null;
@@ -52,11 +60,19 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({ guardian, onC
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
+  const { data: pickupAuth } = usePickupAuthorization(
+    guardian?.child?.id ?? '',
+    guardian?.id ?? ''
+  );
+
   if (!guardian) return null;
 
   const child = guardian.child;
   const childName = child ? `${child.first_name} ${child.last_name}`.trim() : '—';
   const isActive = guardian.is_active;
+  const activeDays = pickupAuth ? getActiveDayLabels(pickupAuth) : [];
+  const timeLabel = pickupAuth ? formatTimeWindows(pickupAuth) : null;
+  const nextLabel = pickupAuth ? getNextPickupLabel(pickupAuth) : null;
 
   const handleClose = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -188,6 +204,65 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({ guardian, onC
               value={new Date(guardian.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
             />
           </Animated.View>
+
+          {/* Planning de récupération */}
+          {pickupAuth && (
+            <Animated.View entering={FadeInDown.delay(160).duration(300)} style={{ backgroundColor: theme.card, borderRadius: 18, borderWidth: 1, borderColor: theme.cardBorder, paddingHorizontal: 16, marginBottom: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingTop: 14, paddingBottom: 8 }}>
+                <View style={{ width: 26, height: 26, borderRadius: 8, backgroundColor: theme.accentBg, alignItems: 'center', justifyContent: 'center' }}>
+                  <CalendarDays size={13} color={theme.accent} strokeWidth={2} />
+                </View>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: theme.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+                  Planning
+                </Text>
+                <View style={{ marginLeft: 'auto', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, backgroundColor: pickupAuth.is_active ? theme.greenBg : theme.redBg }}>
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: pickupAuth.is_active ? theme.green : theme.red }}>
+                    {pickupAuth.is_active ? 'Actif' : 'Désactivé'}
+                  </Text>
+                </View>
+              </View>
+              <View style={{ height: 1, backgroundColor: theme.separator, marginBottom: 8 }} />
+
+              {/* Prochain pickup */}
+              {nextLabel && (
+                <View style={{ backgroundColor: theme.accentBg, borderRadius: 12, padding: 12, marginBottom: 10, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Clock size={14} color={theme.accent} strokeWidth={2.5} />
+                  <Text style={{ color: theme.accent, fontSize: 13, fontWeight: '700', flex: 1 }}>
+                    {nextLabel}
+                  </Text>
+                </View>
+              )}
+
+              {/* Jours */}
+              {activeDays.length > 0 && (
+                <View style={{ paddingBottom: 10 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 }}>
+                    Jours autorisés
+                  </Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                    {activeDays.map(day => (
+                      <View key={day} style={{ backgroundColor: theme.iconBg, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, borderWidth: 1, borderColor: theme.cardBorder }}>
+                        <Text style={{ color: theme.text, fontSize: 12, fontWeight: '700' }}>{day}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Horaires */}
+              {timeLabel && (
+                <View style={{ paddingBottom: 14 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '600', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6 }}>
+                    Horaires
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Clock size={12} color={theme.textMuted} strokeWidth={2} />
+                    <Text style={{ color: theme.text, fontSize: 13, fontWeight: '600' }}>{timeLabel}</Text>
+                  </View>
+                </View>
+              )}
+            </Animated.View>
+          )}
 
           {/* Notes médicales */}
           {child?.medical_notes ? (

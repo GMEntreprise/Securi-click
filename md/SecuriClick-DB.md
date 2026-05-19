@@ -54,7 +54,7 @@ parent_id uuid NOT NULL,
 child_id uuid NOT NULL,
 first_name character varying NOT NULL,
 last_name character varying NOT NULL,
-phone character varying NOT NULL,
+phone character varying,
 email character varying,
 relationship character varying NOT NULL,
 photo_url text,
@@ -68,10 +68,14 @@ identity_verified boolean NOT NULL DEFAULT false,
 identity_status text DEFAULT 'none'::text CHECK (identity_status = ANY (ARRAY['none'::text, 'pending'::text, 'verified'::text, 'refused'::text, 'expired'::text])),
 invited_at timestamp with time zone,
 invitation_token text UNIQUE,
+pin_failed_attempts integer NOT NULL DEFAULT 0,
+pin_locked_until timestamp with time zone,
+access_code_version integer NOT NULL DEFAULT 1,
 CONSTRAINT guardians_pkey PRIMARY KEY (id),
 CONSTRAINT guardians_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES auth.users(id),
 CONSTRAINT guardians_child_id_fkey FOREIGN KEY (child_id) REFERENCES public.children(id),
-CONSTRAINT guardians_collector_user_id_fkey FOREIGN KEY (collector_user_id) REFERENCES auth.users(id)
+CONSTRAINT guardians_collector_user_id_fkey FOREIGN KEY (collector_user_id) REFERENCES auth.users(id),
+CONSTRAINT guardians_parent_id_user_profiles_fkey FOREIGN KEY (parent_id) REFERENCES public.user_profiles(user_id)
 );
 CREATE TABLE public.invited_collectors (
 id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -95,6 +99,25 @@ CONSTRAINT invited_collectors_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES 
 CONSTRAINT invited_collectors_child_id_fkey FOREIGN KEY (child_id) REFERENCES public.children(id),
 CONSTRAINT invited_collectors_collector_user_id_fkey FOREIGN KEY (collector_user_id) REFERENCES auth.users(id)
 );
+CREATE TABLE public.notifications (
+id uuid NOT NULL DEFAULT uuid_generate_v4(),
+user_id uuid NOT NULL,
+role character varying NOT NULL CHECK (role::text = ANY (ARRAY['parent'::character varying, 'collector'::character varying, 'school_admin'::character varying, 'staff'::character varying, 'super_admin'::character varying]::text[])),
+type character varying NOT NULL,
+title text NOT NULL,
+body text NOT NULL,
+metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+is_read boolean NOT NULL DEFAULT false,
+read_at timestamp with time zone,
+delivery_state character varying NOT NULL DEFAULT 'pending'::character varying CHECK (delivery_state::text = ANY (ARRAY['pending'::character varying, 'delivered'::character varying, 'failed'::character varying]::text[])),
+push_sent_at timestamp with time zone,
+idempotency_key text UNIQUE,
+source_role character varying,
+expires_at timestamp with time zone,
+created_at timestamp with time zone NOT NULL DEFAULT now(),
+CONSTRAINT notifications_pkey PRIMARY KEY (id),
+CONSTRAINT notifications_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
 CREATE TABLE public.pickup_authorizations (
 id uuid NOT NULL DEFAULT uuid_generate_v4(),
 parent_id uuid NOT NULL,
@@ -111,6 +134,11 @@ is_active boolean DEFAULT true,
 expires_at timestamp with time zone,
 created_at timestamp with time zone DEFAULT now(),
 updated_at timestamp with time zone DEFAULT now(),
+time_windows jsonb,
+timezone text NOT NULL DEFAULT 'Europe/Paris'::text,
+reminder_before integer NOT NULL DEFAULT 30,
+last_reminded_at timestamp with time zone,
+next_pickup_at timestamp with time zone,
 CONSTRAINT pickup_authorizations_pkey PRIMARY KEY (id),
 CONSTRAINT pickup_authorizations_parent_id_fkey FOREIGN KEY (parent_id) REFERENCES auth.users(id),
 CONSTRAINT pickup_authorizations_child_id_fkey FOREIGN KEY (child_id) REFERENCES public.children(id),
@@ -177,6 +205,17 @@ CONSTRAINT pickup_validations_child_id_fkey FOREIGN KEY (child_id) REFERENCES pu
 CONSTRAINT pickup_validations_guardian_id_fkey FOREIGN KEY (guardian_id) REFERENCES public.guardians(id),
 CONSTRAINT pickup_validations_qr_code_id_fkey FOREIGN KEY (qr_code_id) REFERENCES public.qr_codes(id),
 CONSTRAINT pickup_validations_scanner_user_id_fkey FOREIGN KEY (scanner_user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.push_tokens (
+id uuid NOT NULL DEFAULT uuid_generate_v4(),
+user_id uuid NOT NULL,
+token text NOT NULL,
+platform character varying NOT NULL CHECK (platform::text = ANY (ARRAY['ios'::character varying, 'android'::character varying, 'web'::character varying]::text[])),
+is_active boolean NOT NULL DEFAULT true,
+created_at timestamp with time zone NOT NULL DEFAULT now(),
+updated_at timestamp with time zone NOT NULL DEFAULT now(),
+CONSTRAINT push_tokens_pkey PRIMARY KEY (id),
+CONSTRAINT push_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
 CREATE TABLE public.qr_codes (
 id uuid NOT NULL DEFAULT uuid_generate_v4(),

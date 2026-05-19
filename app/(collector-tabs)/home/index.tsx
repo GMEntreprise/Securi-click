@@ -17,6 +17,7 @@ import {
   CalendarDays,
   QrCode,
   TriangleAlert,
+  MapPin,
 } from 'lucide-react-native';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
@@ -29,6 +30,13 @@ import {
 } from '@/features/collector/hooks/useCollector';
 import { CollectorOnboardSheet } from '@/features/collector/components/ui/CollectorOnboardSheet';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
+import {
+  useCollectorPickupSchedules,
+  getNextPickupLabel,
+  getActiveDayLabels,
+  formatTimeWindows,
+  isTodayAuthorized,
+} from '@/features/collector/hooks/usePickupSchedule';
 
 const STATUS_CFG = {
   completed: { Icon: CheckCircle, color: '#10b981', label: 'Validé' },
@@ -100,6 +108,7 @@ export default function CollectorHomeScreen() {
   const { data: identity } = useMyIdentity();
   const { data: logs, isLoading: logsLoading } = useMyPickupLogs();
   const { data: pendingInvites } = usePendingInvites();
+  const { data: schedules } = useCollectorPickupSchedules();
 
   const hasPending = (pendingInvites?.length ?? 0) > 0;
   const [onboardVisible, setOnboardVisible] = useState(false);
@@ -257,6 +266,87 @@ export default function CollectorHomeScreen() {
           />
         </View>
       </Animated.View>
+
+      {/* Prochain pickup */}
+      {schedules && schedules.length > 0 && (
+        <Animated.View
+          entering={FadeInDown.delay(190).duration(350)}
+          style={{ marginBottom: 14 }}
+        >
+          <Text style={{ color: theme.text, fontSize: 17, fontWeight: '700', marginBottom: 10 }}>
+            Récupérations prévues
+          </Text>
+          <View style={{ gap: 10 }}>
+            {schedules.slice(0, 3).map(auth => {
+              const todayOk = isTodayAuthorized(auth);
+              const nextLabel = getNextPickupLabel(auth);
+              const days = getActiveDayLabels(auth);
+              const times = formatTimeWindows(auth);
+              const guardian = guardians?.find(g => g.id === auth.guardian_id);
+              const childName = guardian?.child
+                ? `${guardian.child.first_name} ${guardian.child.last_name}`
+                : '—';
+              const schoolName = guardian?.child?.school?.name ?? null;
+
+              return (
+                <View
+                  key={auth.id}
+                  style={{
+                    backgroundColor: theme.card,
+                    borderRadius: 18,
+                    borderWidth: 1.5,
+                    borderColor: todayOk ? 'rgba(16,185,129,0.3)' : theme.cardBorder,
+                    overflow: 'hidden',
+                  }}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'stretch' }}>
+                    <View style={{ width: 4, backgroundColor: todayOk ? theme.green : theme.cardBorder }} />
+                    <View style={{ flex: 1, padding: 14, gap: 8 }}>
+                      {/* Enfant + badge aujourd'hui */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Text style={{ color: theme.text, fontWeight: '800', fontSize: 15 }}>
+                          {childName}
+                        </Text>
+                        {todayOk && (
+                          <View style={{ backgroundColor: theme.greenBg, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 }}>
+                            <Text style={{ color: theme.green, fontSize: 11, fontWeight: '700' }}>Aujourd'hui</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {/* Prochain créneau */}
+                      {nextLabel && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Clock size={12} color={theme.accent} strokeWidth={2.5} />
+                          <Text style={{ color: theme.accent, fontSize: 13, fontWeight: '700' }}>{nextLabel}</Text>
+                        </View>
+                      )}
+
+                      {/* École */}
+                      {schoolName && (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <MapPin size={11} color={theme.textMuted} strokeWidth={2} />
+                          <Text style={{ color: theme.textMuted, fontSize: 12 }}>{schoolName}</Text>
+                        </View>
+                      )}
+
+                      {/* Jours + horaires */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <CalendarDays size={11} color={theme.textMuted} strokeWidth={2} />
+                        <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
+                          {days.join(', ')}
+                        </Text>
+                        <Text style={{ color: theme.textMuted, fontSize: 12 }}>·</Text>
+                        <Text style={{ color: theme.textSecondary, fontSize: 12 }}>{times}</Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </Animated.View>
+      )}
 
       {/* Pending invites banner */}
       {hasPending && (

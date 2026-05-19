@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -18,6 +18,7 @@ import {
   Users,
   Clock,
   ChevronRight,
+  CalendarDays,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
@@ -26,6 +27,10 @@ import {
   useDashboardStats,
   usePickupValidations,
 } from '@/features/school/hooks/useValidations';
+import { useStudents } from '@/features/school/hooks/useStudents';
+import { pickupAuthorizationService } from '@/features/parent/services/pickupAuthorization.service';
+import { useQuery } from '@tanstack/react-query';
+import { isTodayAuthorized, formatTimeWindows } from '@/features/collector/hooks/usePickupSchedule';
 import { Avatar } from '@/shared/ui/base/avatar';
 import type { PickupValidation } from '@/features/school/types';
 
@@ -38,6 +43,23 @@ export default function SchoolHomeScreen() {
   const { data: school, isLoading: schoolLoading } = useMySchool();
   const schoolId = school?.id ?? '';
   const { data: stats, isLoading: statsLoading } = useDashboardStats(schoolId);
+  const { data: students } = useStudents(schoolId);
+
+  const { data: todayAuths } = useQuery({
+    queryKey: ['school', 'today_auths', schoolId],
+    queryFn: async () => {
+      if (!students || students.length === 0) return [];
+      const childIds = students.map(s => s.id);
+      const auths = await Promise.all(
+        childIds.map(id => pickupAuthorizationService.getForChild(id))
+      );
+      return auths
+        .flat()
+        .filter(a => a.is_active && isTodayAuthorized(a));
+    },
+    enabled: !!schoolId && !!students && students.length > 0,
+    staleTime: 2 * 60 * 1000,
+  });
 
   const isLoading = schoolLoading || (!!schoolId && statsLoading && !stats);
 
@@ -132,6 +154,66 @@ export default function SchoolHomeScreen() {
           color={theme.primary}
         />
       </Animated.View>
+
+      {/* Attendus aujourd'hui */}
+      {todayAuths && todayAuths.length > 0 && (
+        <Animated.View
+          entering={FadeInDown.delay(90).duration(350)}
+          style={{ marginBottom: 20 }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+            <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: theme.accentBg, alignItems: 'center', justifyContent: 'center' }}>
+              <CalendarDays size={14} color={theme.accent} strokeWidth={2} />
+            </View>
+            <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}>
+              Attendus aujourd'hui
+            </Text>
+            <View style={{ marginLeft: 'auto', backgroundColor: theme.accentBg, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 }}>
+              <Text style={{ color: theme.accent, fontSize: 12, fontWeight: '700' }}>{todayAuths.length}</Text>
+            </View>
+          </View>
+          <View style={{ backgroundColor: theme.card, borderRadius: 18, borderWidth: 1, borderColor: theme.cardBorder, overflow: 'hidden' }}>
+            {todayAuths.map((auth, idx) => {
+              const student = students?.find(s => s.id === auth.child_id);
+              const times = formatTimeWindows(auth);
+              return (
+                <View
+                  key={auth.id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: 16,
+                    paddingVertical: 12,
+                    gap: 12,
+                    borderBottomWidth: idx < todayAuths.length - 1 ? 1 : 0,
+                    borderBottomColor: theme.separator,
+                  }}
+                >
+                  <Avatar
+                    image={{ uri: student?.photo_url ?? '', name: `${student?.first_name ?? ''} ${student?.last_name ?? ''}`.trim() }}
+                    size={40}
+                    showBorder={false}
+                    backgroundColor={theme.primaryBg}
+                    textColor={theme.primary}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: theme.text, fontSize: 14, fontWeight: '700' }}>
+                      {student?.first_name} {student?.last_name}
+                    </Text>
+                    <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+                      {student?.class_name ?? '—'}
+                    </Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <Clock size={11} color={theme.accent} strokeWidth={2.5} />
+                    <Text style={{ color: theme.accent, fontSize: 12, fontWeight: '700' }}>{times}</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </Animated.View>
+      )}
 
       {/* Scanner CTA */}
       <Animated.View

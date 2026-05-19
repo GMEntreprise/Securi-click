@@ -24,16 +24,22 @@ import {
   Mail,
   Check,
   Trash2,
+  CalendarDays,
+  ChevronRight,
+  Clock,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSection';
+import { PickupScheduleSheet } from '@/features/parent/components/ui/PickupScheduleSheet';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import {
   useUpdateGuardian,
   useToggleGuardian,
   useDeleteGuardian,
 } from '@/features/parent/hooks/useGuardians';
+import { usePickupAuthorization } from '@/features/parent/hooks/usePickupAuthorization';
+import { getActiveDayLabels, formatTimeWindows } from '@/features/collector/hooks/usePickupSchedule';
 import { parentService } from '@/features/parent/services/parent.service';
 import { supabase } from '@/lib/supabase/client';
 
@@ -83,6 +89,9 @@ export default function GuardianEditScreen() {
   const updateGuardian = useUpdateGuardian(childId ?? '');
   const toggleGuardian = useToggleGuardian(childId ?? '');
   const deleteGuardian = useDeleteGuardian(childId ?? '');
+
+  const { data: pickupAuth } = usePickupAuthorization(childId ?? '', guardianId ?? '');
+  const [scheduleVisible, setScheduleVisible] = useState(false);
 
   const [selectedRelationship, setSelectedRelationship] = useState('');
   const [usePinCode, setUsePinCode] = useState(false);
@@ -233,10 +242,18 @@ export default function GuardianEditScreen() {
   const isSaving = updateGuardian.isPending;
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: theme.bg }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <>
+      <PickupScheduleSheet
+        visible={scheduleVisible}
+        childId={childId ?? ''}
+        guardianId={guardianId ?? ''}
+        guardianName={guardian ? `${guardian.first_name} ${guardian.last_name}` : ''}
+        onClose={() => setScheduleVisible(false)}
+      />
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: theme.bg }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
       <ScrollView
         contentContainerStyle={{ padding: 20, paddingBottom: tabBarHeight + 120 }}
         keyboardShouldPersistTaps="handled"
@@ -388,8 +405,61 @@ export default function GuardianEditScreen() {
           />
         </Animated.View>
 
+        {/* Planning de récupération */}
+        <Animated.View entering={FadeInDown.delay(260).duration(400)} style={{ marginBottom: 24 }}>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>
+            Planning de récupération
+          </Text>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setScheduleVisible(true);
+            }}
+            activeOpacity={0.8}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 16,
+              borderWidth: 1,
+              borderColor: pickupAuth?.is_active ? 'rgba(16,185,129,0.3)' : theme.cardBorder,
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 14,
+            }}
+          >
+            <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: theme.accentBg, alignItems: 'center', justifyContent: 'center' }}>
+              <CalendarDays size={18} color={theme.accent} strokeWidth={2} />
+            </View>
+            <View style={{ flex: 1 }}>
+              {pickupAuth ? (
+                <>
+                  <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+                    {getActiveDayLabels(pickupAuth).join(', ') || 'Aucun jour défini'}
+                  </Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3 }}>
+                    <Clock size={11} color={theme.textMuted} strokeWidth={2} />
+                    <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+                      {formatTimeWindows(pickupAuth)}
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
+                    Définir le planning
+                  </Text>
+                  <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
+                    Jours et horaires de récupération
+                  </Text>
+                </>
+              )}
+            </View>
+            <ChevronRight size={16} color={theme.textMuted} strokeWidth={2} />
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* Delete card */}
-        <Animated.View entering={FadeInDown.delay(280).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
           <Text
             style={{
               fontSize: 11,
@@ -478,6 +548,7 @@ export default function GuardianEditScreen() {
           </Text>
         ) : null}
       </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </>
   );
 }
