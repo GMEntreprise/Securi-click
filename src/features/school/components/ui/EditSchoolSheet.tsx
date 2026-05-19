@@ -19,9 +19,11 @@ import {
   Building2,
   Check,
   ChevronDown,
+  ChevronRight,
   MapPin,
   Phone,
   School,
+  Search,
   User,
   X,
 } from 'lucide-react-native';
@@ -29,8 +31,8 @@ import { useTheme } from '@/theme';
 import { useUpdateSchool } from '../../hooks/useSchool';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import type { SchoolProfile } from '../../types';
-import { SchoolNameSmartField } from './SchoolNameSmartField';
-import type { SchoolPrefillData } from './SchoolNameSmartField';
+import { SchoolPickerSheet } from '@/features/parent/components/ui/SchoolPickerSheet';
+import type { SchoolSearchResult } from '@/features/school/services/schoolSearch.service';
 
 const MANAGER_FUNCTIONS = [
   'Directeur / Directrice',
@@ -156,6 +158,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
   const [errors, setErrors] = useState<FormErrors>({});
   const [functionPickerOpen, setFunctionPickerOpen] = useState(false);
   const [typePickerOpen, setTypePickerOpen] = useState(false);
+  const [schoolPickerVisible, setSchoolPickerVisible] = useState(false);
 
   const setField = useCallback(
     (field: keyof FormState) => (value: string) => {
@@ -165,16 +168,17 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
     []
   );
 
-  const handlePrefill = useCallback((data: SchoolPrefillData) => {
+  const handleSchoolSelect = useCallback((school: SchoolSearchResult) => {
     setForm(prev => ({
       ...prev,
-      name: data.name,
-      type: data.type || prev.type,
-      address: data.address || prev.address,
-      city: data.city || prev.city,
-      postal_code: data.postal_code || prev.postal_code,
+      name: school.name,
+      type: school.type || prev.type,
+      address: school.address || prev.address,
+      city: school.city || prev.city,
+      postal_code: school.postal_code || prev.postal_code,
     }));
-    setErrors({});
+    setErrors(prev => ({ ...prev, name: undefined, address: undefined, city: undefined, postal_code: undefined }));
+    setSchoolPickerVisible(false);
   }, []);
 
   const validate = useCallback((): boolean => {
@@ -227,6 +231,12 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
   const isBusy = updateSchool.isPending;
 
   return (
+    <>
+      <SchoolPickerSheet
+        visible={schoolPickerVisible}
+        onSelect={handleSchoolSelect}
+        onClose={() => setSchoolPickerVisible(false)}
+      />
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Handle */}
       <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
@@ -297,13 +307,45 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
               label="Établissement"
               bg={theme.accentBg}
             />
-            <SchoolNameSmartField
+            <InputField
+              label="Nom de l'établissement"
               value={form.name}
               onChangeText={setField('name')}
-              onPrefill={handlePrefill}
+              placeholder="École Saint-Joseph"
+              autoCapitalize="words"
               error={errors.name}
-              initialQuery={school.name}
             />
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSchoolPickerVisible(true);
+              }}
+              activeOpacity={0.75}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 10,
+                backgroundColor: theme.iconBg,
+                borderRadius: 14,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+                padding: 12,
+                marginBottom: 14,
+              }}
+            >
+              <View style={{ width: 32, height: 32, borderRadius: 10, backgroundColor: theme.primaryBg, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Search size={15} color={theme.primary} strokeWidth={2} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ color: theme.text, fontSize: 13, fontWeight: '700' }}>
+                  Rechercher dans la base officielle
+                </Text>
+                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+                  Préremplir nom, type et adresse automatiquement
+                </Text>
+              </View>
+              <ChevronRight size={15} color={theme.textMuted} strokeWidth={2} />
+            </TouchableOpacity>
 
             {/* Type picker */}
             <View style={{ marginBottom: 14 }}>
@@ -677,6 +719,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
+    </>
   );
 });
 
