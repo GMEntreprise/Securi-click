@@ -9,6 +9,7 @@ import {
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import {
+  BadgeCheck,
   Building2,
   CheckCircle2,
   MapPin,
@@ -70,6 +71,12 @@ const SuggestionCard = memo(function SuggestionCard({
           {isStrong ? 'Établissement trouvé' : 'Suggestion proche'}
         </Text>
         {school.confidence >= 95 && <ShieldCheck size={11} color={theme.green} strokeWidth={2.5} />}
+        {school.verified && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: theme.primaryBg, paddingHorizontal: 5, paddingVertical: 1, borderRadius: 5 }}>
+            <BadgeCheck size={10} color={theme.primary} strokeWidth={2.5} />
+            <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '700' }}>OFFICIEL</Text>
+          </View>
+        )}
       </View>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingBottom: 10 }}>

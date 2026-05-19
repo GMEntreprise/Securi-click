@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -158,10 +158,18 @@ export const EditChildSheet = memo(function EditChildSheet({
   const [photoUri, setPhotoUri] = useState<string | null>(child.photo_url);
   const [selectedSchool, setSelectedSchool] = useState<SchoolSearchResult | null>(
     child.school
-      ? { id: child.school.id, name: child.school.name, city: child.school.city, type: child.school.type, normalized_name: '', address: '', postal_code: '', logo_url: null, is_active: true, confidence: 100 }
+      ? { id: child.school.id, name: child.school.name, city: child.school.city, type: child.school.type, normalized_name: '', address: '', postal_code: '', logo_url: null, is_active: true, verified: false, external_id: null, confidence: 100 }
       : null
   );
   const [schoolPickerVisible, setSchoolPickerVisible] = useState(false);
+
+  useEffect(() => {
+    setSelectedSchool(
+      child.school
+        ? { id: child.school.id, name: child.school.name, city: child.school.city, type: child.school.type, normalized_name: '', address: '', postal_code: '', logo_url: null, is_active: true, verified: false, external_id: null, confidence: 100 }
+        : null
+    );
+  }, [child.school?.id]);
 
   const setField = useCallback(
     (field: keyof FormState) => (value: string) => {

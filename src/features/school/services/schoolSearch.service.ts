@@ -10,6 +10,8 @@ export interface SchoolSearchResult {
   postal_code: string;
   logo_url: string | null;
   is_active: boolean;
+  verified: boolean;
+  external_id: string | null;
   confidence: number;
 }
 

@@ -12,6 +12,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
+  BadgeCheck,
   Building2,
   CheckCircle2,
   MapPin,
@@ -154,17 +155,25 @@ const SchoolCard = memo(function SchoolCard({
           </Text>
         </View>
 
-        <Text
-          style={{
-            color: theme.textSecondary,
-            fontSize: 11,
-            fontWeight: '600',
-            textTransform: 'uppercase',
-            letterSpacing: 0.4,
-          }}
-        >
-          {typeLabel(school.type)}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <Text
+            style={{
+              color: theme.textSecondary,
+              fontSize: 11,
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: 0.4,
+            }}
+          >
+            {typeLabel(school.type)}
+          </Text>
+          {school.verified && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: theme.primaryBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
+              <BadgeCheck size={10} color={theme.primary} strokeWidth={2.5} />
+              <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '700', letterSpacing: 0.3 }}>OFFICIEL</Text>
+            </View>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   );
