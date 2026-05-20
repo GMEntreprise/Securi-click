@@ -77,6 +77,7 @@ export function useCollectorPickupSchedules() {
   const collectorUserId = session?.user.id ?? '';
   const queryClient = useQueryClient();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const instanceRef = useRef(0);
 
   const query = useQuery({
     queryKey: COLLECTOR_SCHEDULE_KEY(collectorUserId),
@@ -88,10 +89,12 @@ export function useCollectorPickupSchedules() {
 
   useEffect(() => {
     if (!collectorUserId) return;
-    if (channelRef.current) supabase.removeChannel(channelRef.current);
+    const prev = channelRef.current;
+    if (prev) supabase.removeChannel(prev);
 
+    const id = ++instanceRef.current;
     const ch = supabase
-      .channel(`collector-schedules-${collectorUserId}`)
+      .channel(`collector-schedules-${collectorUserId}-${id}`)
       .on(
         'postgres_changes',
         {
@@ -110,6 +113,7 @@ export function useCollectorPickupSchedules() {
     channelRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
+      channelRef.current = null;
     };
   }, [collectorUserId, queryClient]);
 

@@ -18,6 +18,7 @@ export function useActiveQrCodes(childId?: string) {
   const parentId = session?.user.id ?? '';
   const queryClient = useQueryClient();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const instanceRef = useRef(0);
 
   const query = useQuery({
     queryKey: QR_KEY(parentId, childId),
@@ -31,10 +32,12 @@ export function useActiveQrCodes(childId?: string) {
 
   useEffect(() => {
     if (!parentId) return;
-    if (channelRef.current) supabase.removeChannel(channelRef.current);
+    const prev = channelRef.current;
+    if (prev) supabase.removeChannel(prev);
 
+    const id = ++instanceRef.current;
     const ch = supabase
-      .channel(`qr-codes-${parentId}${childId ? `-${childId}` : ''}`)
+      .channel(`qr-codes-${parentId}${childId ? `-${childId}` : ''}-${id}`)
       .on(
         'postgres_changes',
         {
@@ -54,6 +57,7 @@ export function useActiveQrCodes(childId?: string) {
     channelRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
+      channelRef.current = null;
     };
   }, [parentId, childId, queryClient]);
 
@@ -65,6 +69,7 @@ export function useRecentScans(childId?: string) {
   const parentId = session?.user.id ?? '';
   const queryClient = useQueryClient();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const instanceRef = useRef(0);
 
   const query = useQuery({
     queryKey: SCANS_KEY(parentId, childId),
@@ -75,10 +80,12 @@ export function useRecentScans(childId?: string) {
 
   useEffect(() => {
     if (!parentId) return;
-    if (channelRef.current) supabase.removeChannel(channelRef.current);
+    const prev = channelRef.current;
+    if (prev) supabase.removeChannel(prev);
 
+    const id = ++instanceRef.current;
     const ch = supabase
-      .channel(`pickup-logs-qr-${parentId}${childId ? `-${childId}` : ''}`)
+      .channel(`pickup-logs-qr-${parentId}${childId ? `-${childId}` : ''}-${id}`)
       .on(
         'postgres_changes',
         {
@@ -97,6 +104,7 @@ export function useRecentScans(childId?: string) {
     channelRef.current = ch;
     return () => {
       supabase.removeChannel(ch);
+      channelRef.current = null;
     };
   }, [parentId, childId, queryClient]);
 

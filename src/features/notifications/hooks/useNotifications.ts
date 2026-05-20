@@ -69,20 +69,19 @@ export function useNotificationsRealtime() {
   const userId = session?.user.id;
   const qc = useQueryClient();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const instanceRef = useRef(0);
   const prependItem = useNotificationStore(s => s.prependItem);
   const incrementUnread = useNotificationStore(s => s.incrementUnread);
 
   useEffect(() => {
     if (!userId) return;
 
-    // Prevent duplicate channels
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
+    const prev = channelRef.current;
+    if (prev) supabase.removeChannel(prev);
 
+    const id = ++instanceRef.current;
     const channel = supabase
-      .channel(`notifications:${userId}`)
+      .channel(`notifications:${userId}-${id}`)
       .on(
         'postgres_changes',
         {

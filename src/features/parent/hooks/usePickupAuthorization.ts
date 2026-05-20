@@ -20,6 +20,7 @@ export function usePickupAuthorization(
 ) {
   const queryClient = useQueryClient();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const instanceRef = useRef(0);
 
   const query = useQuery({
     queryKey: PICKUP_AUTH_KEY(childId, guardianId),
@@ -31,10 +32,12 @@ export function usePickupAuthorization(
 
   useEffect(() => {
     if (!enableRealtime || !childId || !guardianId) return;
-    if (channelRef.current) supabase.removeChannel(channelRef.current);
+    const prev = channelRef.current;
+    if (prev) supabase.removeChannel(prev);
 
+    const id = ++instanceRef.current;
     const ch = supabase
-      .channel(`pickup-auth-${childId}-${guardianId}`)
+      .channel(`pickup-auth-${childId}-${guardianId}-${id}`)
       .on(
         'postgres_changes',
         {
