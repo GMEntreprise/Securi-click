@@ -11,6 +11,8 @@ import type {
 
 export const GUARDIANS_KEY = (childId: string) =>
   ['parent', 'guardians', childId] as const;
+export const EXISTING_COLLECTORS_KEY = (parentId: string) =>
+  ['parent', 'existing-collectors', parentId] as const;
 
 export function useGuardians(childId: string) {
   const queryClient = useQueryClient();
@@ -149,6 +151,38 @@ export function useDeleteGuardian(childId: string) {
       if (ctx?.previous) {
         queryClient.setQueryData(GUARDIANS_KEY(childId), ctx.previous);
       }
+    },
+  });
+}
+
+export function useExistingCollectors() {
+  const session = useSession();
+  const parentId = session?.user.id ?? '';
+  return useQuery({
+    queryKey: EXISTING_COLLECTORS_KEY(parentId),
+    queryFn: () => parentService.getExistingCollectors(parentId),
+    enabled: !!parentId,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useLinkCollector(childId: string) {
+  const session = useSession();
+  const parentId = session?.user.id ?? '';
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: {
+      collector_user_id: string;
+      first_name: string;
+      last_name: string;
+      phone: string | null;
+      email: string | null;
+      relationship: string;
+    }) => parentService.linkCollectorToChild(parentId, childId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(childId) });
+      queryClient.invalidateQueries({ queryKey: EXISTING_COLLECTORS_KEY(parentId) });
     },
   });
 }

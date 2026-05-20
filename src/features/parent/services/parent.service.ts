@@ -114,6 +114,67 @@ export const parentService = {
     if (error) throw error;
   },
 
+  async getExistingCollectors(parentId: string): Promise<Guardian[]> {
+    const { data, error } = await supabase
+      .from('guardians')
+      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id')
+      .eq('parent_id', parentId)
+      .not('collector_user_id', 'is', null)
+      .order('first_name', { ascending: true });
+    if (error) throw error;
+    // Deduplicate by collector_user_id — keep one representative row per collector
+    const seen = new Set<string>();
+    const unique: Guardian[] = [];
+    for (const row of (data ?? []) as (Guardian & { collector_user_id: string })[]) {
+      if (!seen.has(row.collector_user_id)) {
+        seen.add(row.collector_user_id);
+        unique.push(row);
+      }
+    }
+    return unique;
+  },
+
+  async linkCollectorToChild(
+    parentId: string,
+    childId: string,
+    payload: {
+      collector_user_id: string;
+      first_name: string;
+      last_name: string;
+      phone: string | null;
+      email: string | null;
+      relationship: string;
+    }
+  ): Promise<Guardian> {
+    // Check for existing link to avoid duplicate
+    const { data: existing } = await supabase
+      .from('guardians')
+      .select('id')
+      .eq('child_id', childId)
+      .eq('collector_user_id', payload.collector_user_id)
+      .maybeSingle();
+    if (existing) throw new Error('Ce collecteur est déjà autorisé pour cet enfant.');
+
+    const { data, error } = await supabase
+      .from('guardians')
+      .insert({
+        parent_id: parentId,
+        child_id: childId,
+        collector_user_id: payload.collector_user_id,
+        first_name: payload.first_name,
+        last_name: payload.last_name,
+        phone: payload.phone ?? null,
+        email: payload.email ?? null,
+        relationship: payload.relationship,
+        is_active: true,
+        priority: 1,
+      })
+      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at')
+      .single();
+    if (error) throw error;
+    return data as Guardian;
+  },
+
   async getGuardians(childId: string): Promise<Guardian[]> {
     const { data, error } = await supabase
       .from('guardians')

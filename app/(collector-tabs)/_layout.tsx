@@ -85,9 +85,6 @@ export default function CollectorTabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="profile/notifications" options={{ href: null }} />
-      <Tabs.Screen name="profile/legal-mentions" options={{ href: null }} />
-      <Tabs.Screen name="profile/privacy-policy" options={{ href: null }} />
     </Tabs>
   );
 }

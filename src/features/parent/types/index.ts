@@ -26,6 +26,7 @@ export interface Guardian {
   photo_url: string | null;
   priority: number;
   is_active: boolean;
+  collector_user_id?: string | null;
   created_at: string;
   updated_at: string;
 }
