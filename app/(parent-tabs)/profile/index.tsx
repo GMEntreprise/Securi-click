@@ -1,4 +1,5 @@
 import { useSession } from '@/features/auth/store/auth.store';
+import { useLocalSecurity } from '@/features/auth/hooks/useLocalSecurity';
 import { EditProfileSheet } from '@/features/parent/components/ui/EditProfileSheet';
 import { useParentProfile, useUpdateAvatar } from '@/features/parent/hooks/useParentProfile';
 import { useUploadImage } from '@/features/parent/hooks/useUploadImage';
@@ -136,10 +137,8 @@ export default function ProfileScreen() {
 
   const [editSheetVisible, setEditSheetVisible] = useState(false);
   const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
-  const [prefs, setPrefs] = useState({
-    notifications: true,
-    biometricAuth: true,
-  });
+
+  const { isEnabled: biometricEnabled, isMutating: biometricMutating, enable: enableBiometric, disable: disableBiometric } = useLocalSecurity();
 
   const { data: profile } = useParentProfile();
   const updateAvatar = useUpdateAvatar();
@@ -182,10 +181,11 @@ export default function ProfileScreen() {
   const lastName = profile?.last_name ?? session?.user.profile?.last_name ?? '';
   const email = session?.user.email ?? '';
   const phone = profile?.phone ?? session?.user.profile?.phone ?? '';
-  const toggle = useCallback((key: keyof typeof prefs, value: boolean) => {
-    setPrefs(p => ({ ...p, [key]: value }));
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  }, []);
+  const handleBiometricToggle = useCallback(async (value: boolean) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    if (value) await enableBiometric();
+    else await disableBiometric();
+  }, [enableBiometric, disableBiometric]);
 
   const handleLogout = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -238,8 +238,8 @@ export default function ProfileScreen() {
             icon: <Shield size={16} color={theme.accent} strokeWidth={2.5} />,
             iconBg: theme.accentBg,
             title: 'Sécurité',
-            subtitle: 'Mot de passe, 2FA',
-            onPress: () => setEditSheetVisible(true),
+            subtitle: 'Biométrie, verrouillage',
+            onPress: () => nav.goToParentSecurity(),
           },
         ] as RowItem[],
       },
@@ -267,11 +267,11 @@ export default function ProfileScreen() {
             icon: <Smartphone size={16} color="#6366f1" strokeWidth={2.5} />,
             iconBg: 'rgba(99,102,241,0.1)',
             title: 'Authentification biométrique',
-            subtitle: 'Face ID, empreinte',
+            subtitle: biometricEnabled ? 'Activée' : 'Désactivée',
             toggle: true,
-            value: prefs.biometricAuth,
-            onToggle: (v: boolean) => toggle('biometricAuth', v),
-            onPress: () => {},
+            value: biometricEnabled,
+            onToggle: handleBiometricToggle,
+            onPress: () => nav.goToParentSecurity(),
           },
         ] as RowItem[],
       },
@@ -303,7 +303,7 @@ export default function ProfileScreen() {
         ] as RowItem[],
       },
     ],
-    [prefs, toggle, theme, isDark, darkModeSwitch, nav]
+    [biometricEnabled, handleBiometricToggle, theme, isDark, darkModeSwitch, nav]
   );
 
   return (

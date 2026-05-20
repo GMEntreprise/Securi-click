@@ -34,6 +34,7 @@ export const ROUTES = {
     legalMentions: '/(parent-tabs)/profile/legal-mentions' as const,
     privacyPolicy: '/(parent-tabs)/profile/privacy-policy' as const,
     faq:           '/(parent-tabs)/profile/faq' as const,
+    security:      '/(parent-tabs)/profile/security' as const,
   },
   collector: {
     home:         '/(collector-tabs)/home' as const,
@@ -56,5 +57,6 @@ export const ROUTES = {
     legalMentions: '/(school-tabs)/profile/legal-mentions' as const,
     privacyPolicy: '/(school-tabs)/profile/privacy-policy' as const,
     faq:           '/(school-tabs)/profile/faq' as const,
+    security:      '/(school-tabs)/profile/security' as const,
   },
 } as const;

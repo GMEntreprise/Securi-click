@@ -19,6 +19,7 @@ export default function SchoolProfileLayout() {
       <Stack.Screen name="legal-mentions" options={{ title: 'Mentions légales' }} />
       <Stack.Screen name="privacy-policy" options={{ title: 'Confidentialité' }} />
       <Stack.Screen name="faq" options={{ title: 'Aide & FAQ' }} />
+      <Stack.Screen name="security" options={{ title: 'Sécurité' }} />
     </Stack>
   );
 }

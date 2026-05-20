@@ -23,6 +23,7 @@ import {
   MapPin,
   Pencil,
   Phone,
+  Shield,
 } from 'lucide-react-native';
 import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
 import { useTheme } from '@/theme';
@@ -291,6 +292,48 @@ export default function SchoolProfileScreen() {
                 </Text>
               </View>
             )}
+            <ChevronRight size={16} color={theme.textMuted} />
+          </TouchableOpacity>
+        </Animated.View>
+
+        {/* Sécurité */}
+        <Animated.View
+          entering={FadeInDown.delay(105).duration(350)}
+          style={{ marginBottom: 16 }}
+        >
+          <TouchableOpacity
+            onPress={() => nav.goToSchoolSecurity()}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: theme.accentBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Shield size={18} color={theme.accent} strokeWidth={2.5} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
+                Sécurité
+              </Text>
+              <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+                Biométrie, verrouillage
+              </Text>
+            </View>
             <ChevronRight size={16} color={theme.textMuted} />
           </TouchableOpacity>
         </Animated.View>

@@ -123,6 +123,10 @@ export function useAppNavigation() {
     router.push(ROUTES.parent.faq as any);
   }, [router]);
 
+  const goToParentSecurity = useCallback(() => {
+    router.push(ROUTES.parent.security as any);
+  }, [router]);
+
   // ── Collector ───────────────────────────────────────────────────────────────
 
   const goToCollectorDashboard = useCallback(() => {
@@ -179,6 +183,10 @@ export function useAppNavigation() {
     router.push(ROUTES.school.faq as any);
   }, [router]);
 
+  const goToSchoolSecurity = useCallback(() => {
+    router.push(ROUTES.school.security as any);
+  }, [router]);
+
   // ── Generic push for notification routing ───────────────────────────────────
 
   const pushRoute = useCallback(
@@ -211,6 +219,7 @@ export function useAppNavigation() {
     goToParentLegalMentions,
     goToParentPrivacyPolicy,
     goToParentFaq,
+    goToParentSecurity,
     // collector
     goToCollectorDashboard,
     goToCollectorProfile,
@@ -226,6 +235,7 @@ export function useAppNavigation() {
     goToSchoolLegalMentions,
     goToSchoolPrivacyPolicy,
     goToSchoolFaq,
+    goToSchoolSecurity,
     // generic
     pushRoute,
   };
