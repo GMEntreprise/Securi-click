@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNetworkStatus } from './useNetworkStatus';
 import { useRealtimeStatus } from './useRealtimeStatus';
 
@@ -8,13 +8,14 @@ export type ConnectivityStatus =
   | 'realtime_disconnected'
   | 'reconnecting';
 
-// How long a bad state must persist before the banner appears (anti-flash)
 const SHOW_DELAY_MS = 2_000;
-// How long to show "reconnecting" after coming back online
 const RECONNECTING_LINGER_MS = 2_500;
 
-export function useGlobalConnectivity(): ConnectivityStatus {
-  const network = useNetworkStatus();
+export function useGlobalConnectivity(): {
+  status: ConnectivityStatus;
+  retry: () => void;
+} {
+  const { state: network, recheck } = useNetworkStatus();
   const realtime = useRealtimeStatus();
 
   const [status, setStatus] = useState<ConnectivityStatus>('online');
@@ -30,7 +31,6 @@ export function useGlobalConnectivity(): ConnectivityStatus {
       if (reconnectTimer.current) { clearTimeout(reconnectTimer.current); reconnectTimer.current = null; }
     };
 
-    // Network offline — highest priority, show immediately after delay
     if (network === 'offline') {
       clearReconnect();
       if (!prevOffline.current) {
@@ -44,7 +44,6 @@ export function useGlobalConnectivity(): ConnectivityStatus {
       return;
     }
 
-    // Network came back
     if (prevOffline.current && network === 'online') {
       prevOffline.current = false;
       clearShow();
@@ -58,7 +57,6 @@ export function useGlobalConnectivity(): ConnectivityStatus {
       return;
     }
 
-    // Network online but realtime disconnected
     if (network === 'online' && realtime === 'disconnected') {
       clearShow();
       showTimer.current = setTimeout(() => {
@@ -68,7 +66,6 @@ export function useGlobalConnectivity(): ConnectivityStatus {
       return;
     }
 
-    // Everything fine
     if (network === 'online' && (realtime === 'connected' || realtime === 'unknown')) {
       clearShow();
       if (status !== 'reconnecting') {
@@ -81,5 +78,16 @@ export function useGlobalConnectivity(): ConnectivityStatus {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [network, realtime]);
 
-  return status;
+  const retry = useCallback(() => {
+    if (__DEV__) console.log('[Connectivity] retry triggered');
+    setStatus('reconnecting');
+    prevOffline.current = false;
+    recheck();
+    if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+    reconnectTimer.current = setTimeout(() => {
+      setStatus(s => s === 'reconnecting' ? 'online' : s);
+    }, RECONNECTING_LINGER_MS);
+  }, [recheck]);
+
+  return { status, retry };
 }

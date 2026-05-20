@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -16,6 +16,7 @@ interface BannerConfig {
   color: string;
   bg: string;
   Icon: React.ComponentType<{ size: number; color: string; strokeWidth: number }>;
+  showRetry: boolean;
 }
 
 const CONFIG: Record<Exclude<ConnectivityStatus, 'online'>, BannerConfig> = {
@@ -24,24 +25,27 @@ const CONFIG: Record<Exclude<ConnectivityStatus, 'online'>, BannerConfig> = {
     color: '#ffffff',
     bg: '#1a1a2e',
     Icon: WifiOff,
+    showRetry: true,
   },
   realtime_disconnected: {
     message: 'Synchronisation en attente',
     color: '#ffffff',
     bg: '#7c3aed',
     Icon: CloudOff,
+    showRetry: true,
   },
   reconnecting: {
     message: 'Reconnexion en cours…',
     color: '#ffffff',
     bg: '#0f766e',
     Icon: RefreshCw,
+    showRetry: false,
   },
 };
 
 export function NetworkBanner() {
   const insets = useSafeAreaInsets();
-  const status = useGlobalConnectivity();
+  const { status, retry } = useGlobalConnectivity();
   const visible = status !== 'online';
   const translateY = useSharedValue(-60);
   const opacity = useSharedValue(0);
@@ -63,21 +67,29 @@ export function NetworkBanner() {
 
   if (status === 'online') return null;
 
-  const config = CONFIG[status];
-  const { message, color, bg, Icon } = config;
+  const { message, color, bg, Icon, showRetry } = CONFIG[status];
 
   return (
     <Animated.View
-      style={[
-        styles.banner,
-        { backgroundColor: bg, paddingTop: insets.top + 6 },
-        animStyle,
-      ]}
+      style={[styles.banner, { backgroundColor: bg, paddingTop: insets.top + 6 }, animStyle]}
       accessibilityLiveRegion="polite"
       accessibilityLabel={message}
     >
-      <Icon size={14} color={color} strokeWidth={2.5} />
-      <Text style={[styles.text, { color }]}>{message}</Text>
+      <Icon size={16} color={color} strokeWidth={2.5} />
+      <Text style={[styles.message, { color }]}>{message}</Text>
+
+      {showRetry && (
+        <TouchableOpacity
+          onPress={retry}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityRole="button"
+          accessibilityLabel="Réessayer"
+          style={[styles.retryBtn, { borderColor: `${color}50` }]}
+        >
+          <RefreshCw size={10} color={color} strokeWidth={2.5} />
+          <Text style={[styles.retryText, { color }]}>Réessayer</Text>
+        </TouchableOpacity>
+      )}
     </Animated.View>
   );
 }
@@ -92,14 +104,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 8,
+    paddingBottom: 10,
     paddingHorizontal: 16,
     gap: 8,
-    pointerEvents: 'none',
   },
-  text: {
-    fontSize: 12,
+  message: {
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.2,
+    flex: 1,
+  },
+  retryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  retryText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
 });
