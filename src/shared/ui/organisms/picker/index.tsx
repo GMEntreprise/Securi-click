@@ -22,8 +22,7 @@ import { BlurView, type BlurViewProps } from 'expo-blur';
 import { scheduleOnRN } from 'react-native-worklets';
 import type { IPicker } from './types';
 
-const AnimatedBlurView =
-  Animated.createAnimatedComponent<Partial<BlurViewProps>>(BlurView);
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const DEFAULT_ITEM_HEIGHT = 44;
 const DEFAULT_VISIBLE_ITEMS = 7;
