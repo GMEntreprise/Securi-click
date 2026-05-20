@@ -33,7 +33,7 @@ const GUARDIAN_SELECT = `
   relationship, photo_url, priority, is_active, identity_status,
   identity_verified, collector_user_id, created_at, updated_at,
   child:children ( id, first_name, last_name, photo_url, class_name, medical_notes,
-    school:schools ( id, name, city, type, verified, external_id )
+    school:schools ( id, name, city, type, verified, external_id, address, postal_code )
   )
 `.trim();
 

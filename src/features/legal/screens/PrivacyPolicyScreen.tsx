@@ -1,26 +1,28 @@
+import { useTheme } from '@/theme';
 import React, { memo } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '@/theme';
 
-const Section = memo(({ title, children }: { title: string; children: React.ReactNode }) => {
-  const t = useTheme();
-  return (
-    <View style={{ marginBottom: 24 }}>
-      <Text
-        style={{
-          fontSize: 15,
-          fontWeight: '700',
-          color: t.text,
-          marginBottom: 8,
-        }}
-      >
-        {title}
-      </Text>
-      {children}
-    </View>
-  );
-});
+const Section = memo(
+  ({ title, children }: { title: string; children: React.ReactNode }) => {
+    const t = useTheme();
+    return (
+      <View style={{ marginBottom: 24 }}>
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: '700',
+            color: t.text,
+            marginBottom: 8,
+          }}
+        >
+          {title}
+        </Text>
+        {children}
+      </View>
+    );
+  }
+);
 
 const Body = memo(({ children }: { children: string }) => {
   const t = useTheme();
@@ -106,7 +108,7 @@ export const PrivacyPolicyScreen = memo(() => {
 
       <Section title="Contact">
         <Body>
-          {`SECURI'CLICK — Marine RAULT\n1 Rue Louis Jourdan, 83000 Toulon\nEmail : contact@securi-click.com`}
+          {`SECURI'CLICK — SARL Securi'ClickT\n1 Rue Louis Jourdan, 83000 Toulon\nEmail : contact@securi-click.com`}
         </Body>
       </Section>
     </ScrollView>

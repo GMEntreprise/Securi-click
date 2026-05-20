@@ -1,12 +1,12 @@
 import React, { useCallback } from 'react';
 import { Tabs } from 'expo-router';
-import { Home, Users, ScanLine, Clock, User } from 'lucide-react-native';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
 import { useTheme } from '@/theme';
 
-const ICON_SIZE = 22;
+const ICON_SIZE = 24;
 
 function ThemedCurvedTabBar(
   props: BottomTabBarProps & CurvedTabBarNavigationProps
@@ -17,8 +17,8 @@ function ThemedCurvedTabBar(
       {...props}
       gradients={[...t.tabGradient]}
       activeColor="#ffffff"
-      inactiveColor={t.textMuted}
-      labelColor={t.textMuted}
+      inactiveColor="rgba(255,255,255,0.70)"
+      labelColor="rgba(255,255,255,0.70)"
       barHeight={9}
       buttonScale={6}
       textSize={11}
@@ -42,12 +42,8 @@ export default function SchoolTabsLayout() {
         name="home/index"
         options={{
           title: 'Accueil',
-          tabBarIcon: ({ focused, color }) => (
-            <Home
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="home-outline" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -55,12 +51,8 @@ export default function SchoolTabsLayout() {
         name="students/index"
         options={{
           title: 'Élèves',
-          tabBarIcon: ({ focused, color }) => (
-            <Users
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="account-group" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -68,12 +60,8 @@ export default function SchoolTabsLayout() {
         name="scanner/index"
         options={{
           title: 'Scanner',
-          tabBarIcon: ({ focused, color }) => (
-            <ScanLine
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="line-scan" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -81,12 +69,8 @@ export default function SchoolTabsLayout() {
         name="history/index"
         options={{
           title: 'Historique',
-          tabBarIcon: ({ focused, color }) => (
-            <Clock
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="history" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -94,12 +78,8 @@ export default function SchoolTabsLayout() {
         name="profile"
         options={{
           title: 'Profil',
-          tabBarIcon: ({ focused, color }) => (
-            <User
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-outline" size={ICON_SIZE} color={color} />
           ),
         }}
       />

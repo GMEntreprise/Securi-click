@@ -11,15 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import * as Haptics from 'expo-haptics';
-import {
-  CheckCircle2,
-  ScanLine,
-  XCircle,
-  Users,
-  Clock,
-  ChevronRight,
-  CalendarDays,
-} from 'lucide-react-native';
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { QueryError } from '@/shared/ui/base/query-error';
@@ -138,21 +130,21 @@ export default function SchoolHomeScreen() {
         style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}
       >
         <StatCard
-          icon={<CheckCircle2 size={20} color={theme.green} />}
+          icon={<MaterialCommunityIcons name="check-circle-outline" size={22} color={theme.green} />}
           label="Validées"
           value={stats?.todayValidations ?? 0}
           bg={theme.greenBg}
           color={theme.green}
         />
         <StatCard
-          icon={<XCircle size={20} color={theme.red} />}
+          icon={<MaterialCommunityIcons name="close-circle-outline" size={22} color={theme.red} />}
           label="Refusées"
           value={stats?.todayRefusals ?? 0}
           bg={theme.redBg}
           color={theme.red}
         />
         <StatCard
-          icon={<Users size={20} color={theme.primary} />}
+          icon={<MaterialCommunityIcons name="account-group" size={22} color={theme.primary} />}
           label="Élèves"
           value={stats?.enrolledCount ?? 0}
           bg={theme.primaryBg}
@@ -168,7 +160,7 @@ export default function SchoolHomeScreen() {
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
             <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: theme.accentBg, alignItems: 'center', justifyContent: 'center' }}>
-              <CalendarDays size={14} color={theme.accent} strokeWidth={2} />
+              <MaterialCommunityIcons name="calendar-today" size={16} color={theme.accent} />
             </View>
             <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}>
               Attendus aujourd'hui
@@ -210,7 +202,7 @@ export default function SchoolHomeScreen() {
                     </Text>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                    <Clock size={11} color={theme.accent} strokeWidth={2.5} />
+                    <MaterialCommunityIcons name="clock-outline" size={13} color={theme.accent} />
                     <Text style={{ color: theme.accent, fontSize: 12, fontWeight: '700' }}>{times}</Text>
                   </View>
                 </View>
@@ -240,7 +232,7 @@ export default function SchoolHomeScreen() {
             gap: 10,
           }}
         >
-          <ScanLine size={22} color="#fff" strokeWidth={2.5} />
+          <MaterialCommunityIcons name="line-scan" size={24} color="#fff" />
           <Text style={{ color: '#fff', fontSize: 17, fontWeight: '800' }}>
             Scanner un QR Code
           </Text>
@@ -269,7 +261,7 @@ export default function SchoolHomeScreen() {
             >
               Tout voir
             </Text>
-            <ChevronRight size={14} color={theme.accent} />
+            <Feather name="chevron-right" size={14} color={theme.accent} />
           </TouchableOpacity>
         </View>
 
@@ -284,7 +276,7 @@ export default function SchoolHomeScreen() {
               alignItems: 'center',
             }}
           >
-            <Clock size={28} color={theme.textMuted} strokeWidth={1.5} />
+            <MaterialCommunityIcons name="clock-outline" size={30} color={theme.textMuted} />
             <Text
               style={{
                 color: theme.textMuted,

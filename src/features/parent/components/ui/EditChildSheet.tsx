@@ -63,6 +63,7 @@ type FormErrors = Partial<Record<keyof FormState, string>>;
 interface EditChildSheetProps {
   child: Child;
   onClose: () => void;
+  onDelete?: (childId: string) => void;
 }
 
 function InputField({
@@ -136,6 +137,7 @@ function InputField({
 export const EditChildSheet = memo(function EditChildSheet({
   child,
   onClose,
+  onDelete,
 }: EditChildSheetProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -314,18 +316,20 @@ export const EditChildSheet = memo(function EditChildSheet({
               padding: 16,
             }}
           >
-            <Text
-              style={{
-                color: theme.textMuted,
-                fontSize: 11,
-                fontWeight: '700',
-                letterSpacing: 1.2,
-                textTransform: 'uppercase',
-                marginBottom: 14,
-              }}
-            >
-              Photo
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontSize: 11,
+                  fontWeight: '700',
+                  letterSpacing: 1.2,
+                  textTransform: 'uppercase',
+                }}
+              >
+                Photo
+              </Text>
+              <Text style={{ color: theme.textMuted, fontSize: 12 }}>(optionnel)</Text>
+            </View>
             <View style={{ alignItems: 'center', marginBottom: 14 }}>
               <TouchableOpacity
                 onPress={handlePickPhoto}
@@ -361,32 +365,48 @@ export const EditChildSheet = memo(function EditChildSheet({
                 </View>
               </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={handlePickPhoto}
-              disabled={isUploading}
-              style={{
-                height: 44,
-                backgroundColor: theme.iconBg,
-                borderRadius: 12,
-                borderWidth: 1,
-                borderColor: theme.cardBorder,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
-                gap: 6,
-              }}
-            >
-              <Camera size={15} color={theme.textMuted} />
-              <Text
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              <TouchableOpacity
+                onPress={handlePickPhoto}
+                disabled={isUploading}
                 style={{
-                  color: theme.textSecondary,
-                  fontSize: 13,
-                  fontWeight: '600',
+                  flex: 1,
+                  height: 44,
+                  backgroundColor: theme.iconBg,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: theme.cardBorder,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 6,
                 }}
               >
-                {photoUri ? 'Changer la photo' : 'Ajouter une photo'}
-              </Text>
-            </TouchableOpacity>
+                <Camera size={15} color={theme.textMuted} />
+                <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600' }}>
+                  {photoUri ? 'Changer' : 'Ajouter une photo'}
+                </Text>
+              </TouchableOpacity>
+              {photoUri ? (
+                <TouchableOpacity
+                  onPress={() => setPhotoUri(null)}
+                  style={{
+                    height: 44,
+                    paddingHorizontal: 14,
+                    backgroundColor: theme.redBg,
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: 'rgba(239,68,68,0.25)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ color: theme.red, fontSize: 13, fontWeight: '600' }}>
+                    Supprimer
+                  </Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
           </Animated.View>
 
           {/* Identité */}
@@ -710,6 +730,62 @@ export const EditChildSheet = memo(function EditChildSheet({
               </Text>
             ) : null}
           </Animated.View>
+
+          {/* Zone dangereuse */}
+          {onDelete ? (
+            <Animated.View
+              entering={FadeInDown.delay(280).duration(300)}
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 18,
+                borderWidth: 1,
+                borderColor: 'rgba(239,68,68,0.2)',
+                overflow: 'hidden',
+              }}
+            >
+              <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 }}>
+                <Text style={{ color: theme.red, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>
+                  Zone dangereuse
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                  Alert.alert(
+                    'Supprimer l\'enfant',
+                    `Voulez-vous vraiment supprimer ${child.first_name} ${child.last_name} ? Toutes les autorisations associées seront également supprimées. Cette action est irréversible.`,
+                    [
+                      { text: 'Annuler', style: 'cancel' },
+                      {
+                        text: 'Supprimer',
+                        style: 'destructive',
+                        onPress: () => onDelete(child.id),
+                      },
+                    ]
+                  );
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                }}
+              >
+                <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: theme.redBg, alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertCircle size={17} color={theme.red} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: theme.red, fontSize: 14, fontWeight: '700' }}>
+                    Supprimer l'enfant
+                  </Text>
+                  <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+                    Supprime toutes les autorisations associées
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </Animated.View>
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

@@ -18,21 +18,13 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import * as Haptics from 'expo-haptics';
-import {
-  Shield,
-  Users,
-  QrCode,
-  Clock,
-  CheckCircle,
-  TrendingUp,
-  UserPlus,
-  AlertCircle,
-} from 'lucide-react-native';
+import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useChildren } from '@/features/parent/hooks/useChildren';
 import { useRecentPickupLogs } from '@/features/parent/hooks/usePickupLogs';
 import type { PickupLog } from '@/features/parent/types';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { QueryError } from '@/shared/ui/base/query-error';
+import { useChildrenSheetStore } from '@/features/parent/stores/childrenSheet.store';
 
 interface QuickAction {
   id: string;
@@ -157,11 +149,11 @@ const ActivityRow = React.memo(function ActivityRow({
         }}
       >
         {isSuccess ? (
-          <CheckCircle size={18} color={color} strokeWidth={2} />
+          <MaterialCommunityIcons name="check-circle-outline" size={20} color={color} />
         ) : isDenied ? (
-          <AlertCircle size={18} color={color} strokeWidth={2} />
+          <MaterialCommunityIcons name="alert-circle-outline" size={20} color={color} />
         ) : (
-          <Clock size={18} color={color} strokeWidth={2} />
+          <MaterialCommunityIcons name="clock-outline" size={20} color={color} />
         )}
       </View>
       <View style={{ flex: 1 }}>
@@ -200,6 +192,7 @@ export default function ParentDashboard() {
 
   const { data: children, isError: childrenError, refetch: refetchChildren } = useChildren();
   const { data: recentLogs, isLoading: logsLoading, isError: logsError, refetch: refetchLogs } = useRecentPickupLogs(5);
+  const requestChildrenSheetOpen = useChildrenSheetStore(s => s.requestOpen);
 
   if (childrenError || logsError) {
     return <QueryError onRetry={() => { refetchChildren(); refetchLogs(); }} />;
@@ -214,55 +207,62 @@ export default function ParentDashboard() {
     () => [
       {
         id: 'qr',
-        icon: <QrCode size={22} color={theme.accent} strokeWidth={2} />,
+        icon: <MaterialCommunityIcons name="qrcode" size={24} color={theme.accent} />,
         label: 'QR Code',
         accentBg: theme.accentBg,
         onPress: () => nav.goToParentQr(),
       },
       {
         id: 'children',
-        icon: <Users size={22} color={theme.primary} strokeWidth={2} />,
-        label: 'Enfants',
+        icon: <MaterialCommunityIcons name="account-group" size={24} color={theme.primary} />,
+        label: childrenCount === 0 ? 'Ajouter un enfant' : 'Mes enfants',
         accentBg: theme.primaryBg,
-        onPress: () => nav.goToParentChildren(),
+        onPress: () => {
+          if (childrenCount === 0) {
+            nav.goToParentChildAdd();
+          } else {
+            requestChildrenSheetOpen();
+            nav.goToParentChildren();
+          }
+        },
       },
       {
         id: 'add-guardian',
-        icon: <UserPlus size={22} color={theme.green} strokeWidth={2} />,
+        icon: <MaterialCommunityIcons name="account-plus" size={24} color={theme.green} />,
         label: 'Autoriser',
         accentBg: theme.greenBg,
         onPress: () => nav.goToParentChildren(),
       },
       {
         id: 'history',
-        icon: <Clock size={22} color={theme.textSecondary} strokeWidth={2} />,
+        icon: <MaterialCommunityIcons name="history" size={24} color={theme.textSecondary} />,
         label: 'Historique',
         accentBg: theme.iconBg,
         onPress: () => nav.goToParentHistory(),
       },
     ],
-    [theme, nav]
+    [theme, nav, childrenCount, requestChildrenSheetOpen]
   );
 
   const stats = useMemo(
     () => [
       {
-        icon: <Shield size={18} color={theme.accent} />,
-        label: 'Enfants',
+        icon: <MaterialCommunityIcons name="shield-half-full" size={20} color={theme.accent} />,
+        label: childrenCount > 1 ? 'Enfants' : 'Enfant',
         value: childrenCount,
         bg: theme.accentBg,
         color: theme.accent,
       },
       {
-        icon: <TrendingUp size={18} color={theme.green} />,
-        label: 'Récupérations',
+        icon: <Feather name="trending-up" size={20} color={theme.green} />,
+        label: completedCount > 1 ? 'Récupérations' : 'Récupération',
         value: completedCount,
         bg: theme.greenBg,
         color: theme.green,
       },
       {
-        icon: <Users size={18} color={theme.primary} />,
-        label: 'Récents',
+        icon: <MaterialCommunityIcons name="file-document-outline" size={20} color={theme.primary} />,
+        label: (recentLogs?.length ?? 0) > 1 ? 'Récents' : 'Récent',
         value: recentLogs?.length ?? 0,
         bg: theme.primaryBg,
         color: theme.primary,
@@ -348,22 +348,14 @@ export default function ParentDashboard() {
               >
                 {stat.icon}
               </View>
-              <Text
-                style={{ color: theme.text, fontSize: 22, fontWeight: '800' }}
-              >
-                {stat.value}
-              </Text>
-              <Text
-                style={{
-                  color: theme.textMuted,
-                  fontSize: 11,
-                  fontWeight: '600',
-                  textAlign: 'center',
-                  marginTop: 2,
-                }}
-              >
-                {stat.label}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 2 }}>
+                <Text style={{ color: theme.text, fontSize: 22, fontWeight: '800' }}>
+                  {stat.value}
+                </Text>
+                <Text style={{ color: theme.textMuted, fontSize: 11, fontWeight: '600' }}>
+                  {stat.label}
+                </Text>
+              </View>
             </View>
           ))}
         </Animated.View>
@@ -436,7 +428,7 @@ export default function ParentDashboard() {
               <View
                 style={{ paddingVertical: 24, alignItems: 'center', gap: 8 }}
               >
-                <Clock size={28} color={theme.textMuted} strokeWidth={1.5} />
+                <MaterialCommunityIcons name="clock-outline" size={30} color={theme.textMuted} />
                 <Text style={{ color: theme.textMuted, fontSize: 14 }}>
                   Aucune activité récente
                 </Text>

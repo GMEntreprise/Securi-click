@@ -21,6 +21,7 @@ import {
   AlertCircle,
   Clock,
   CalendarDays,
+  MapPin,
 } from 'lucide-react-native';
 import { useTheme } from '@/theme';
 import { Avatar } from '@/shared/ui/base/avatar';
@@ -177,6 +178,13 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({ guardian, onC
                 icon={<Building2 size={14} color={theme.textMuted} strokeWidth={2} />}
                 label="Établissement"
                 value={`${child.school.name}${child.school.city ? `, ${child.school.city}` : ''}`}
+              />
+            ) : null}
+            {child?.school?.address ? (
+              <InfoRow
+                icon={<MapPin size={14} color={theme.textMuted} strokeWidth={2} />}
+                label="Adresse"
+                value={`${child.school.address}${child.school.postal_code ? `, ${child.school.postal_code}` : ''}${child.school.city ? ` ${child.school.city}` : ''}`}
               />
             ) : null}
           </Animated.View>

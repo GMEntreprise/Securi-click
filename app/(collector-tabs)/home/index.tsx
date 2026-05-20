@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useRef } from 'react';
 import { TouchableOpacity, View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,6 +29,8 @@ import {
   usePendingInvites,
 } from '@/features/collector/hooks/useCollector';
 import { CollectorOnboardSheet } from '@/features/collector/components/ui/CollectorOnboardSheet';
+import { AccessDetailSheet } from '@/features/collector/components/ui/AccessDetailSheet';
+import type { CollectorGuardian } from '@/features/collector/types';
 import { QueryError } from '@/shared/ui/base/query-error';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import {
@@ -114,6 +116,7 @@ export default function CollectorHomeScreen() {
   const hasPending = (pendingInvites?.length ?? 0) > 0;
   const [onboardVisible, setOnboardVisible] = useState(false);
   const handleOnboardDismiss = useCallback(() => setOnboardVisible(false), []);
+  const [selectedGuardian, setSelectedGuardian] = useState<CollectorGuardian | null>(null);
 
   const activeGuardians = useMemo(
     () => (guardians ?? []).filter(g => g.is_active),
@@ -185,6 +188,10 @@ export default function CollectorHomeScreen() {
       <CollectorOnboardSheet
         visible={onboardVisible}
         onDismiss={handleOnboardDismiss}
+      />
+      <AccessDetailSheet
+        guardian={selectedGuardian}
+        onClose={() => setSelectedGuardian(null)}
       />
       <ScrollView
         style={{ flex: 1, backgroundColor: theme.bg }}
@@ -388,11 +395,11 @@ export default function CollectorHomeScreen() {
             <View style={{ flex: 1 }}>
               <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
                 {(pendingInvites?.length ?? 0) > 1
-                  ? `${pendingInvites!.length} invitations en attente`
-                  : 'Invitation en attente'}
+                  ? `${pendingInvites!.length} nouvelles autorisations`
+                  : 'Nouvelle autorisation disponible'}
               </Text>
               <Text style={{ color: theme.textSecondary, fontSize: 12, marginTop: 1 }}>
-                Appuyez pour confirmer votre accès
+                Appuyez pour activer votre accès
               </Text>
             </View>
           </TouchableOpacity>
@@ -521,8 +528,10 @@ export default function CollectorHomeScreen() {
           </Text>
           <View style={{ gap: 10 }}>
             {activeGuardians.map(g => (
-              <View
+              <TouchableOpacity
                 key={g.id}
+                activeOpacity={0.8}
+                onPress={() => setSelectedGuardian(g)}
                 style={{
                   backgroundColor: theme.card,
                   borderRadius: 18,
@@ -585,7 +594,7 @@ export default function CollectorHomeScreen() {
                     Autorisé
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </Animated.View>

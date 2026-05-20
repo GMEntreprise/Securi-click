@@ -1,13 +1,13 @@
 import React, { useCallback } from 'react';
 import { Tabs } from 'expo-router';
-import { Home, Shield, QrCode, Clock, User } from 'lucide-react-native';
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
 import { useTheme } from '@/theme';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 
-const ICON_SIZE = 22;
+const ICON_SIZE = 24;
 
 function ThemedCurvedTabBar(
   props: BottomTabBarProps & CurvedTabBarNavigationProps
@@ -18,8 +18,8 @@ function ThemedCurvedTabBar(
       {...props}
       gradients={[...t.tabGradient]}
       activeColor="#ffffff"
-      inactiveColor={t.textMuted}
-      labelColor={t.textMuted}
+      inactiveColor="rgba(255,255,255,0.70)"
+      labelColor="rgba(255,255,255,0.70)"
       barHeight={9}
       buttonScale={6}
       textSize={11}
@@ -44,12 +44,8 @@ export default function CollectorTabsLayout() {
         options={{
           title: 'Accueil',
           headerRight: () => <NotificationBell />,
-          tabBarIcon: ({ focused, color }) => (
-            <Home
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="home-outline" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -57,12 +53,8 @@ export default function CollectorTabsLayout() {
         name="access"
         options={{
           title: 'Mes accès',
-          tabBarIcon: ({ focused, color }) => (
-            <Shield
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="shield-half-full" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -70,12 +62,8 @@ export default function CollectorTabsLayout() {
         name="qr"
         options={{
           title: 'QR Code',
-          tabBarIcon: ({ focused, color }) => (
-            <QrCode
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="qrcode" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -83,12 +71,8 @@ export default function CollectorTabsLayout() {
         name="history"
         options={{
           title: 'Historique',
-          tabBarIcon: ({ focused, color }) => (
-            <Clock
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="history" size={ICON_SIZE} color={color} />
           ),
         }}
       />
@@ -96,12 +80,8 @@ export default function CollectorTabsLayout() {
         name="profile"
         options={{
           title: 'Profil',
-          tabBarIcon: ({ focused, color }) => (
-            <User
-              size={ICON_SIZE}
-              color={color}
-              strokeWidth={focused ? 2.5 : 1.8}
-            />
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="person-outline" size={ICON_SIZE} color={color} />
           ),
         }}
       />

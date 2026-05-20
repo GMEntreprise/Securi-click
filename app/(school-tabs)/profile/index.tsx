@@ -272,7 +272,7 @@ export default function SchoolProfileScreen() {
                 Notifications
               </Text>
               <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
-                {unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : 'Tout est lu'}
+                {unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : '0 notification'}
               </Text>
             </View>
             {unreadCount > 0 && (

@@ -1,12 +1,8 @@
+import { useAppNavigation } from '@/navigation/useAppNavigation';
+import { useTheme } from '@/theme';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAppNavigation } from '@/navigation/useAppNavigation';
-import {
-  CheckCircle2,
-  GraduationCap,
-  Shield,
-  Users,
-} from 'lucide-react-native';
+import { FontAwesome6, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
   Dimensions,
@@ -25,7 +21,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AuthPrimaryButton } from '../components/ui';
-import { useTheme } from '@/theme';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.36;
@@ -34,11 +29,7 @@ interface RoleItem {
   id: 'parent' | 'school' | 'collector';
   title: string;
   description: string;
-  Icon: React.ComponentType<{
-    size: number;
-    color: string;
-    strokeWidth: number;
-  }>;
+  icon: (color: string) => React.ReactNode;
   route: string;
 }
 
@@ -47,21 +38,21 @@ const ROLES: RoleItem[] = [
     id: 'parent',
     title: 'Parent',
     description: 'Suivi et sécurité des enfants',
-    Icon: Users,
+    icon: (color) => <FontAwesome6 name="user-group" size={22} color={color} />,
     route: '/(auth)/parent',
   },
   {
     id: 'collector',
     title: 'Collecteur',
     description: 'Validation des autorisations',
-    Icon: Shield,
+    icon: (color) => <MaterialCommunityIcons name="shield-check" size={24} color={color} />,
     route: '/(auth)/collector-pin',
   },
   {
     id: 'school',
     title: 'Établissement',
     description: 'Gestion globale de la sécurité',
-    Icon: GraduationCap,
+    icon: (color) => <MaterialCommunityIcons name="school" size={24} color={color} />,
     route: '/(auth)/school',
   },
 ];
@@ -89,8 +80,6 @@ const RoleCard: React.FC<RoleCardProps> = memo(
     const handlePressOut = useCallback(() => {
       scale.value = withSpring(1, { damping: 20, stiffness: 400 });
     }, [scale]);
-
-    const { Icon } = item;
 
     const cardBorder = selected ? t.primary : t.cardBorder;
     const iconBg = selected ? t.primaryBg : t.iconBg;
@@ -139,7 +128,7 @@ const RoleCard: React.FC<RoleCardProps> = memo(
                 marginRight: 14,
               }}
             >
-              <Icon size={24} color={t.primary} strokeWidth={2} />
+              {item.icon(t.primary)}
             </View>
             <View style={{ flex: 1 }}>
               <Text
@@ -158,7 +147,7 @@ const RoleCard: React.FC<RoleCardProps> = memo(
             </View>
             {selected && (
               <Animated.View entering={FadeInUp.duration(200)}>
-                <CheckCircle2 size={22} color={t.primary} strokeWidth={2} />
+                <MaterialCommunityIcons name="check-circle" size={22} color={t.primary} />
               </Animated.View>
             )}
           </View>
@@ -169,7 +158,6 @@ const RoleCard: React.FC<RoleCardProps> = memo(
 );
 
 RoleCard.displayName = 'RoleCard';
-
 
 export const RoleChoiceScreen: React.FC = memo(() => {
   const nav = useAppNavigation();
@@ -256,7 +244,6 @@ export const RoleChoiceScreen: React.FC = memo(() => {
               index={index}
             />
           ))}
-
         </View>
       </ScrollView>
 
@@ -282,17 +269,27 @@ export const RoleChoiceScreen: React.FC = memo(() => {
         >
           Continuer
         </AuthPrimaryButton>
-        <Text
-          style={{
-            textAlign: 'center',
-            color: t.textMuted,
-            fontSize: 10,
-            letterSpacing: 2,
-            marginTop: 10,
-          }}
-        >
-          SECURI'CLICK • PLATEFORME SÉCURISÉE
-        </Text>
+        <View style={{ alignItems: 'center', marginTop: 14, gap: 2 }}>
+          <Text
+            style={{
+              color: t.primary,
+              fontSize: 13,
+              fontWeight: '700',
+              letterSpacing: 0.3,
+            }}
+          >
+            &#174;Securi'Click
+          </Text>
+          <Text
+            style={{
+              color: t.textMuted,
+              fontSize: 11,
+              letterSpacing: 0.2,
+            }}
+          >
+            Tous droits réservés
+          </Text>
+        </View>
       </Animated.View>
     </View>
   );

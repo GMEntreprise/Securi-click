@@ -21,8 +21,9 @@ import {
   UserPlus,
   GraduationCap,
   Pencil,
+  Trash2,
 } from 'lucide-react-native';
-import { useChild } from '@/features/parent/hooks/useChildren';
+import { useChild, useDeleteChild } from '@/features/parent/hooks/useChildren';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import {
   useGuardians,
@@ -183,6 +184,7 @@ export default function ChildDetails() {
   const navigation = useNavigation();
   const childId = id ?? '';
   const { data: child, isLoading: childLoading } = useChild(childId);
+  const deleteChild = useDeleteChild();
 
   useEffect(() => {
     if (child) {
@@ -253,6 +255,37 @@ export default function ChildDetails() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     nav.goToParentGuardianAdd(childId);
   }, [nav, childId]);
+
+  const handleDeleteChild = useCallback(() => {
+    if (!child) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    Alert.alert(
+      'Supprimer l\'enfant',
+      `Voulez-vous vraiment supprimer ${child.first_name} ${child.last_name} ? Toutes les autorisations associées seront également supprimées. Cette action est irréversible.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: () => {
+            deleteChild.mutate(childId, {
+              onSuccess: () => {
+                Toast.show(`${child.first_name} a été supprimé(e)`, {
+                  type: 'success',
+                  duration: 3000,
+                });
+                navigation.goBack();
+              },
+              onError: () => {
+                Toast.show('Impossible de supprimer l\'enfant', { type: 'error' });
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+              },
+            });
+          },
+        },
+      ]
+    );
+  }, [child, childId, deleteChild, navigation]);
 
   const activeCount = useMemo(
     () => (authorizations ?? []).filter(a => a.is_active).length,
@@ -345,26 +378,41 @@ export default function ChildDetails() {
               </Text>
             </View>
           </View>
-          <TouchableOpacity
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setEditSheetVisible(true);
-            }}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 5,
-              backgroundColor: theme.profileEditBg,
-              borderRadius: 12,
-              paddingHorizontal: 12,
-              paddingVertical: 8,
-            }}
-          >
-            <Pencil size={13} color={theme.textSecondary} strokeWidth={2.5} />
-            <Text style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}>
-              Modifier
-            </Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setEditSheetVisible(true);
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                backgroundColor: theme.profileEditBg,
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+              }}
+            >
+              <Pencil size={13} color={theme.textSecondary} strokeWidth={2.5} />
+              <Text style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}>
+                Modifier
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleDeleteChild}
+              style={{
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: theme.redBg,
+                borderRadius: 12,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+              }}
+            >
+              <Trash2 size={15} color={theme.red} strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
         </Animated.View>
 
         {/* Authorizations */}

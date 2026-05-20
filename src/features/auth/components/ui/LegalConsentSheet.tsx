@@ -1,3 +1,13 @@
+import { useTheme } from '@/theme';
+import * as Haptics from 'expo-haptics';
+import {
+  Check,
+  ChevronRight,
+  FileText,
+  Lock,
+  Shield,
+  X,
+} from 'lucide-react-native';
 import React, { memo, useState } from 'react';
 import {
   Modal,
@@ -9,9 +19,6 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
-import { Check, ChevronRight, FileText, Lock, Shield, X } from 'lucide-react-native';
-import { useTheme } from '@/theme';
 
 interface LegalConsentSheetProps {
   visible: boolean;
@@ -107,7 +114,9 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
             >
               <Shield size={18} color={theme.primary} strokeWidth={2} />
             </View>
-            <Text style={{ fontSize: 18, fontWeight: '800', color: theme.text }}>
+            <Text
+              style={{ fontSize: 18, fontWeight: '800', color: theme.text }}
+            >
               Avant de continuer
             </Text>
           </View>
@@ -129,7 +138,11 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, gap: 12 }}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            paddingTop: 16,
+            gap: 12,
+          }}
         >
           {/* Summary card */}
           <Animated.View
@@ -149,7 +162,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
               text={
                 role === 'school'
                   ? "Votre compte établissement est destiné à la gestion sécurisée des récupérations d'élèves."
-                  : "Votre compte parent vous permet de gérer les récupérations de vos enfants en toute sécurité."
+                  : 'Votre compte parent vous permet de gérer les récupérations de vos enfants en toute sécurité.'
               }
             />
             <SummaryPoint
@@ -165,7 +178,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
             <SummaryPoint
               color={theme.textMuted}
               bg={theme.iconBg}
-              text="Contact : contact@securi-click.com — Marine RAULT, 1 Rue Louis Jourdan, 83000 Toulon."
+              text="Contact : contact@securi-click.com — SARL Securi'ClickT, 1 Rue Louis Jourdan, 83000 Toulon."
             />
           </Animated.View>
 
@@ -207,7 +220,12 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                 <FileText size={16} color={theme.textMuted} />
               </View>
               <Text
-                style={{ flex: 1, color: theme.text, fontSize: 14, fontWeight: '600' }}
+                style={{
+                  flex: 1,
+                  color: theme.text,
+                  fontSize: 14,
+                  fontWeight: '600',
+                }}
               >
                 Mentions légales
               </Text>
@@ -239,7 +257,12 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                 <Lock size={16} color={theme.textMuted} />
               </View>
               <Text
-                style={{ flex: 1, color: theme.text, fontSize: 14, fontWeight: '600' }}
+                style={{
+                  flex: 1,
+                  color: theme.text,
+                  fontSize: 14,
+                  fontWeight: '600',
+                }}
               >
                 Politique de confidentialité
               </Text>
@@ -256,7 +279,14 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
               checked={checkedTerms}
               onPress={() => toggle('terms')}
               label={
-                <Text style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 18, flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: theme.textSecondary,
+                    lineHeight: 18,
+                    flex: 1,
+                  }}
+                >
                   J'accepte les{' '}
                   <Text style={{ color: theme.primary, fontWeight: '700' }}>
                     Conditions Générales d'Utilisation
@@ -271,7 +301,14 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
               checked={checkedPrivacy}
               onPress={() => toggle('privacy')}
               label={
-                <Text style={{ fontSize: 13, color: theme.textSecondary, lineHeight: 18, flex: 1 }}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: theme.textSecondary,
+                    lineHeight: 18,
+                    flex: 1,
+                  }}
+                >
                   J'ai pris connaissance de la{' '}
                   <Text style={{ color: theme.primary, fontWeight: '700' }}>
                     Politique de Confidentialité
@@ -285,7 +322,10 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
           </Animated.View>
 
           {/* CTA */}
-          <Animated.View entering={FadeInDown.delay(180).duration(250)} style={{ paddingBottom: 8 }}>
+          <Animated.View
+            entering={FadeInDown.delay(180).duration(250)}
+            style={{ paddingBottom: 8 }}
+          >
             <TouchableOpacity
               onPress={handleAccept}
               disabled={!canContinue}

@@ -1,8 +1,10 @@
-import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
+  Modal,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -43,7 +45,7 @@ import { getActiveDayLabels, formatTimeWindows } from '@/features/collector/hook
 import { parentService } from '@/features/parent/services/parent.service';
 import { supabase } from '@/lib/supabase/client';
 
-const RELATIONSHIPS = [
+const PRESET_RELATIONSHIPS = [
   'Grand-père',
   'Grand-mère',
   'Oncle',
@@ -52,6 +54,8 @@ const RELATIONSHIPS = [
   'Sœur',
   'Cousin(e)',
   'Nourrice',
+  'Voisin',
+  "Parent d'élève",
   'Autre',
 ];
 
@@ -93,6 +97,9 @@ export default function GuardianEditScreen() {
   const [scheduleVisible, setScheduleVisible] = useState(false);
 
   const [selectedRelationship, setSelectedRelationship] = useState('');
+  const [customModalVisible, setCustomModalVisible] = useState(false);
+  const [customInput, setCustomInput] = useState('');
+  const customInputRef = useRef<TextInput>(null);
 
   const {
     control,
@@ -128,12 +135,26 @@ export default function GuardianEditScreen() {
 
   const handleRelationshipSelect = useCallback(
     (rel: string) => {
+      if (rel === 'Autre') {
+        setCustomInput('');
+        setCustomModalVisible(true);
+        return;
+      }
       setSelectedRelationship(rel);
       setValue('relationship', rel, { shouldValidate: true });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     },
     [setValue]
   );
+
+  const handleCustomConfirm = useCallback(() => {
+    const trimmed = customInput.trim();
+    if (!trimmed) return;
+    setSelectedRelationship(trimmed);
+    setValue('relationship', trimmed, { shouldValidate: true });
+    setCustomModalVisible(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  }, [customInput, setValue]);
 
   const onSubmit = useCallback(
     async (data: FormData) => {
@@ -342,8 +363,14 @@ export default function GuardianEditScreen() {
             Relation
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {RELATIONSHIPS.map(r => {
-              const active = selectedRelationship === r;
+            {PRESET_RELATIONSHIPS.map(r => {
+              const isCustomSelected = !PRESET_RELATIONSHIPS.includes(selectedRelationship) && selectedRelationship !== '';
+              const active = r === 'Autre'
+                ? isCustomSelected || selectedRelationship === 'Autre'
+                : selectedRelationship === r;
+              const label = r === 'Autre' && isCustomSelected
+                ? selectedRelationship
+                : r;
               return (
                 <TouchableOpacity
                   key={r}
@@ -364,7 +391,7 @@ export default function GuardianEditScreen() {
                       color: active ? '#fff' : theme.textSecondary,
                     }}
                   >
-                    {r}
+                    {label}
                   </Text>
                 </TouchableOpacity>
               );
@@ -536,6 +563,87 @@ export default function GuardianEditScreen() {
         ) : null}
       </View>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={customModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCustomModalVisible(false)}
+        onShow={() => setTimeout(() => customInputRef.current?.focus(), 80)}
+      >
+        <TouchableOpacity
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}
+          activeOpacity={1}
+          onPress={() => setCustomModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => {}}
+            style={{
+              width: '82%',
+              backgroundColor: theme.card,
+              borderRadius: 20,
+              padding: 24,
+              gap: 16,
+            }}
+          >
+            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.text }}>
+              Autre relation
+            </Text>
+            <TextInput
+              ref={customInputRef}
+              value={customInput}
+              onChangeText={setCustomInput}
+              placeholder="Ex. Baby-sitter, Tuteur légal…"
+              placeholderTextColor={theme.placeholder}
+              returnKeyType="done"
+              onSubmitEditing={handleCustomConfirm}
+              style={{
+                backgroundColor: theme.input,
+                borderWidth: 1.5,
+                borderColor: theme.inputBorder,
+                borderRadius: 12,
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                fontSize: 15,
+                color: theme.text,
+              }}
+            />
+            <View style={{ flexDirection: 'row', gap: 10 }}>
+              <TouchableOpacity
+                onPress={() => setCustomModalVisible(false)}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  backgroundColor: theme.iconBg,
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ fontWeight: '600', color: theme.textSecondary, fontSize: 14 }}>
+                  Annuler
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleCustomConfirm}
+                disabled={!customInput.trim()}
+                style={{
+                  flex: 1,
+                  paddingVertical: 12,
+                  borderRadius: 12,
+                  backgroundColor: theme.accent,
+                  alignItems: 'center',
+                  opacity: customInput.trim() ? 1 : 0.4,
+                }}
+              >
+                <Text style={{ fontWeight: '700', color: '#fff', fontSize: 14 }}>
+                  Confirmer
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </>
   );
 }
