@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect } from 'react';
 import { useSession } from '@/features/auth/store/auth.store';
 import { schoolService } from '../services/school.service';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import type { PickupValidation } from '../types';
 
 export const VALIDATIONS_KEY = (schoolId: string) =>
@@ -14,8 +14,6 @@ export const TODAY_VALIDATIONS_KEY = (schoolId: string) =>
 
 export function usePickupValidations(schoolId: string) {
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const instanceRef = useRef(0);
 
   const query = useQuery({
     queryKey: VALIDATIONS_KEY(schoolId),
@@ -27,42 +25,21 @@ export function usePickupValidations(schoolId: string) {
   useEffect(() => {
     if (!schoolId) return;
 
-    const prev = channelRef.current;
-    if (prev) supabase.removeChannel(prev);
-
-    const id = ++instanceRef.current;
-    const ch = supabase
-      .channel(`school-validations-${schoolId}-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'pickup_validations',
-          filter: `school_id=eq.${schoolId}`,
-        },
-        payload => {
-          queryClient.setQueryData<PickupValidation[]>(
-            VALIDATIONS_KEY(schoolId),
-            old => {
-              if (!old) return old;
-              return [payload.new as PickupValidation, ...old].slice(0, 30);
-            }
-          );
-          queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY(schoolId) });
-          queryClient.invalidateQueries({
-            queryKey: TODAY_VALIDATIONS_KEY(schoolId),
-          });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-
-    return () => {
-      supabase.removeChannel(ch);
-      channelRef.current = null;
-    };
+    return subscribeToTable(
+      `school-validations-${schoolId}`,
+      { event: 'INSERT', schema: 'public', table: 'pickup_validations', filter: `school_id=eq.${schoolId}` },
+      payload => {
+        queryClient.setQueryData<PickupValidation[]>(
+          VALIDATIONS_KEY(schoolId),
+          old => {
+            if (!old) return old;
+            return [payload.new as PickupValidation, ...old].slice(0, 30);
+          }
+        );
+        queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY(schoolId) });
+        queryClient.invalidateQueries({ queryKey: TODAY_VALIDATIONS_KEY(schoolId) });
+      }
+    );
   }, [schoolId, queryClient]);
 
   return query;

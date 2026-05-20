@@ -5,9 +5,9 @@ import {
   useQueryClient,
   InfiniteData,
 } from '@tanstack/react-query';
-import { useEffect, useRef, useMemo } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect, useMemo } from 'react';
 import { useSession } from '@/features/auth/store/auth.store';
+import { subscribeToTableMulti } from '@/lib/supabase/realtimeRegistry';
 import { historyService } from '../services/history.service';
 import type {
   HistoryEntry,
@@ -73,9 +73,6 @@ export function useHistoryFeed(filters: HistoryFilters) {
   const session = useSession();
   const parentId = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const instanceRef = useRef(0);
-
   const query = useInfiniteQuery({
     queryKey: HISTORY_KEY(parentId, filters),
     queryFn: ({ pageParam }) =>
@@ -89,21 +86,10 @@ export function useHistoryFeed(filters: HistoryFilters) {
   useEffect(() => {
     if (!parentId) return;
 
-    const prev = channelRef.current;
-    if (prev) supabase.removeChannel(prev);
-
-    const id = ++instanceRef.current;
-    const ch = supabase
-      .channel(`pickup-history-${parentId}-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'pickup_history',
-          filter: `parent_id=eq.${parentId}`,
-        },
-        payload => {
+    return subscribeToTableMulti(`pickup-history-${parentId}`, [
+      {
+        config: { event: 'INSERT', schema: 'public', table: 'pickup_history', filter: `parent_id=eq.${parentId}` },
+        callback: payload => {
           queryClient.setQueryData<InfiniteData<HistoryPage>>(
             HISTORY_KEY(parentId, filters),
             old => {
@@ -117,30 +103,18 @@ export function useHistoryFeed(filters: HistoryFilters) {
                 ...old,
                 pages: old.pages.map((page, i) =>
                   i === 0
-                    ? {
-                        ...page,
-                        items: [newEntry, ...page.items],
-                        total: page.total + 1,
-                      }
+                    ? { ...page, items: [newEntry, ...page.items], total: page.total + 1 }
                     : page
                 ),
               };
             }
           );
-          queryClient.invalidateQueries({
-            queryKey: MONTHLY_COUNTS_KEY(parentId),
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'pickup_history',
-          filter: `parent_id=eq.${parentId}`,
+          queryClient.invalidateQueries({ queryKey: MONTHLY_COUNTS_KEY(parentId) });
         },
-        payload => {
+      },
+      {
+        config: { event: 'UPDATE', schema: 'public', table: 'pickup_history', filter: `parent_id=eq.${parentId}` },
+        callback: payload => {
           const updated = payload.new as HistoryEntry;
           queryClient.setQueryData<InfiniteData<HistoryPage>>(
             HISTORY_KEY(parentId, filters),
@@ -157,16 +131,9 @@ export function useHistoryFeed(filters: HistoryFilters) {
               };
             }
           );
-        }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-
-    return () => {
-      supabase.removeChannel(ch);
-      channelRef.current = null;
-    };
+        },
+      },
+    ]);
   }, [parentId, filters, queryClient]);
 
   const flatItems = useMemo<FlatListItem[]>(() => {

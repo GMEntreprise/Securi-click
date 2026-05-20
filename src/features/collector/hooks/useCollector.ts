@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect } from 'react';
 import { useSession } from '@/features/auth/store/auth.store';
+import { subscribeToTable, subscribeToTableMulti } from '@/lib/supabase/realtimeRegistry';
 import { collectorService } from '../services/collector.service';
 import type { CollectorGuardian, DocumentType } from '../types';
 import type { PendingInvite, CollectorQrCode, CollectorRecentScan } from '../services/collector.service';
@@ -17,7 +17,6 @@ export function useMyGuardians() {
   const session = useSession();
   const uid = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const query = useQuery({
     queryKey: GUARDIANS_KEY(uid),
@@ -29,61 +28,31 @@ export function useMyGuardians() {
   useEffect(() => {
     if (!uid) return;
 
-    const ch = supabase
-      .channel(`collector-guardians-${uid}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'guardians',
-          filter: `collector_user_id=eq.${uid}`,
+    const unsub1 = subscribeToTableMulti(`collector-guardians-${uid}`, [
+      {
+        config: { event: 'UPDATE', schema: 'public', table: 'guardians', filter: `collector_user_id=eq.${uid}` },
+        callback: payload => {
+          queryClient.setQueryData<CollectorGuardian[]>(GUARDIANS_KEY(uid), old => {
+            if (!old) return old;
+            return old.map(g =>
+              g.id === payload.new.id ? { ...g, ...(payload.new as Partial<CollectorGuardian>) } : g
+            );
+          });
         },
-        payload => {
-          queryClient.setQueryData<CollectorGuardian[]>(
-            GUARDIANS_KEY(uid),
-            old => {
-              if (!old) return old;
-              return old.map(g =>
-                g.id === payload.new.id
-                  ? { ...g, ...(payload.new as Partial<CollectorGuardian>) }
-                  : g
-              );
-            }
-          );
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'guardians',
-          filter: `collector_user_id=eq.${uid}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) });
-        }
-      )
-      .subscribe();
+      },
+      {
+        config: { event: 'INSERT', schema: 'public', table: 'guardians', filter: `collector_user_id=eq.${uid}` },
+        callback: () => { queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) }); },
+      },
+    ]);
 
-    channelRef.current = ch;
+    const unsub2 = subscribeToTable(
+      `collector-children-${uid}`,
+      { event: 'UPDATE', schema: 'public', table: 'children' },
+      () => { queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) }); }
+    );
 
-    const childCh = supabase
-      .channel(`collector-children-${uid}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'children' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(ch);
-      supabase.removeChannel(childCh);
-    };
+    return () => { unsub1(); unsub2(); };
   }, [uid, queryClient]);
 
   return query;
@@ -105,7 +74,6 @@ export function useMyPickupLogs() {
   const session = useSession();
   const uid = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const query = useQuery({
     queryKey: LOGS_KEY(uid),
@@ -116,22 +84,11 @@ export function useMyPickupLogs() {
 
   useEffect(() => {
     if (!uid) return;
-
-    const ch = supabase
-      .channel(`collector-logs-${uid}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: LOGS_KEY(uid) });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-    return () => {
-      supabase.removeChannel(ch);
-    };
+    return subscribeToTable(
+      `collector-logs-${uid}`,
+      { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
+      () => { queryClient.invalidateQueries({ queryKey: LOGS_KEY(uid) }); }
+    );
   }, [uid, queryClient]);
 
   return query;
@@ -151,25 +108,11 @@ export function useCollectorProfile() {
 
   useEffect(() => {
     if (!uid) return;
-
-    const ch = supabase
-      .channel(`collector-profile-${uid}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'user_profiles',
-          filter: `user_id=eq.${uid}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: PROFILE_KEY(uid) });
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(ch);
-    };
+    return subscribeToTable(
+      `collector-profile-${uid}`,
+      { event: 'UPDATE', schema: 'public', table: 'user_profiles', filter: `user_id=eq.${uid}` },
+      () => { queryClient.invalidateQueries({ queryKey: PROFILE_KEY(uid) }); }
+    );
   }, [uid, queryClient]);
 
   return query;
@@ -320,7 +263,6 @@ export function useCollectorQrCode(childId?: string) {
   const session = useSession();
   const uid = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const query = useQuery({
     queryKey: QR_KEY(uid, childId),
@@ -331,22 +273,11 @@ export function useCollectorQrCode(childId?: string) {
 
   useEffect(() => {
     if (!uid) return;
-
-    const ch = supabase
-      .channel(`collector-qr-${uid}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'qr_codes' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: QR_KEY(uid, childId) });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-    return () => {
-      supabase.removeChannel(ch);
-    };
+    return subscribeToTable(
+      `collector-qr-${uid}`,
+      { event: '*', schema: 'public', table: 'qr_codes' },
+      () => { queryClient.invalidateQueries({ queryKey: QR_KEY(uid, childId) }); }
+    );
   }, [uid, childId, queryClient]);
 
   return query;
@@ -356,7 +287,6 @@ export function useCollectorRecentScans(childId?: string) {
   const session = useSession();
   const uid = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const query = useQuery({
     queryKey: SCANS_KEY(uid, childId),
@@ -367,22 +297,11 @@ export function useCollectorRecentScans(childId?: string) {
 
   useEffect(() => {
     if (!uid) return;
-
-    const ch = supabase
-      .channel(`collector-scans-${uid}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
-        () => {
-          queryClient.invalidateQueries({ queryKey: SCANS_KEY(uid, childId) });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-    return () => {
-      supabase.removeChannel(ch);
-    };
+    return subscribeToTable(
+      `collector-scans-${uid}`,
+      { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
+      () => { queryClient.invalidateQueries({ queryKey: SCANS_KEY(uid, childId) }); }
+    );
   }, [uid, childId, queryClient]);
 
   return query;

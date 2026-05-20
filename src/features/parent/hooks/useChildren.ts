@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
 import { useSession } from '@/features/auth/store/auth.store';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import { parentService } from '../services/parent.service';
 import type { AddChildPayload, Child } from '../types';
 
@@ -24,37 +24,26 @@ export function useChildren() {
 
   useEffect(() => {
     if (!parentId) return;
-    const channel = supabase
-      .channel(`children-${parentId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'children',
-          filter: `parent_id=eq.${parentId}`,
-        },
-        payload => {
-          if (payload.eventType === 'DELETE') {
-            queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev =>
-              (prev ?? []).filter(c => c.id !== payload.old.id)
-            );
-          } else if (payload.eventType === 'INSERT') {
-            queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev => {
-              const existing = prev ?? [];
-              if (existing.some(c => c.id === (payload.new as Child).id))
-                return existing;
-              return [payload.new as Child, ...existing];
-            });
-          } else {
-            queryClient.invalidateQueries({ queryKey: CHILDREN_KEY(parentId) });
-          }
+    return subscribeToTable(
+      `children-${parentId}`,
+      { event: '*', schema: 'public', table: 'children', filter: `parent_id=eq.${parentId}` },
+      payload => {
+        if (payload.eventType === 'DELETE') {
+          queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev =>
+            (prev ?? []).filter(c => c.id !== payload.old.id)
+          );
+        } else if (payload.eventType === 'INSERT') {
+          queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev => {
+            const existing = prev ?? [];
+            if (existing.some(c => c.id === (payload.new as Child).id))
+              return existing;
+            return [payload.new as Child, ...existing];
+          });
+        } else {
+          queryClient.invalidateQueries({ queryKey: CHILDREN_KEY(parentId) });
         }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      }
+    );
   }, [parentId, queryClient]);
 
   return query;

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect } from 'react';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import {
   pickupAuthorizationService,
   type PickupAuthorization,
@@ -19,9 +19,6 @@ export function usePickupAuthorization(
   enableRealtime = false
 ) {
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const instanceRef = useRef(0);
-
   const query = useQuery({
     queryKey: PICKUP_AUTH_KEY(childId, guardianId),
     queryFn: () =>
@@ -32,43 +29,20 @@ export function usePickupAuthorization(
 
   useEffect(() => {
     if (!enableRealtime || !childId || !guardianId) return;
-    const prev = channelRef.current;
-    if (prev) supabase.removeChannel(prev);
-
-    const id = ++instanceRef.current;
-    const ch = supabase
-      .channel(`pickup-auth-${childId}-${guardianId}-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'pickup_authorizations',
-          filter: `child_id=eq.${childId}`,
-        },
-        payload => {
-          const row = (payload.new ?? payload.old) as PickupAuthorization;
-          if (row?.guardian_id !== guardianId) return;
-          if (payload.eventType === 'DELETE') {
-            queryClient.setQueryData(PICKUP_AUTH_KEY(childId, guardianId), null);
-          } else {
-            queryClient.setQueryData(
-              PICKUP_AUTH_KEY(childId, guardianId),
-              payload.new as PickupAuthorization
-            );
-          }
-          queryClient.invalidateQueries({
-            queryKey: PICKUP_AUTH_CHILD_KEY(childId),
-          });
+    return subscribeToTable(
+      `pickup-auth-${childId}`,
+      { event: '*', schema: 'public', table: 'pickup_authorizations', filter: `child_id=eq.${childId}` },
+      payload => {
+        const row = (payload.new ?? payload.old) as PickupAuthorization;
+        if (row?.guardian_id !== guardianId) return;
+        if (payload.eventType === 'DELETE') {
+          queryClient.setQueryData(PICKUP_AUTH_KEY(childId, guardianId), null);
+        } else {
+          queryClient.setQueryData(PICKUP_AUTH_KEY(childId, guardianId), payload.new as PickupAuthorization);
         }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-    return () => {
-      supabase.removeChannel(ch);
-      channelRef.current = null;
-    };
+        queryClient.invalidateQueries({ queryKey: PICKUP_AUTH_CHILD_KEY(childId) });
+      }
+    );
   }, [enableRealtime, childId, guardianId, queryClient]);
 
   return query;

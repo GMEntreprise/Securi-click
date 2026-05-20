@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect } from 'react';
 import { useSession } from '@/features/auth/store/auth.store';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import { qrService } from '../services/qr.service';
 import type { RecentScan } from '../services/qr.service';
 
@@ -17,8 +17,6 @@ export function useActiveQrCodes(childId?: string) {
   const session = useSession();
   const parentId = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const instanceRef = useRef(0);
 
   const query = useQuery({
     queryKey: QR_KEY(parentId, childId),
@@ -32,33 +30,11 @@ export function useActiveQrCodes(childId?: string) {
 
   useEffect(() => {
     if (!parentId) return;
-    const prev = channelRef.current;
-    if (prev) supabase.removeChannel(prev);
-
-    const id = ++instanceRef.current;
-    const ch = supabase
-      .channel(`qr-codes-${parentId}${childId ? `-${childId}` : ''}-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'qr_codes',
-          filter: `parent_id=eq.${parentId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({
-            queryKey: QR_KEY(parentId, childId),
-          });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-    return () => {
-      supabase.removeChannel(ch);
-      channelRef.current = null;
-    };
+    return subscribeToTable(
+      `qr-codes-${parentId}${childId ? `-${childId}` : ''}`,
+      { event: '*', schema: 'public', table: 'qr_codes', filter: `parent_id=eq.${parentId}` },
+      () => { queryClient.invalidateQueries({ queryKey: QR_KEY(parentId, childId) }); }
+    );
   }, [parentId, childId, queryClient]);
 
   return query;
@@ -68,8 +44,6 @@ export function useRecentScans(childId?: string) {
   const session = useSession();
   const parentId = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const instanceRef = useRef(0);
 
   const query = useQuery({
     queryKey: SCANS_KEY(parentId, childId),
@@ -80,32 +54,11 @@ export function useRecentScans(childId?: string) {
 
   useEffect(() => {
     if (!parentId) return;
-    const prev = channelRef.current;
-    if (prev) supabase.removeChannel(prev);
-
-    const id = ++instanceRef.current;
-    const ch = supabase
-      .channel(`pickup-logs-qr-${parentId}${childId ? `-${childId}` : ''}-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'pickup_logs',
-        },
-        () => {
-          queryClient.invalidateQueries({
-            queryKey: SCANS_KEY(parentId, childId),
-          });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-    return () => {
-      supabase.removeChannel(ch);
-      channelRef.current = null;
-    };
+    return subscribeToTable(
+      `pickup-logs-qr-${parentId}${childId ? `-${childId}` : ''}`,
+      { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
+      () => { queryClient.invalidateQueries({ queryKey: SCANS_KEY(parentId, childId) }); }
+    );
   }, [parentId, childId, queryClient]);
 
   return query;

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
 import { useSession } from '@/features/auth/store/auth.store';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import { parentService } from '../services/parent.service';
 import type { UpdateProfilePayload } from '../types';
 
@@ -22,26 +22,11 @@ export function useParentProfile() {
 
   useEffect(() => {
     if (!userId) return;
-    const channel = supabase
-      .channel(`parent-profile-${userId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_profiles',
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({
-            queryKey: PARENT_PROFILE_KEY(userId),
-          });
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return subscribeToTable(
+      `parent-profile-${userId}`,
+      { event: '*', schema: 'public', table: 'user_profiles', filter: `user_id=eq.${userId}` },
+      () => { queryClient.invalidateQueries({ queryKey: PARENT_PROFILE_KEY(userId) }); }
+    );
   }, [userId, queryClient]);
 
   return query;

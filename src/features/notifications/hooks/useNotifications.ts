@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase/client';
 import { useSession } from '@/features/auth/store/auth.store';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import {
   fetchNotifications,
   fetchUnreadCount,
@@ -68,46 +68,21 @@ export function useNotificationsRealtime() {
   const session = useSession();
   const userId = session?.user.id;
   const qc = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const instanceRef = useRef(0);
   const prependItem = useNotificationStore(s => s.prependItem);
   const incrementUnread = useNotificationStore(s => s.incrementUnread);
 
   useEffect(() => {
     if (!userId) return;
-
-    const prev = channelRef.current;
-    if (prev) supabase.removeChannel(prev);
-
-    const id = ++instanceRef.current;
-    const channel = supabase
-      .channel(`notifications:${userId}-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${userId}`,
-        },
-        payload => {
-          const newItem = payload.new as Notification;
-          prependItem(newItem);
-          if (!newItem.is_read) incrementUnread();
-          // Invalidate so the list query stays fresh on next focus
-          qc.invalidateQueries({ queryKey: NOTIFICATIONS_KEY(userId) });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = channel;
-
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
+    return subscribeToTable(
+      `notifications:${userId}`,
+      { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+      payload => {
+        const newItem = payload.new as Notification;
+        prependItem(newItem);
+        if (!newItem.is_read) incrementUnread();
+        qc.invalidateQueries({ queryKey: NOTIFICATIONS_KEY(userId) });
       }
-    };
+    );
   }, [userId, qc, prependItem, incrementUnread]);
 }
 

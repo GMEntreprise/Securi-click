@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
 import { useSession } from '@/features/auth/store/auth.store';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import { parentService } from '../services/parent.service';
 import type { PickupLog } from '../types';
 
@@ -22,25 +22,11 @@ export function usePickupLogs(limit = 50) {
 
   useEffect(() => {
     if (!parentId) return;
-    const channel = supabase
-      .channel(`pickup-logs-${parentId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'pickup_logs',
-        },
-        () => {
-          queryClient.invalidateQueries({
-            queryKey: PICKUP_LOGS_KEY(parentId),
-          });
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return subscribeToTable(
+      `pickup-logs-${parentId}`,
+      { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
+      () => { queryClient.invalidateQueries({ queryKey: PICKUP_LOGS_KEY(parentId) }); }
+    );
   }, [parentId, queryClient]);
 
   return query;

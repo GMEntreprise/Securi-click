@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect } from 'react';
 import { useSession } from '@/features/auth/store/auth.store';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import { pickupAuthorizationService, type PickupAuthorization } from '@/features/parent/services/pickupAuthorization.service';
 
 export const COLLECTOR_SCHEDULE_KEY = (collectorUserId: string) =>
@@ -76,9 +76,6 @@ export function useCollectorPickupSchedules() {
   const session = useSession();
   const collectorUserId = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const instanceRef = useRef(0);
-
   const query = useQuery({
     queryKey: COLLECTOR_SCHEDULE_KEY(collectorUserId),
     queryFn: () =>
@@ -89,32 +86,11 @@ export function useCollectorPickupSchedules() {
 
   useEffect(() => {
     if (!collectorUserId) return;
-    const prev = channelRef.current;
-    if (prev) supabase.removeChannel(prev);
-
-    const id = ++instanceRef.current;
-    const ch = supabase
-      .channel(`collector-schedules-${collectorUserId}-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'pickup_authorizations',
-        },
-        () => {
-          queryClient.invalidateQueries({
-            queryKey: COLLECTOR_SCHEDULE_KEY(collectorUserId),
-          });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-    return () => {
-      supabase.removeChannel(ch);
-      channelRef.current = null;
-    };
+    return subscribeToTable(
+      `collector-schedules-${collectorUserId}`,
+      { event: '*', schema: 'public', table: 'pickup_authorizations' },
+      () => { queryClient.invalidateQueries({ queryKey: COLLECTOR_SCHEDULE_KEY(collectorUserId) }); }
+    );
   }, [collectorUserId, queryClient]);
 
   return query;

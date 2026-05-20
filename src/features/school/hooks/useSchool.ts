@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { useEffect } from 'react';
 import { useSession } from '@/features/auth/store/auth.store';
 import { schoolService } from '../services/school.service';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import type { UpdateSchoolPayload } from '../types';
 
 export const SCHOOL_KEY = (id: string) => ['school', id] as const;
@@ -13,8 +13,6 @@ export function useMySchool() {
   const session = useSession();
   const uid = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const instanceRef = useRef(0);
 
   const query = useQuery({
     queryKey: SCHOOL_BY_ADMIN_KEY(uid),
@@ -27,33 +25,14 @@ export function useMySchool() {
     const schoolId = query.data?.id;
     if (!uid || !schoolId) return;
 
-    const prev = channelRef.current;
-    if (prev) supabase.removeChannel(prev);
-
-    const id = ++instanceRef.current;
-    const ch = supabase
-      .channel(`school-profile-${schoolId}-${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'schools',
-          filter: `id=eq.${schoolId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: SCHOOL_BY_ADMIN_KEY(uid) });
-          queryClient.invalidateQueries({ queryKey: SCHOOL_KEY(schoolId) });
-        }
-      )
-      .subscribe();
-
-    channelRef.current = ch;
-
-    return () => {
-      supabase.removeChannel(ch);
-      channelRef.current = null;
-    };
+    return subscribeToTable(
+      `school-profile-${schoolId}`,
+      { event: 'UPDATE', schema: 'public', table: 'schools', filter: `id=eq.${schoolId}` },
+      () => {
+        queryClient.invalidateQueries({ queryKey: SCHOOL_BY_ADMIN_KEY(uid) });
+        queryClient.invalidateQueries({ queryKey: SCHOOL_KEY(schoolId) });
+      }
+    );
   }, [uid, query.data?.id, queryClient]);
 
   return query;

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { supabase } from '@/lib/supabase/client';
 import { useSession } from '@/features/auth/store/auth.store';
+import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import { parentService } from '../services/parent.service';
 import type {
   AddGuardianPayload,
@@ -24,44 +24,30 @@ export function useGuardians(childId: string) {
 
   useEffect(() => {
     if (!childId) return;
-    const channel = supabase
-      .channel(`guardians-${childId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'guardians',
-          filter: `child_id=eq.${childId}`,
-        },
-        payload => {
-          if (payload.eventType === 'DELETE') {
-            queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev =>
-              (prev ?? []).filter(g => g.id !== payload.old.id)
-            );
-          } else if (payload.eventType === 'INSERT') {
-            queryClient.setQueryData<Guardian[]>(
-              GUARDIANS_KEY(childId),
-              prev => {
-                const existing = prev ?? [];
-                if (existing.some(g => g.id === (payload.new as Guardian).id))
-                  return existing;
-                return [payload.new as Guardian, ...existing];
-              }
-            );
-          } else {
-            queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev =>
-              (prev ?? []).map(g =>
-                g.id === payload.new.id ? (payload.new as Guardian) : g
-              )
-            );
-          }
+    return subscribeToTable(
+      `guardians-${childId}`,
+      { event: '*', schema: 'public', table: 'guardians', filter: `child_id=eq.${childId}` },
+      payload => {
+        if (payload.eventType === 'DELETE') {
+          queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev =>
+            (prev ?? []).filter(g => g.id !== payload.old.id)
+          );
+        } else if (payload.eventType === 'INSERT') {
+          queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev => {
+            const existing = prev ?? [];
+            if (existing.some(g => g.id === (payload.new as Guardian).id))
+              return existing;
+            return [payload.new as Guardian, ...existing];
+          });
+        } else {
+          queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev =>
+            (prev ?? []).map(g =>
+              g.id === payload.new.id ? (payload.new as Guardian) : g
+            )
+          );
         }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+      }
+    );
   }, [childId, queryClient]);
 
   return query;
