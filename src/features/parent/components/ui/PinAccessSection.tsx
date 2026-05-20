@@ -142,9 +142,7 @@ function PinAccessSectionInner<T extends FieldValues>({
             <Text
               style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
             >
-              {enabled
-                ? "6 chiffres — partagez-le en privé"
-                : "Optionnel — second facteur pour l'invitation"}
+              {"6 chiffres — obligatoire, partagez-le en privé"}
             </Text>
           </View>
           {!hideToggle && (

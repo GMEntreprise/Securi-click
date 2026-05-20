@@ -61,11 +61,10 @@ const schema = z.object({
   phone: z.string().optional().or(z.literal('')),
   email: z.string().email('Email invalide'),
   relationship: z.string().min(1, 'Sélectionnez une relation'),
+  // Empty = keep existing hash. 6 digits = replace. Anything else = error.
   access_code: z
     .string()
-    .regex(/^\d{6}$/, '6 chiffres requis')
-    .optional()
-    .or(z.literal('')),
+    .refine(v => v === '' || /^\d{6}$/.test(v), '6 chiffres requis'),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -94,7 +93,6 @@ export default function GuardianEditScreen() {
   const [scheduleVisible, setScheduleVisible] = useState(false);
 
   const [selectedRelationship, setSelectedRelationship] = useState('');
-  const [usePinCode, setUsePinCode] = useState(false);
 
   const {
     control,
@@ -125,8 +123,6 @@ export default function GuardianEditScreen() {
         access_code: '',
       });
       setSelectedRelationship(guardian.relationship);
-      // PIN already set on this guardian → start with toggle on
-      setUsePinCode(!!(guardian as any).access_code_hash);
     }
   }, [guardian, reset]);
 
@@ -156,18 +152,11 @@ export default function GuardianEditScreen() {
           },
         });
 
-        // If a new PIN was entered, rehash it server-side
-        if (usePinCode && data.access_code?.trim()) {
+        // New PIN entered → rehash server-side. Empty = keep existing hash.
+        if (data.access_code?.trim()) {
           const { error: rpcError } = await supabase.rpc('update_guardian_pin', {
             p_guardian_id: guardianId,
             p_access_code: data.access_code.trim(),
-          });
-          if (rpcError) throw new Error(rpcError.message);
-        } else if (!usePinCode) {
-          // PIN disabled → clear the hash
-          const { error: rpcError } = await supabase.rpc('update_guardian_pin', {
-            p_guardian_id: guardianId,
-            p_access_code: null,
           });
           if (rpcError) throw new Error(rpcError.message);
         }
@@ -180,7 +169,7 @@ export default function GuardianEditScreen() {
         Toast.show('Impossible de sauvegarder les modifications', { type: 'error', duration: 3000 });
       }
     },
-    [guardianId, updateGuardian, usePinCode, router]
+    [guardianId, updateGuardian, router]
   );
 
   const handleToggle = useCallback((nextValue: boolean) => {
@@ -397,11 +386,9 @@ export default function GuardianEditScreen() {
             control={control}
             name="access_code"
             error={errors.access_code?.message}
-            enabled={usePinCode}
-            onToggle={v => {
-              setUsePinCode(v);
-              if (!v) setValue('access_code', '');
-            }}
+            enabled={true}
+            onToggle={() => {}}
+            hideToggle
           />
         </Animated.View>
 
