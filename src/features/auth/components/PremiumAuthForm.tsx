@@ -2,10 +2,12 @@ import React, { memo, useState, useCallback } from 'react';
 import {
   View,
   Text,
+  TextInput,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -87,8 +89,9 @@ export const PremiumAuthForm: React.FC<Props> = memo(
       control,
       handleSubmit,
       watch,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       formState: { errors },
-    } = useForm({
+    } = useForm<any>({
       resolver: zodResolver(schema),
       defaultValues: {
         email: '',
@@ -263,7 +266,7 @@ export const PremiumAuthForm: React.FC<Props> = memo(
                 />
                 {errors.email && (
                   <Text className="text-red-500 text-sm mt-1 ml-4">
-                    {errors.email.message}
+                    {errors.email.message as string}
                   </Text>
                 )}
               </View>
@@ -275,7 +278,7 @@ export const PremiumAuthForm: React.FC<Props> = memo(
                 <PasswordInput
                   control={control}
                   name="password"
-                  error={errors.password?.message}
+                  error={errors.password?.message as string | undefined}
                   disabled={isLoading}
                 />
                 {!isLogin && passwordStrength && (
@@ -316,7 +319,7 @@ export const PremiumAuthForm: React.FC<Props> = memo(
                       />
                       {errors.first_name && (
                         <Text className="text-red-500 text-sm mt-1">
-                          {errors.first_name.message}
+                          {errors.first_name.message as string}
                         </Text>
                       )}
                     </View>
@@ -350,7 +353,7 @@ export const PremiumAuthForm: React.FC<Props> = memo(
                       />
                       {errors.last_name && (
                         <Text className="text-red-500 text-sm mt-1">
-                          {errors.last_name.message}
+                          {errors.last_name.message as string}
                         </Text>
                       )}
                     </View>
@@ -386,7 +389,7 @@ export const PremiumAuthForm: React.FC<Props> = memo(
                     />
                     {errors.phone && (
                       <Text className="text-red-500 text-sm mt-1">
-                        {errors.phone.message}
+                        {errors.phone.message as string}
                       </Text>
                     )}
                   </View>
@@ -399,7 +402,7 @@ export const PremiumAuthForm: React.FC<Props> = memo(
                       control={control}
                       name="confirm_password"
                       placeholder="•••••••••"
-                      error={errors.confirm_password?.message}
+                      error={errors.confirm_password?.message as string | undefined}
                       disabled={isLoading}
                     />
                   </View>

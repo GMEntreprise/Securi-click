@@ -19,8 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { IAvatar } from './types';
 
-const AnimatedPressable =
-  Animated.createAnimatedComponent<PressableProps>(Pressable);
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export const Avatar: React.FC<IAvatar> & React.FunctionComponent<IAvatar> =
   memo<IAvatar>(

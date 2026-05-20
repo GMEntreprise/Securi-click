@@ -20,8 +20,7 @@ import { BlurView, type BlurViewProps } from 'expo-blur';
 import type { QRCodeProps } from './types';
 import { BACKGROUND_COLOR, QR_URL, SPRING_CONFIG } from './const';
 const AnimatedQRCodeStyled = Animated.createAnimatedComponent(QRCodeStyled);
-const AnimatedBlurView =
-  Animated.createAnimatedComponent<BlurViewProps>(BlurView);
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const QRCode: React.FC<QRCodeProps> & React.FunctionComponent<QRCodeProps> =
   memo<QRCodeProps>(

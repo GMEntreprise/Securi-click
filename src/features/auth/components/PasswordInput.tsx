@@ -1,11 +1,12 @@
 import React, { memo, useState } from 'react';
-import { View, TextInput, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Controller } from 'react-hook-form';
 import { Eye, EyeOff } from 'lucide-react-native';
-import {
+import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  FadeIn,
 } from 'react-native-reanimated';
 
 interface Props {
@@ -81,15 +82,7 @@ export const PasswordInput: React.FC<Props> = memo(
         </TouchableOpacity>
 
         {error && (
-          <Animated.View
-            entering={() => ({
-              opacity: withSpring(1, { damping: 20, stiffness: 300 }),
-              transform: [
-                { translateY: withSpring(0, { damping: 20, stiffness: 300 }) },
-              ],
-            })}
-            className="mt-1"
-          >
+          <Animated.View entering={FadeIn.duration(200)} className="mt-1">
             <Text className="text-red-500 text-sm font-medium">{error}</Text>
           </Animated.View>
         )}

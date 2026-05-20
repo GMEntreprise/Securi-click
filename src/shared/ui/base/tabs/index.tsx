@@ -29,12 +29,11 @@ import Animated, {
   useAnimatedProps,
   interpolateColor,
 } from 'react-native-reanimated';
-import { BlurView } from '@sbaiahmed1/react-native-blur';
+import { BlurView } from 'expo-blur';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
-const AnimatedFlatList = Animated.createAnimatedComponent(
-  FlatList as new () => FlatList<Tab>
-);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList as any) as any;
 
 const TAB_PADDING: number = 20;
 const MIN_UNDERLINE_WIDTH: number = 0.5;
@@ -45,7 +44,7 @@ const ContentItem: React.FC<ContentItemProps> = ({
   scrollX,
   screenWidth,
 }) => {
-  const animatedBlurViewProps = useAnimatedProps(() => {
+  const animatedBlurViewProps = useAnimatedProps<any>(() => {
     'worklet';
     const currentScreenPosition = index * screenWidth;
     const prevScreenPosition = (index - 1) * screenWidth;
@@ -59,7 +58,7 @@ const ContentItem: React.FC<ContentItemProps> = ({
     );
 
     return {
-      blurAmount: Math.max(0, Math.min(100, blurAmount)),
+      intensity: Math.max(0, Math.min(100, blurAmount)),
     };
   });
 
@@ -101,7 +100,7 @@ const ContentItem: React.FC<ContentItemProps> = ({
         {Platform.OS === 'ios' && (
           <AnimatedBlurView
             animatedProps={animatedBlurViewProps}
-            blurType="regular"
+            tint="regular"
             style={StyleSheet.absoluteFill}
           />
         )}
@@ -372,7 +371,7 @@ export const TopTabs: React.FC<TopTabsProps> = ({
           ref={tabBarFlatListRef}
           data={tabs}
           renderItem={renderTabItem}
-          keyExtractor={item => item.id}
+          keyExtractor={(item: Tab) => item.id}
           horizontal
           showsHorizontalScrollIndicator={false}
           onScroll={tabBarScrollHandler}
@@ -392,7 +391,7 @@ export const TopTabs: React.FC<TopTabsProps> = ({
         ref={contentFlatListRef}
         data={tabs}
         renderItem={renderContentItem}
-        keyExtractor={item => `content-${item.id}`}
+        keyExtractor={(item: Tab) => `content-${item.id}`}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -401,7 +400,7 @@ export const TopTabs: React.FC<TopTabsProps> = ({
         scrollEventThrottle={16}
         onMomentumScrollEnd={onMomentumScrollEnd}
         style={styles.contentFlatList}
-        getItemLayout={(_, index) => ({
+        getItemLayout={(_: unknown, index: number) => ({
           length: screenWidth,
           offset: screenWidth * index,
           index,
