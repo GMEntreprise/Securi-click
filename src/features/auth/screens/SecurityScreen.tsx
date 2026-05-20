@@ -314,7 +314,7 @@ export function SecurityScreen() {
         >
           <Shield size={16} color={theme.accent} strokeWidth={2} style={{ marginTop: 1 }} />
           <Text style={{ flex: 1, fontSize: 12, color: theme.accent, lineHeight: 18 }}>
-            La biométrie ne remplace pas votre mot de passe. Votre session Supabase reste active — seul l'accès local à l'app est protégé.
+            La biométrie ne remplace pas votre mot de passe. Votre session reste active — seul l'accès local à l'app est protégé.
           </Text>
         </View>
       </Animated.View>

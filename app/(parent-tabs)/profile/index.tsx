@@ -44,6 +44,7 @@ interface RowItem {
   subtitle?: string;
   toggle?: boolean;
   value?: boolean;
+  disabled?: boolean;
   onToggle?: (v: boolean) => void;
   onPress: () => void;
   destructive?: boolean;
@@ -110,6 +111,7 @@ const SettingRow = React.memo(function SettingRow({
       ) : item.toggle ? (
         <Switch
           value={item.value}
+          disabled={item.disabled}
           onValueChange={v => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             item.onToggle?.(v);
@@ -182,7 +184,6 @@ export default function ProfileScreen() {
   const email = session?.user.email ?? '';
   const phone = profile?.phone ?? session?.user.profile?.phone ?? '';
   const handleBiometricToggle = useCallback(async (value: boolean) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (value) await enableBiometric();
     else await disableBiometric();
   }, [enableBiometric, disableBiometric]);
@@ -270,6 +271,7 @@ export default function ProfileScreen() {
             subtitle: biometricEnabled ? 'Activée' : 'Désactivée',
             toggle: true,
             value: biometricEnabled,
+            disabled: biometricMutating,
             onToggle: handleBiometricToggle,
             onPress: () => nav.goToParentSecurity(),
           },
