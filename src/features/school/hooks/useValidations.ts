@@ -25,37 +25,52 @@ export function usePickupValidations(schoolId: string) {
 
   useEffect(() => {
     if (!schoolId) return;
-    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
-    const ch = supabase
-      .channel(`school-validations-${schoolId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'pickup_validations',
-          filter: `school_id=eq.${schoolId}`,
-        },
-        payload => {
-          queryClient.setQueryData<PickupValidation[]>(
-            VALIDATIONS_KEY(schoolId),
-            old => {
-              if (!old) return old;
-              return [payload.new as PickupValidation, ...old].slice(0, 30);
-            }
-          );
-          queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY(schoolId) });
-          queryClient.invalidateQueries({
-            queryKey: TODAY_VALIDATIONS_KEY(schoolId),
-          });
-        }
-      )
-      .subscribe();
+    let active = true;
+    const prevChannel = channelRef.current;
 
-    channelRef.current = ch;
+    const setup = async () => {
+      if (prevChannel) await supabase.removeChannel(prevChannel);
+      if (!active) return;
+
+      const ch = supabase
+        .channel(`school-validations-${schoolId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'pickup_validations',
+            filter: `school_id=eq.${schoolId}`,
+          },
+          payload => {
+            queryClient.setQueryData<PickupValidation[]>(
+              VALIDATIONS_KEY(schoolId),
+              old => {
+                if (!old) return old;
+                return [payload.new as PickupValidation, ...old].slice(0, 30);
+              }
+            );
+            queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY(schoolId) });
+            queryClient.invalidateQueries({
+              queryKey: TODAY_VALIDATIONS_KEY(schoolId),
+            });
+          }
+        )
+        .subscribe();
+
+      if (active) channelRef.current = ch;
+      else supabase.removeChannel(ch);
+    };
+
+    setup();
+
     return () => {
-      supabase.removeChannel(ch);
+      active = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [schoolId, queryClient]);
 

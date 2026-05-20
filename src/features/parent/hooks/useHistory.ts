@@ -87,79 +87,94 @@ export function useHistoryFeed(filters: HistoryFilters) {
 
   useEffect(() => {
     if (!parentId) return;
-    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
-    const ch = supabase
-      .channel(`pickup-history-${parentId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'pickup_history',
-          filter: `parent_id=eq.${parentId}`,
-        },
-        payload => {
-          queryClient.setQueryData<InfiniteData<HistoryPage>>(
-            HISTORY_KEY(parentId, filters),
-            old => {
-              if (!old) return old;
-              const newEntry = payload.new as HistoryEntry;
-              const alreadyExists = old.pages.some(p =>
-                p.items.some(item => item.id === newEntry.id)
-              );
-              if (alreadyExists) return old;
-              return {
-                ...old,
-                pages: old.pages.map((page, i) =>
-                  i === 0
-                    ? {
-                        ...page,
-                        items: [newEntry, ...page.items],
-                        total: page.total + 1,
-                      }
-                    : page
-                ),
-              };
-            }
-          );
-          queryClient.invalidateQueries({
-            queryKey: MONTHLY_COUNTS_KEY(parentId),
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'pickup_history',
-          filter: `parent_id=eq.${parentId}`,
-        },
-        payload => {
-          const updated = payload.new as HistoryEntry;
-          queryClient.setQueryData<InfiniteData<HistoryPage>>(
-            HISTORY_KEY(parentId, filters),
-            old => {
-              if (!old) return old;
-              return {
-                ...old,
-                pages: old.pages.map(page => ({
-                  ...page,
-                  items: page.items.map(item =>
-                    item.id === updated.id ? updated : item
+    let active = true;
+    const prevChannel = channelRef.current;
+
+    const setup = async () => {
+      if (prevChannel) await supabase.removeChannel(prevChannel);
+      if (!active) return;
+
+      const ch = supabase
+        .channel(`pickup-history-${parentId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'pickup_history',
+            filter: `parent_id=eq.${parentId}`,
+          },
+          payload => {
+            queryClient.setQueryData<InfiniteData<HistoryPage>>(
+              HISTORY_KEY(parentId, filters),
+              old => {
+                if (!old) return old;
+                const newEntry = payload.new as HistoryEntry;
+                const alreadyExists = old.pages.some(p =>
+                  p.items.some(item => item.id === newEntry.id)
+                );
+                if (alreadyExists) return old;
+                return {
+                  ...old,
+                  pages: old.pages.map((page, i) =>
+                    i === 0
+                      ? {
+                          ...page,
+                          items: [newEntry, ...page.items],
+                          total: page.total + 1,
+                        }
+                      : page
                   ),
-                })),
-              };
-            }
-          );
-        }
-      )
-      .subscribe();
+                };
+              }
+            );
+            queryClient.invalidateQueries({
+              queryKey: MONTHLY_COUNTS_KEY(parentId),
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'pickup_history',
+            filter: `parent_id=eq.${parentId}`,
+          },
+          payload => {
+            const updated = payload.new as HistoryEntry;
+            queryClient.setQueryData<InfiniteData<HistoryPage>>(
+              HISTORY_KEY(parentId, filters),
+              old => {
+                if (!old) return old;
+                return {
+                  ...old,
+                  pages: old.pages.map(page => ({
+                    ...page,
+                    items: page.items.map(item =>
+                      item.id === updated.id ? updated : item
+                    ),
+                  })),
+                };
+              }
+            );
+          }
+        )
+        .subscribe();
 
-    channelRef.current = ch;
+      if (active) channelRef.current = ch;
+      else supabase.removeChannel(ch);
+    };
+
+    setup();
+
     return () => {
-      supabase.removeChannel(ch);
+      active = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [parentId, filters, queryClient]);
 

@@ -25,28 +25,43 @@ export function useMySchool() {
   useEffect(() => {
     const schoolId = query.data?.id;
     if (!uid || !schoolId) return;
-    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
-    const ch = supabase
-      .channel(`school-profile-${schoolId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'schools',
-          filter: `id=eq.${schoolId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: SCHOOL_BY_ADMIN_KEY(uid) });
-          queryClient.invalidateQueries({ queryKey: SCHOOL_KEY(schoolId) });
-        }
-      )
-      .subscribe();
+    let active = true;
+    const prevChannel = channelRef.current;
 
-    channelRef.current = ch;
+    const setup = async () => {
+      if (prevChannel) await supabase.removeChannel(prevChannel);
+      if (!active) return;
+
+      const ch = supabase
+        .channel(`school-profile-${schoolId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'schools',
+            filter: `id=eq.${schoolId}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: SCHOOL_BY_ADMIN_KEY(uid) });
+            queryClient.invalidateQueries({ queryKey: SCHOOL_KEY(schoolId) });
+          }
+        )
+        .subscribe();
+
+      if (active) channelRef.current = ch;
+      else supabase.removeChannel(ch);
+    };
+
+    setup();
+
     return () => {
-      supabase.removeChannel(ch);
+      active = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [uid, query.data?.id, queryClient]);
 

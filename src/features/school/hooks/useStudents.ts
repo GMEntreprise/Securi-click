@@ -19,27 +19,42 @@ export function useStudents(schoolId: string) {
 
   useEffect(() => {
     if (!schoolId) return;
-    if (channelRef.current) supabase.removeChannel(channelRef.current);
 
-    const ch = supabase
-      .channel(`school-students-${schoolId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'children',
-          filter: `school_id=eq.${schoolId}`,
-        },
-        () => {
-          queryClient.invalidateQueries({ queryKey: STUDENTS_KEY(schoolId) });
-        }
-      )
-      .subscribe();
+    let active = true;
+    const prevChannel = channelRef.current;
 
-    channelRef.current = ch;
+    const setup = async () => {
+      if (prevChannel) await supabase.removeChannel(prevChannel);
+      if (!active) return;
+
+      const ch = supabase
+        .channel(`school-students-${schoolId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'children',
+            filter: `school_id=eq.${schoolId}`,
+          },
+          () => {
+            queryClient.invalidateQueries({ queryKey: STUDENTS_KEY(schoolId) });
+          }
+        )
+        .subscribe();
+
+      if (active) channelRef.current = ch;
+      else supabase.removeChannel(ch);
+    };
+
+    setup();
+
     return () => {
-      supabase.removeChannel(ch);
+      active = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [schoolId, queryClient]);
 
