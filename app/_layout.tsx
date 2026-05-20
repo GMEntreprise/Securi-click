@@ -29,6 +29,7 @@ import {
 import { useNotificationStore, useNotificationCenterOpen } from '@/features/notifications/stores/notification.store';
 import { useUnreadCountQuery } from '@/features/notifications/hooks/useNotifications';
 import { NotificationCenterScreen } from '@/features/notifications/screens/NotificationCenterScreen';
+import { NetworkBanner } from '@/shared/ui/molecules/NetworkBanner';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -411,6 +412,7 @@ export default function RootLayout() {
             <NavigationGuard />
             <NotificationBootstrap />
             <NotificationCenterModal />
+            <NetworkBanner />
             <Slot />
           </ToastProviderWithViewport>
         </ThemeProvider>
