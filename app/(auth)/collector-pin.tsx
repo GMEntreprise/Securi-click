@@ -150,6 +150,7 @@ export default memo(function CollectorPinScreen() {
                 paddingTop: insets.top + 16,
                 paddingBottom: 28,
                 paddingHorizontal: 24,
+                alignItems: 'center',
               }}
             >
               {/* Back natif — router.back() = back du stack Expo Router */}
@@ -162,6 +163,7 @@ export default memo(function CollectorPinScreen() {
                   gap: 4,
                   alignSelf: 'flex-start',
                   marginBottom: 28,
+                  width: '100%',
                 }}
               >
                 <Ionicons name="chevron-back" size={20} color={t.textMuted} />
@@ -176,41 +178,44 @@ export default memo(function CollectorPinScreen() {
                 </Text>
               </TouchableOpacity>
 
-              {/* Icône */}
+              {/* Icône centrée */}
               <View
                 style={{
-                  width: 60,
-                  height: 60,
+                  width: 64,
+                  height: 64,
                   borderRadius: 20,
                   backgroundColor: t.accentBg,
                   alignItems: 'center',
                   justifyContent: 'center',
-                  marginBottom: 18,
+                  marginBottom: 20,
                 }}
               >
                 <Ionicons name="shield-checkmark" size={28} color={t.accent} />
               </View>
 
-              {/* Titre + sous-titre */}
+              {/* Titre + sous-titre centrés */}
               <Text
                 style={{
-                  fontSize: 30,
+                  fontSize: 28,
                   fontWeight: '800',
                   color: t.text,
-                  letterSpacing: -0.6,
-                  marginBottom: 6,
+                  letterSpacing: -0.5,
+                  marginBottom: 8,
+                  textAlign: 'center',
                 }}
               >
-                Accès collecteur
+                Espace collecteur
               </Text>
               <Text
                 style={{
                   fontSize: 15,
                   color: t.textSecondary,
-                  fontWeight: '400',
+                  lineHeight: 22,
+                  textAlign: 'center',
                 }}
               >
-                Email · Code à 6 chiffres
+                Entrez votre email et le code de connexion communiqué par le
+                parent.
               </Text>
             </LinearGradient>
           </Animated.View>
@@ -223,6 +228,37 @@ export default memo(function CollectorPinScreen() {
               gap: 12,
             }}
           >
+            {/* Notice amber */}
+            <Animated.View
+              entering={FadeInDown.delay(60).duration(300)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: 8,
+                backgroundColor: t.amberBg,
+                borderRadius: 12,
+                padding: 12,
+              }}
+            >
+              <Ionicons
+                name="shield-outline"
+                size={14}
+                color={t.amber}
+                style={{ marginTop: 1 }}
+              />
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 12,
+                  color: t.textSecondary,
+                  lineHeight: 17,
+                }}
+              >
+                Ce code à 6 chiffres vous a été communiqué par le parent qui
+                vous a autorisé.
+              </Text>
+            </Animated.View>
+
             {/* Champ email */}
             <Animated.View entering={FadeInDown.delay(80).duration(320)}>
               <InputLabel label="Email" />
