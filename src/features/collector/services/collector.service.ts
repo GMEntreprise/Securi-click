@@ -332,14 +332,24 @@ export const collectorService = {
     childId: string,
     guardianId: string
   ): Promise<CollectorQrCode> {
-    const { data, error } = await supabase.rpc('generate_collector_qr_code', {
-      p_guardian_id: guardianId,
-      p_child_id: childId,
-      p_expires_in_hours: 24,
-    });
-    if (error) throw error;
+    const { data: rpcData, error: rpcError } = await supabase.rpc(
+      'generate_collector_qr_code',
+      {
+        p_guardian_id: guardianId,
+        p_child_id: childId,
+        p_expires_in_hours: 24,
+      }
+    );
+    if (rpcError) {
+      if (rpcError.message?.includes('forbidden')) {
+        throw new Error(rpcError.message);
+      }
+      throw rpcError;
+    }
 
-    const qrId = data as string;
+    const qrId = rpcData as string;
+    if (!qrId) throw new Error('QR ID manquant après génération');
+
     const { data: qr, error: fetchErr } = await supabase
       .from('qr_codes')
       .select(
@@ -348,6 +358,10 @@ export const collectorService = {
       .eq('id', qrId)
       .single();
     if (fetchErr) throw fetchErr;
+    if (!qr)
+      throw new Error(
+        'QR introuvable après génération — policy RLS manquante ?'
+      );
     return qr as unknown as CollectorQrCode;
   },
 };

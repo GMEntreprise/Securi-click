@@ -301,27 +301,13 @@ export function useCollectorQrCode(childId?: string) {
 export function useCollectorRecentScans(childId?: string) {
   const session = useSession();
   const uid = session?.user.id ?? '';
-  const queryClient = useQueryClient();
 
-  const query = useQuery({
+  return useQuery({
     queryKey: SCANS_KEY(uid, childId),
     queryFn: () => collectorService.getCollectorRecentScans(uid, childId),
     enabled: !!uid,
     staleTime: 30 * 1000,
   });
-
-  useEffect(() => {
-    if (!uid) return;
-    return subscribeToTable(
-      `collector-scans-${uid}`,
-      { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
-      () => {
-        queryClient.invalidateQueries({ queryKey: SCANS_KEY(uid, childId) });
-      }
-    );
-  }, [uid, childId, queryClient]);
-
-  return query;
 }
 
 export function useCollectorGenerateQr() {
@@ -340,6 +326,8 @@ export function useCollectorGenerateQr() {
     onSuccess: (_data, { childId }) => {
       queryClient.invalidateQueries({ queryKey: QR_KEY(uid, childId) });
       queryClient.invalidateQueries({ queryKey: QR_KEY(uid) });
+      queryClient.invalidateQueries({ queryKey: SCANS_KEY(uid, childId) });
+      queryClient.invalidateQueries({ queryKey: SCANS_KEY(uid) });
     },
   });
 }

@@ -95,14 +95,21 @@ export default function CollectorQRScreen() {
   }, []);
 
   const handleGenerate = useCallback(() => {
+    if (isGenerating) return;
     if (!hasAccess) {
       Alert.alert(
         'Accès suspendu',
-        'Votre accès a été suspendu par le parent.'
+        'Votre accès a été suspendu par le parent. Contactez-le pour le rétablir.'
       );
       return;
     }
-    if (!selectedGuardian?.child?.id) return;
+    if (!selectedGuardian?.child?.id) {
+      Alert.alert(
+        'Erreur',
+        "L'enfant associé est introuvable. Rafraîchissez l'application."
+      );
+      return;
+    }
     if (!unlocked) {
       handleBiometric();
       return;
@@ -121,13 +128,33 @@ export default function CollectorQRScreen() {
           qrScale.value = withSpring(1);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         },
-        onError: () => {
+        onError: (err: unknown) => {
           qrScale.value = withSpring(1);
-          Alert.alert('Erreur', 'Impossible de générer le QR code.');
+          const msg = err instanceof Error ? err.message : '';
+          if (
+            msg.includes('guardian introuvable') ||
+            msg.includes('non autorisé')
+          ) {
+            Alert.alert(
+              'Non autorisé',
+              "Vous n'êtes pas autorisé à générer ce QR code."
+            );
+          } else if (msg.includes('accès suspendu')) {
+            Alert.alert(
+              'Accès suspendu',
+              'Votre accès a été suspendu par le parent.'
+            );
+          } else {
+            Alert.alert(
+              'Erreur',
+              'Impossible de générer le QR code pour le moment. Réessayez dans quelques instants.'
+            );
+          }
         },
       }
     );
   }, [
+    isGenerating,
     hasAccess,
     selectedGuardian,
     unlocked,
