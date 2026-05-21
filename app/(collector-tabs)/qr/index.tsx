@@ -19,17 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import QRCodeStyled from 'react-native-qrcode-styled';
-import {
-  Lock,
-  RefreshCw,
-  ShieldCheck,
-  ShieldOff,
-  ChevronDown,
-  User,
-  CheckCircle,
-  XCircle,
-  MinusCircle,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import {
   useMyGuardians,
@@ -39,9 +29,21 @@ import {
 } from '@/features/collector/hooks/useCollector';
 
 const STATUS_CFG = {
-  completed: { Icon: CheckCircle, color: '#10b981', label: 'Validé' },
-  denied: { Icon: XCircle, color: '#ef4444', label: 'Refusé' },
-  cancelled: { Icon: MinusCircle, color: '#f59e0b', label: 'Annulé' },
+  completed: {
+    iconName: 'checkmark-circle' as const,
+    color: '#10b981',
+    label: 'Validé',
+  },
+  denied: {
+    iconName: 'close-circle' as const,
+    color: '#ef4444',
+    label: 'Refusé',
+  },
+  cancelled: {
+    iconName: 'remove-circle' as const,
+    color: '#f59e0b',
+    label: 'Annulé',
+  },
 } as const;
 
 export default function CollectorQRScreen() {
@@ -67,7 +69,8 @@ export default function CollectorQRScreen() {
   const childId = selectedGuardian?.child?.id ?? undefined;
 
   const generateMutation = useCollectorGenerateQr();
-  const { data: recentScans, isLoading: scansLoading } = useCollectorRecentScans(childId);
+  const { data: recentScans, isLoading: scansLoading } =
+    useCollectorRecentScans(childId);
   const { data: activeQr } = useCollectorQrCode(childId);
 
   const hasAccess = !!selectedGuardian?.is_active;
@@ -161,7 +164,7 @@ export default function CollectorQRScreen() {
       }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header badge */}
+      {/* Badge statut */}
       <Animated.View
         entering={FadeInDown.duration(400)}
         style={{ alignItems: 'center', marginBottom: 24 }}
@@ -180,11 +183,11 @@ export default function CollectorQRScreen() {
             marginBottom: 16,
           }}
         >
-          {hasAccess ? (
-            <ShieldCheck size={13} color={theme.accent} strokeWidth={2.5} />
-          ) : (
-            <ShieldOff size={13} color="#ef4444" strokeWidth={2.5} />
-          )}
+          <Ionicons
+            name={hasAccess ? 'shield-checkmark-outline' : 'shield-outline'}
+            size={13}
+            color={hasAccess ? theme.accent : '#ef4444'}
+          />
           <Text
             style={{
               color: hasAccess ? theme.accent : '#ef4444',
@@ -198,7 +201,7 @@ export default function CollectorQRScreen() {
           </Text>
         </View>
 
-        {/* Child selector */}
+        {/* Sélecteur enfant */}
         {activeGuardians.length > 1 ? (
           <TouchableOpacity
             onPress={() => setShowPicker(v => !v)}
@@ -222,7 +225,7 @@ export default function CollectorQRScreen() {
                 ? `${selectedGuardian.child?.first_name} ${selectedGuardian.child?.last_name}`
                 : 'Choisir'}
             </Text>
-            <ChevronDown size={16} color={theme.textMuted} />
+            <Ionicons name="chevron-down" size={16} color={theme.textMuted} />
           </TouchableOpacity>
         ) : (
           <Text
@@ -280,7 +283,11 @@ export default function CollectorQRScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <User size={15} color={theme.accent} />
+                  <Ionicons
+                    name="person-outline"
+                    size={15}
+                    color={theme.accent}
+                  />
                 </View>
                 <Text
                   style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
@@ -293,7 +300,7 @@ export default function CollectorQRScreen() {
         )}
       </Animated.View>
 
-      {/* QR Card */}
+      {/* Carte QR */}
       <Animated.View
         entering={FadeInDown.delay(100).duration(400)}
         style={{ alignItems: 'center', marginBottom: 24 }}
@@ -325,7 +332,7 @@ export default function CollectorQRScreen() {
             <View
               style={{ alignItems: 'center', gap: 10, paddingHorizontal: 20 }}
             >
-              <ShieldOff size={36} color="#ef4444" strokeWidth={1.5} />
+              <Ionicons name="shield-outline" size={36} color="#ef4444" />
               <Text
                 style={{
                   color: '#ef4444',
@@ -345,9 +352,21 @@ export default function CollectorQRScreen() {
               style={{ borderRadius: 12, backgroundColor: '#fff' }}
             />
           ) : unlocked && !activeQr ? (
-            <View style={{ alignItems: 'center', gap: 10, paddingHorizontal: 20 }}>
-              <Lock size={28} color={theme.textMuted} />
-              <Text style={{ color: theme.textSecondary, fontSize: 13, textAlign: 'center' }}>
+            <View
+              style={{ alignItems: 'center', gap: 10, paddingHorizontal: 20 }}
+            >
+              <Ionicons
+                name="lock-open-outline"
+                size={28}
+                color={theme.textMuted}
+              />
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 13,
+                  textAlign: 'center',
+                }}
+              >
                 Aucun QR actif — appuyez sur Générer
               </Text>
             </View>
@@ -363,7 +382,11 @@ export default function CollectorQRScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Lock size={28} color={theme.textMuted} />
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={28}
+                  color={theme.textMuted}
+                />
               </View>
               <Text
                 style={{
@@ -379,7 +402,7 @@ export default function CollectorQRScreen() {
         </Animated.View>
       </Animated.View>
 
-      {/* Action button */}
+      {/* Bouton action */}
       {activeGuardians.length > 0 && (
         <Animated.View
           entering={FadeInDown.delay(200).duration(400)}
@@ -405,19 +428,21 @@ export default function CollectorQRScreen() {
               opacity: isGenerating ? 0.7 : 1,
             }}
           >
-            {isGenerating ? (
-              <RefreshCw
-                size={18}
-                color={unlocked ? '#fff' : theme.textMuted}
-                strokeWidth={2.5}
-              />
-            ) : !hasAccess ? (
-              <ShieldOff size={18} color="#ef4444" strokeWidth={2.5} />
-            ) : unlocked ? (
-              <RefreshCw size={18} color="#fff" strokeWidth={2.5} />
-            ) : (
-              <Lock size={18} color={theme.textMuted} strokeWidth={2.5} />
-            )}
+            <Ionicons
+              name={
+                isGenerating
+                  ? 'refresh-outline'
+                  : !hasAccess
+                    ? 'shield-outline'
+                    : unlocked
+                      ? 'refresh-outline'
+                      : 'lock-closed-outline'
+              }
+              size={18}
+              color={
+                !hasAccess ? '#ef4444' : unlocked ? '#fff' : theme.textMuted
+              }
+            />
             <Text
               style={{
                 color: !hasAccess
@@ -441,7 +466,7 @@ export default function CollectorQRScreen() {
         </Animated.View>
       )}
 
-      {/* Recent scans */}
+      {/* Scans récents */}
       <Animated.View entering={FadeInDown.delay(280).duration(400)}>
         <Text
           style={{
@@ -473,7 +498,6 @@ export default function CollectorQRScreen() {
           ) : (
             recentScans.map((scan, i) => {
               const cfg = STATUS_CFG[scan.status] ?? STATUS_CFG.completed;
-              const { Icon } = cfg;
               const d = new Date(scan.pickup_time);
               return (
                 <View
@@ -497,7 +521,7 @@ export default function CollectorQRScreen() {
                       justifyContent: 'center',
                     }}
                   >
-                    <Icon size={16} color={cfg.color} strokeWidth={2.5} />
+                    <Ionicons name={cfg.iconName} size={16} color={cfg.color} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text
@@ -507,7 +531,8 @@ export default function CollectorQRScreen() {
                         fontSize: 14,
                       }}
                     >
-                      {scan.child?.first_name ?? ''} {scan.child?.last_name ?? ''}
+                      {scan.child?.first_name ?? ''}{' '}
+                      {scan.child?.last_name ?? ''}
                     </Text>
                     <Text
                       style={{

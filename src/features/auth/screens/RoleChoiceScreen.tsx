@@ -38,21 +38,25 @@ const ROLES: RoleItem[] = [
     id: 'parent',
     title: 'Parent',
     description: 'Suivi et sécurité des enfants',
-    icon: (color) => <FontAwesome6 name="user-group" size={22} color={color} />,
+    icon: color => <FontAwesome6 name="user-group" size={22} color={color} />,
     route: '/(auth)/parent',
   },
   {
     id: 'collector',
     title: 'Collecteur',
     description: 'Validation des autorisations',
-    icon: (color) => <MaterialCommunityIcons name="shield-check" size={24} color={color} />,
+    icon: color => (
+      <MaterialCommunityIcons name="shield-check" size={24} color={color} />
+    ),
     route: '/(auth)/collector-pin',
   },
   {
     id: 'school',
     title: 'Établissement',
     description: 'Gestion globale de la sécurité',
-    icon: (color) => <MaterialCommunityIcons name="school" size={24} color={color} />,
+    icon: color => (
+      <MaterialCommunityIcons name="school" size={24} color={color} />
+    ),
     route: '/(auth)/school',
   },
 ];
@@ -147,7 +151,11 @@ const RoleCard: React.FC<RoleCardProps> = memo(
             </View>
             {selected && (
               <Animated.View entering={FadeInUp.duration(200)}>
-                <MaterialCommunityIcons name="check-circle" size={22} color={t.primary} />
+                <MaterialCommunityIcons
+                  name="check-circle"
+                  size={22}
+                  color={t.primary}
+                />
               </Animated.View>
             )}
           </View>
@@ -183,37 +191,37 @@ export const RoleChoiceScreen: React.FC = memo(() => {
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
-      <View style={{ height: HERO_HEIGHT }}>
-        <Image
-          source={require('../../../../assets/images/icon.png')}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            width: '100%',
-            height: '100%',
-          }}
-          resizeMode="cover"
-        />
-        <LinearGradient
-          colors={[
-            t.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)',
-            t.isDark ? 'rgba(13,17,23,0.6)' : 'rgba(249,245,240,0.5)',
-            t.bg,
-          ]}
-          locations={[0, 0.65, 1]}
-          style={{ position: 'absolute', inset: 0 }}
-        />
-      </View>
-
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        <View style={{ height: HERO_HEIGHT }}>
+          <Image
+            source={require('../../../../assets/images/icon.png')}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              width: '100%',
+              height: '100%',
+            }}
+            resizeMode="cover"
+          />
+          <LinearGradient
+            colors={[
+              t.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)',
+              t.isDark ? 'rgba(13,17,23,0.6)' : 'rgba(249,245,240,0.5)',
+              t.bg,
+            ]}
+            locations={[0, 0.65, 1]}
+            style={{ position: 'absolute', inset: 0 }}
+          />
+        </View>
+
         <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
           <Animated.View
             entering={FadeInDown.delay(80).duration(500)}
