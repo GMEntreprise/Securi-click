@@ -1,17 +1,16 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ActivityIndicator,
+  ScrollView,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   FadeInDown,
   useAnimatedStyle,
@@ -19,25 +18,33 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { ArrowLeft, Eye, EyeOff, Lock, Mail, ShieldAlert } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme';
-import { useAppNavigation } from '@/navigation/useAppNavigation';
-import { useCollectorPinLogin, formatPinError } from '@/features/collector/hooks/useCollectorPinLogin';
+import {
+  useCollectorPinLogin,
+  formatPinError,
+} from '@/features/collector/hooks/useCollectorPinLogin';
 import { useCollectorSessionStore } from '@/features/collector/stores/collectorSession.store';
 
 const AUTO_HIDE_MS = 8_000;
 
 export default memo(function CollectorPinScreen() {
-  const t      = useTheme();
+  const t = useTheme();
   const insets = useSafeAreaInsets();
-  const nav    = useAppNavigation();
+  const router = useRouter();
   const markVerified = useCollectorSessionStore(s => s.markVerified);
 
-  const [email,   setEmail]   = useState('');
-  const [pin,     setPin]     = useState('');
+  const [email, setEmail] = useState('');
+  const [pin, setPin] = useState('');
   const [visible, setVisible] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [pinFocused, setPinFocused] = useState(false);
   const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pinRef = useRef<TextInput>(null);
   const shakeX = useSharedValue(0);
 
   const shakeStyle = useAnimatedStyle(() => ({
@@ -46,16 +53,21 @@ export default memo(function CollectorPinScreen() {
 
   const triggerShake = useCallback(() => {
     shakeX.value = withSequence(
-      withTiming(-6, { duration: 60 }),
-      withTiming(6,  { duration: 60 }),
-      withTiming(-6, { duration: 60 }),
-      withTiming(0,  { duration: 60 })
+      withTiming(-8, { duration: 55 }),
+      withTiming(8, { duration: 55 }),
+      withTiming(-6, { duration: 55 }),
+      withTiming(6, { duration: 55 }),
+      withTiming(0, { duration: 55 })
     );
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
   }, [shakeX]);
 
-  const { mutate: pinLogin, isPending, error: loginError, reset: resetLogin } =
-    useCollectorPinLogin(markVerified);
+  const {
+    mutate: pinLogin,
+    isPending,
+    error: loginError,
+    reset: resetLogin,
+  } = useCollectorPinLogin(markVerified);
 
   const errorMsg = loginError ? formatPinError(loginError.message) : null;
 
@@ -82,15 +94,25 @@ export default memo(function CollectorPinScreen() {
     pinLogin({ email: trimmedEmail, pin });
   }, [email, pin, pinLogin, triggerShake]);
 
-  const handleChangePin = useCallback((text: string) => {
-    setPin(text.replace(/\D/g, '').slice(0, 6));
-    if (loginError) resetLogin();
-  }, [loginError, resetLogin]);
+  const handleChangePin = useCallback(
+    (text: string) => {
+      setPin(text.replace(/\D/g, '').slice(0, 6));
+      if (loginError) resetLogin();
+    },
+    [loginError, resetLogin]
+  );
 
-  const handleChangeEmail = useCallback((text: string) => {
-    setEmail(text);
-    if (loginError) resetLogin();
-  }, [loginError, resetLogin]);
+  const handleChangeEmail = useCallback(
+    (text: string) => {
+      setEmail(text);
+      if (loginError) resetLogin();
+    },
+    [loginError, resetLogin]
+  );
+
+  const handleEmailSubmit = useCallback(() => {
+    pinRef.current?.focus();
+  }, []);
 
   const isReady = email.trim().length > 0 && pin.length === 6;
 
@@ -102,129 +124,351 @@ export default memo(function CollectorPinScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <ScrollView
-          contentContainerStyle={{
-            paddingHorizontal: 24,
-            paddingTop: insets.top + 60,
-            paddingBottom: insets.bottom + 48,
-            flexGrow: 1,
-          }}
+          contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           bounces={false}
         >
-          {/* Back button */}
-          <TouchableOpacity
-            onPress={() => nav.goToRoleChoice()}
-            hitSlop={12}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 24, alignSelf: 'flex-start' }}
-          >
-            <ArrowLeft size={18} color={t.textMuted} strokeWidth={2} />
-            <Text style={{ fontSize: 14, color: t.textMuted, fontWeight: '600' }}>Choisir un rôle</Text>
-          </TouchableOpacity>
-
-          {/* Header */}
-          <Animated.View entering={FadeInDown.duration(350)} style={{ marginBottom: 32 }}>
-            <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: t.accentBg, alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
-              <Lock size={28} color={t.accent} strokeWidth={1.8} />
-            </View>
-            <Text style={{ fontSize: 28, fontWeight: '800', color: t.text, letterSpacing: -0.5, marginBottom: 8 }}>
-              Espace collecteur
-            </Text>
-            <Text style={{ fontSize: 15, color: t.textSecondary, lineHeight: 22 }}>
-              Entrez votre email et le code de connexion communiqué par le parent.
-            </Text>
-          </Animated.View>
-
-          {/* Security notice */}
-          <Animated.View
-            entering={FadeInDown.delay(60).duration(300)}
-            style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, backgroundColor: t.amberBg, borderRadius: 12, padding: 12, marginBottom: 24 }}
-          >
-            <ShieldAlert size={14} color={t.amber} strokeWidth={2} style={{ marginTop: 1 }} />
-            <Text style={{ flex: 1, fontSize: 12, color: t.textSecondary, lineHeight: 17 }}>
-              Ce code à 6 chiffres vous a été communiqué par le parent qui vous a autorisé.
-            </Text>
-          </Animated.View>
-
-          {/* Email input */}
-          <Animated.View entering={FadeInDown.delay(100).duration(300)} style={{ marginBottom: 12 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: t.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
-              Email
-            </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: t.input, borderRadius: 14, borderWidth: 1.5, borderColor: t.inputBorder, paddingHorizontal: 14, minHeight: 56, gap: 10 }}>
-              <Mail size={16} color={t.textMuted} strokeWidth={2} />
-              <TextInput
-                value={email}
-                onChangeText={handleChangeEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                returnKeyType="next"
-                placeholder="votre@email.com"
-                placeholderTextColor={t.placeholder}
-                editable={!isPending}
-                style={{ flex: 1, fontSize: 15, color: t.text, paddingVertical: 14 }}
-              />
-            </View>
-          </Animated.View>
-
-          {/* PIN input */}
-          <Animated.View entering={FadeInDown.delay(140).duration(300)} style={{ marginBottom: 8 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: t.textSecondary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 8 }}>
-              Code de connexion
-            </Text>
-            <Animated.View style={[shakeStyle, { flexDirection: 'row', alignItems: 'center', backgroundColor: t.input, borderRadius: 14, borderWidth: 1.5, borderColor: errorMsg ? t.red : t.inputBorder, paddingHorizontal: 14, minHeight: 56, gap: 10 }]}>
-              <Lock size={16} color={t.textMuted} strokeWidth={2} />
-              <TextInput
-                value={pin}
-                onChangeText={handleChangePin}
-                keyboardType="number-pad"
-                maxLength={6}
-                secureTextEntry={!visible}
-                contextMenuHidden
-                returnKeyType="done"
-                onSubmitEditing={handleSubmit}
-                editable={!isPending}
-                placeholder={visible ? '——————' : '••••••'}
-                placeholderTextColor={t.placeholder}
-                style={{ flex: 1, fontSize: visible ? 24 : 20, color: t.text, letterSpacing: visible ? 10 : 6, paddingVertical: 14 }}
-              />
-              <TouchableOpacity onPress={handleReveal} hitSlop={10} disabled={isPending}>
-                {visible ? <EyeOff size={18} color={t.textMuted} /> : <Eye size={18} color={t.textMuted} />}
+          {/* Hero header */}
+          <Animated.View entering={FadeInDown.duration(400)}>
+            <LinearGradient
+              colors={
+                t.isDark
+                  ? [
+                      'rgba(249,115,22,0.18)',
+                      'rgba(249,115,22,0.04)',
+                      'transparent',
+                    ]
+                  : [
+                      'rgba(249,115,22,0.10)',
+                      'rgba(249,115,22,0.02)',
+                      'transparent',
+                    ]
+              }
+              locations={[0, 0.6, 1]}
+              style={{
+                paddingTop: insets.top + 16,
+                paddingBottom: 28,
+                paddingHorizontal: 24,
+              }}
+            >
+              {/* Back natif — router.back() = back du stack Expo Router */}
+              <TouchableOpacity
+                onPress={() => router.back()}
+                hitSlop={14}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  alignSelf: 'flex-start',
+                  marginBottom: 28,
+                }}
+              >
+                <Ionicons name="chevron-back" size={20} color={t.textMuted} />
+                <Text
+                  style={{
+                    fontSize: 15,
+                    color: t.textMuted,
+                    fontWeight: '500',
+                  }}
+                >
+                  Retour
+                </Text>
               </TouchableOpacity>
+
+              {/* Icône */}
+              <View
+                style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 20,
+                  backgroundColor: t.accentBg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 18,
+                }}
+              >
+                <Ionicons name="shield-checkmark" size={28} color={t.accent} />
+              </View>
+
+              {/* Titre + sous-titre */}
+              <Text
+                style={{
+                  fontSize: 30,
+                  fontWeight: '800',
+                  color: t.text,
+                  letterSpacing: -0.6,
+                  marginBottom: 6,
+                }}
+              >
+                Accès collecteur
+              </Text>
+              <Text
+                style={{
+                  fontSize: 15,
+                  color: t.textSecondary,
+                  fontWeight: '400',
+                }}
+              >
+                Email · Code à 6 chiffres
+              </Text>
+            </LinearGradient>
+          </Animated.View>
+
+          {/* Formulaire */}
+          <View
+            style={{
+              paddingHorizontal: 24,
+              paddingBottom: insets.bottom + 32,
+              gap: 12,
+            }}
+          >
+            {/* Champ email */}
+            <Animated.View entering={FadeInDown.delay(80).duration(320)}>
+              <InputLabel label="Email" />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: t.input,
+                  borderRadius: 16,
+                  borderWidth: 1.5,
+                  borderColor: emailFocused ? t.accent : t.inputBorder,
+                  paddingHorizontal: 14,
+                  minHeight: 56,
+                  gap: 10,
+                }}
+              >
+                <Ionicons
+                  name="mail-outline"
+                  size={17}
+                  color={emailFocused ? t.accent : t.textMuted}
+                />
+                <TextInput
+                  value={email}
+                  onChangeText={handleChangeEmail}
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                  onSubmitEditing={handleEmailSubmit}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="email"
+                  returnKeyType="next"
+                  placeholder="votre@email.com"
+                  placeholderTextColor={t.placeholder}
+                  editable={!isPending}
+                  style={{
+                    flex: 1,
+                    fontSize: 15,
+                    color: t.text,
+                    paddingVertical: 14,
+                  }}
+                />
+              </View>
             </Animated.View>
 
-            {visible && (
-              <Text style={{ fontSize: 11, color: t.amber, textAlign: 'center', fontWeight: '600', marginTop: 6 }}>
-                Code visible — masquage dans 8 secondes
-              </Text>
-            )}
+            {/* Champ code */}
+            <Animated.View entering={FadeInDown.delay(130).duration(320)}>
+              <InputLabel label="Votre code" />
+              <Animated.View
+                style={[
+                  shakeStyle,
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: t.input,
+                    borderRadius: 16,
+                    borderWidth: 1.5,
+                    borderColor: errorMsg
+                      ? t.red
+                      : pinFocused
+                        ? t.accent
+                        : t.inputBorder,
+                    paddingHorizontal: 14,
+                    minHeight: 56,
+                    gap: 10,
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={17}
+                  color={errorMsg ? t.red : pinFocused ? t.accent : t.textMuted}
+                />
+                <TextInput
+                  ref={pinRef}
+                  value={pin}
+                  onChangeText={handleChangePin}
+                  onFocus={() => setPinFocused(true)}
+                  onBlur={() => setPinFocused(false)}
+                  onSubmitEditing={handleSubmit}
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  secureTextEntry={!visible}
+                  contextMenuHidden
+                  returnKeyType="done"
+                  editable={!isPending}
+                  placeholder={visible ? '——————' : '••••••'}
+                  placeholderTextColor={t.placeholder}
+                  style={{
+                    flex: 1,
+                    fontSize: visible ? 24 : 20,
+                    color: t.text,
+                    letterSpacing: visible ? 10 : 6,
+                    paddingVertical: 14,
+                  }}
+                />
+                <TouchableOpacity
+                  onPress={handleReveal}
+                  hitSlop={12}
+                  disabled={isPending}
+                >
+                  <Ionicons
+                    name={visible ? 'eye-off-outline' : 'eye-outline'}
+                    size={19}
+                    color={t.textMuted}
+                  />
+                </TouchableOpacity>
+              </Animated.View>
 
-            {errorMsg ? (
-              <Text style={{ color: t.red, fontSize: 13, marginTop: 8, textAlign: 'center' }}>
-                {errorMsg}
-              </Text>
-            ) : null}
-          </Animated.View>
-
-          {/* CTA */}
-          <Animated.View entering={FadeInDown.delay(180).duration(300)} style={{ marginTop: 24 }}>
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={isPending || !isReady}
-              style={{ backgroundColor: t.accent, borderRadius: 18, paddingVertical: 16, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, opacity: isPending || !isReady ? 0.55 : 1 }}
-            >
-              {isPending ? (
-                <ActivityIndicator color="#fff" size="small" />
+              {/* Microcopy */}
+              {visible ? (
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: t.amber,
+                    marginTop: 6,
+                    marginLeft: 2,
+                    fontWeight: '600',
+                  }}
+                >
+                  Masquage dans 8 s
+                </Text>
+              ) : errorMsg ? (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: t.red,
+                    marginTop: 6,
+                    marginLeft: 2,
+                    fontWeight: '600',
+                  }}
+                >
+                  {errorMsg}
+                </Text>
               ) : (
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>Accéder à mon espace</Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: t.textMuted,
+                    marginTop: 6,
+                    marginLeft: 2,
+                  }}
+                >
+                  Code communiqué par le parent
+                </Text>
               )}
-            </TouchableOpacity>
-          </Animated.View>
+            </Animated.View>
 
+            {/* Indicateur de progression PIN */}
+            <Animated.View
+              entering={FadeInDown.delay(160).duration(300)}
+              style={{
+                flexDirection: 'row',
+                gap: 6,
+                justifyContent: 'center',
+                paddingVertical: 4,
+              }}
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <View
+                  key={i}
+                  style={{
+                    width: i < pin.length ? 10 : 8,
+                    height: i < pin.length ? 10 : 8,
+                    borderRadius: 5,
+                    backgroundColor:
+                      i < pin.length
+                        ? errorMsg
+                          ? t.red
+                          : t.accent
+                        : t.isDark
+                          ? 'rgba(255,255,255,0.12)'
+                          : 'rgba(0,0,0,0.10)',
+                  }}
+                />
+              ))}
+            </Animated.View>
+
+            {/* CTA */}
+            <Animated.View
+              entering={FadeInDown.delay(200).duration(320)}
+              style={{ marginTop: 8 }}
+            >
+              <TouchableOpacity
+                onPress={handleSubmit}
+                disabled={isPending || !isReady}
+                activeOpacity={0.85}
+                style={{
+                  backgroundColor: isReady
+                    ? t.accent
+                    : t.isDark
+                      ? '#1e2530'
+                      : '#f0f1f3',
+                  borderRadius: 18,
+                  height: 56,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: 8,
+                }}
+              >
+                {isPending ? (
+                  <ActivityIndicator
+                    color={isReady ? '#fff' : t.textMuted}
+                    size="small"
+                  />
+                ) : (
+                  <>
+                    <Text
+                      style={{
+                        color: isReady ? '#fff' : t.textMuted,
+                        fontWeight: '700',
+                        fontSize: 16,
+                        letterSpacing: 0.1,
+                      }}
+                    >
+                      Continuer
+                    </Text>
+                    {isReady && (
+                      <Ionicons name="arrow-forward" size={16} color="#fff" />
+                    )}
+                  </>
+                )}
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
         </ScrollView>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 });
+
+function InputLabel({ label }: { label: string }) {
+  const t = useTheme();
+  return (
+    <Text
+      style={{
+        fontSize: 12,
+        fontWeight: '700',
+        color: t.textSecondary,
+        textTransform: 'uppercase',
+        letterSpacing: 0.9,
+        marginBottom: 8,
+      }}
+    >
+      {label}
+    </Text>
+  );
+}
