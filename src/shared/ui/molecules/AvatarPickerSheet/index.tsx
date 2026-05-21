@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Modal, Pressable, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -15,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { Camera, Image as ImageIcon, Trash2, X } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 
 export interface AvatarPickerSheetProps {
@@ -128,13 +122,9 @@ export function AvatarPickerSheet({
       if (closingRef.current) return;
       closingRef.current = true;
       opacity.value = withTiming(0, { duration: 200 });
-      translateY.value = withTiming(
-        500,
-        { duration: 240 },
-        finished => {
-          if (finished) runOnJS(cb)();
-        }
-      );
+      translateY.value = withTiming(500, { duration: 240 }, finished => {
+        if (finished) runOnJS(cb)();
+      });
     },
     [opacity, translateY]
   );
@@ -150,8 +140,8 @@ export function AvatarPickerSheet({
         onClose();
       });
     }
-  // onClose intentionally excluded — stable callback, avoid loop
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // onClose intentionally excluded — stable callback, avoid loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
   const handleBackdropPress = useCallback(() => {
@@ -230,7 +220,9 @@ export function AvatarPickerSheet({
         ]}
       >
         {/* Drag handle */}
-        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+        <View
+          style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
+        >
           <View
             style={{
               width: 36,
@@ -267,7 +259,7 @@ export function AvatarPickerSheet({
               justifyContent: 'center',
             }}
           >
-            <X size={15} color={theme.textSecondary} strokeWidth={2.5} />
+            <Ionicons name="close" size={15} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -277,14 +269,18 @@ export function AvatarPickerSheet({
         {/* Options */}
         <View>
           <OptionRow
-            icon={<Camera size={21} color={theme.accent} strokeWidth={2} />}
+            icon={
+              <Ionicons name="camera-outline" size={21} color={theme.accent} />
+            }
             iconBg={theme.accentBg}
             label="Prendre une photo"
             description="Ouvrir l'appareil photo"
             onPress={() => handleOption(onCamera)}
           />
           <OptionRow
-            icon={<ImageIcon size={21} color={theme.primary} strokeWidth={2} />}
+            icon={
+              <Ionicons name="image-outline" size={21} color={theme.primary} />
+            }
             iconBg={theme.primaryBg}
             label="Choisir dans la galerie"
             description="Sélectionner depuis vos photos"
@@ -292,7 +288,9 @@ export function AvatarPickerSheet({
           />
           {hasPhoto && (
             <OptionRow
-              icon={<Trash2 size={21} color={theme.red} strokeWidth={2} />}
+              icon={
+                <Ionicons name="trash-outline" size={21} color={theme.red} />
+              }
               iconBg={theme.redBg}
               label="Supprimer la photo"
               description="Revenir à l'avatar par défaut"

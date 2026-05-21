@@ -11,8 +11,10 @@ import {
 import { useNotificationStore } from '../stores/notification.store';
 import type { Notification } from '../types';
 
-export const NOTIFICATIONS_KEY = (userId: string) => ['notifications', userId] as const;
-export const UNREAD_COUNT_KEY = (userId: string) => ['notifications', 'unread', userId] as const;
+export const NOTIFICATIONS_KEY = (userId: string) =>
+  ['notifications', userId] as const;
+export const UNREAD_COUNT_KEY = (userId: string) =>
+  ['notifications', 'unread', userId] as const;
 
 // ─── Main list query ────────────────────────────────────────────────────────
 
@@ -48,11 +50,12 @@ export function useUnreadCountQuery() {
   const setUnread = useNotificationStore(s => s.setUnreadCount);
 
   const query = useQuery({
-    queryKey: userId ? UNREAD_COUNT_KEY(userId) : ['notifications', 'unread', 'none'],
+    queryKey: userId
+      ? UNREAD_COUNT_KEY(userId)
+      : ['notifications', 'unread', 'none'],
     queryFn: () => fetchUnreadCount(userId!),
     enabled: !!userId,
     staleTime: 10_000,
-    refetchInterval: 60_000,
   });
 
   useEffect(() => {
@@ -75,7 +78,12 @@ export function useNotificationsRealtime() {
     if (!userId) return;
     return subscribeToTable(
       `notifications:${userId}`,
-      { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` },
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${userId}`,
+      },
       payload => {
         const newItem = payload.new as Notification;
         prependItem(newItem);
@@ -117,10 +125,15 @@ export function useMarkRead() {
         qc.setQueryData(NOTIFICATIONS_KEY(userId), ctx.previous);
       }
       if (ctx?.unreadIds) {
-        useNotificationStore.getState().setUnreadCount(
-          (qc.getQueryData<Notification[]>(userId ? NOTIFICATIONS_KEY(userId) : []) ?? [])
-            .filter(n => !n.is_read).length
-        );
+        useNotificationStore
+          .getState()
+          .setUnreadCount(
+            (
+              qc.getQueryData<Notification[]>(
+                userId ? NOTIFICATIONS_KEY(userId) : []
+              ) ?? []
+            ).filter(n => !n.is_read).length
+          );
       }
     },
     onSettled: () => {

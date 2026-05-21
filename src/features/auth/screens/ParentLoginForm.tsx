@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, Mail } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo, useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useForm } from 'react-hook-form';
@@ -86,7 +86,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
           name="email"
           label="Email"
           placeholder="jean.dupont@exemple.fr"
-          icon={<Mail size={18} color={t.textMuted} />}
+          icon={<Ionicons name="mail-outline" size={18} color={t.textMuted} />}
           error={errors.email?.message}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -117,7 +117,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
             marginBottom: 24,
           }}
         >
-          <CheckCircle size={16} color={t.green} strokeWidth={2} />
+          <Ionicons name="checkmark-circle" size={16} color={t.green} />
           <Text style={{ fontSize: 13, color: t.green, fontWeight: '600' }}>
             Protégez vos enfants en 2 min
           </Text>
@@ -127,7 +127,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
           onPress={handleSubmit(submit)}
           isLoading={isLoading}
           variant="accent"
-          icon={<ArrowRight size={18} color="#fff" strokeWidth={2.5} />}
+          icon={<Ionicons name="arrow-forward" size={18} color="#fff" />}
         >
           Se connecter
         </AuthPrimaryButton>

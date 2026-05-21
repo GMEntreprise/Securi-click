@@ -18,7 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { User, Phone, Mail, Check } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
@@ -98,13 +98,31 @@ function ExistingCollectorCard({
         textColor={selected ? theme.accent : theme.textMuted}
       />
       <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            flexWrap: 'wrap',
+          }}
+        >
           <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}>
             {item.first_name} {item.last_name}
           </Text>
           {!item.collector_user_id && (
-            <View style={{ backgroundColor: theme.amberBg, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
-              <Text style={{ color: theme.amber, fontSize: 10, fontWeight: '700' }}>En attente</Text>
+            <View
+              style={{
+                backgroundColor: theme.amberBg,
+                borderRadius: 6,
+                paddingHorizontal: 6,
+                paddingVertical: 2,
+              }}
+            >
+              <Text
+                style={{ color: theme.amber, fontSize: 10, fontWeight: '700' }}
+              >
+                En attente
+              </Text>
             </View>
           )}
         </View>
@@ -114,7 +132,11 @@ function ExistingCollectorCard({
         </Text>
       </View>
       {selected && (
-        <MaterialCommunityIcons name="check-circle" size={22} color={theme.accent} />
+        <MaterialCommunityIcons
+          name="check-circle"
+          size={22}
+          color={theme.accent}
+        />
       )}
     </TouchableOpacity>
   );
@@ -136,8 +158,7 @@ function RelationshipPicker({
   const [customInput, setCustomInput] = useState('');
   const customInputRef = useRef<TextInput>(null);
 
-  const isCustom =
-    selected !== '' && !PRESET_RELATIONSHIPS.includes(selected);
+  const isCustom = selected !== '' && !PRESET_RELATIONSHIPS.includes(selected);
 
   const handlePress = useCallback(
     (rel: string) => {
@@ -177,9 +198,7 @@ function RelationshipPicker({
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {PRESET_RELATIONSHIPS.map(r => {
           const active =
-            r === 'Autre'
-              ? isCustom || selected === 'Autre'
-              : selected === r;
+            r === 'Autre' ? isCustom || selected === 'Autre' : selected === r;
           const label = r === 'Autre' && isCustom ? selected : r;
           return (
             <TouchableOpacity
@@ -241,7 +260,9 @@ function RelationshipPicker({
               gap: 16,
             }}
           >
-            <Text style={{ fontSize: 16, fontWeight: '700', color: theme.text }}>
+            <Text
+              style={{ fontSize: 16, fontWeight: '700', color: theme.text }}
+            >
               Autre relation
             </Text>
             <TextInput
@@ -274,7 +295,13 @@ function RelationshipPicker({
                   alignItems: 'center',
                 }}
               >
-                <Text style={{ fontWeight: '600', color: theme.textSecondary, fontSize: 14 }}>
+                <Text
+                  style={{
+                    fontWeight: '600',
+                    color: theme.textSecondary,
+                    fontSize: 14,
+                  }}
+                >
                   Annuler
                 </Text>
               </TouchableOpacity>
@@ -290,7 +317,9 @@ function RelationshipPicker({
                   opacity: customInput.trim() ? 1 : 0.4,
                 }}
               >
-                <Text style={{ fontWeight: '700', color: '#fff', fontSize: 14 }}>
+                <Text
+                  style={{ fontWeight: '700', color: '#fff', fontSize: 14 }}
+                >
                   Confirmer
                 </Text>
               </TouchableOpacity>
@@ -312,7 +341,9 @@ export default function AddGuardianScreen() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
 
   const [mode, setMode] = useState<'new' | 'existing'>('new');
-  const [selectedCollector, setSelectedCollector] = useState<Guardian | null>(null);
+  const [selectedCollector, setSelectedCollector] = useState<Guardian | null>(
+    null
+  );
   const [linkRelationship, setLinkRelationship] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -329,7 +360,8 @@ export default function AddGuardianScreen() {
       .filter(Boolean) as string[]
   );
   const availableCollectors = (existingCollectors ?? []).filter(
-    c => c.collector_user_id != null && !alreadyLinkedIds.has(c.collector_user_id)
+    c =>
+      c.collector_user_id != null && !alreadyLinkedIds.has(c.collector_user_id)
   );
 
   // ── New collector form ────────────────────────────────────────────────────
@@ -542,7 +574,10 @@ export default function AddGuardianScreen() {
       {/* ── NEW MODE ─────────────────────────────────────────────────────── */}
       {mode === 'new' ? (
         <ScrollView
-          contentContainerStyle={{ padding: 20, paddingBottom: tabBarHeight + 120 }}
+          contentContainerStyle={{
+            padding: 20,
+            paddingBottom: tabBarHeight + 120,
+          }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -551,7 +586,13 @@ export default function AddGuardianScreen() {
               control={control}
               name="first_name"
               label="Prénom"
-              icon={<User size={16} color={theme.textMuted} />}
+              icon={
+                <Ionicons
+                  name="person-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
+              }
               placeholder="Ex. Jean"
               error={errors.first_name?.message}
             />
@@ -559,7 +600,13 @@ export default function AddGuardianScreen() {
               control={control}
               name="last_name"
               label="Nom"
-              icon={<User size={16} color={theme.textMuted} />}
+              icon={
+                <Ionicons
+                  name="person-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
+              }
               placeholder="Ex. Dupont"
               error={errors.last_name?.message}
             />
@@ -567,7 +614,13 @@ export default function AddGuardianScreen() {
               control={control}
               name="email"
               label="Email"
-              icon={<Mail size={16} color={theme.textMuted} />}
+              icon={
+                <Ionicons
+                  name="mail-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
+              }
               placeholder="collecteur@email.com"
               keyboardType="email-address"
               autoCapitalize="none"
@@ -578,7 +631,13 @@ export default function AddGuardianScreen() {
               control={control}
               name="phone"
               label="Téléphone (optionnel)"
-              icon={<Phone size={16} color={theme.textMuted} />}
+              icon={
+                <Ionicons
+                  name="call-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
+              }
               placeholder="+33 6 00 00 00 00"
               keyboardType="phone-pad"
               error={errors.phone?.message}
@@ -613,7 +672,10 @@ export default function AddGuardianScreen() {
       ) : (
         /* ── EXISTING MODE ─────────────────────────────────────────────── */
         <ScrollView
-          contentContainerStyle={{ padding: 20, paddingBottom: tabBarHeight + 120 }}
+          contentContainerStyle={{
+            padding: 20,
+            paddingBottom: tabBarHeight + 120,
+          }}
           showsVerticalScrollIndicator={false}
         >
           {loadingCollectors ? (
@@ -668,7 +730,8 @@ export default function AddGuardianScreen() {
                   lineHeight: 19,
                 }}
               >
-                Créez d'abord un collecteur avec l'onglet "Nouveau collecteur", puis vous pourrez l'attribuer à d'autres enfants.
+                Créez d'abord un collecteur avec l'onglet "Nouveau collecteur",
+                puis vous pourrez l'attribuer à d'autres enfants.
               </Text>
               <TouchableOpacity
                 onPress={() => setMode('new')}
@@ -679,7 +742,9 @@ export default function AddGuardianScreen() {
                   paddingHorizontal: 20,
                 }}
               >
-                <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>
+                <Text
+                  style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}
+                >
                   Créer un collecteur
                 </Text>
               </TouchableOpacity>
@@ -704,8 +769,16 @@ export default function AddGuardianScreen() {
                   color={theme.primary}
                   style={{ marginTop: 1 }}
                 />
-                <Text style={{ flex: 1, color: theme.primary, fontSize: 13, lineHeight: 18 }}>
-                  Ce collecteur gardera son code PIN existant. Sélectionnez-le et choisissez sa relation avec cet enfant.
+                <Text
+                  style={{
+                    flex: 1,
+                    color: theme.primary,
+                    fontSize: 13,
+                    lineHeight: 18,
+                  }}
+                >
+                  Ce collecteur gardera son code PIN existant. Sélectionnez-le
+                  et choisissez sa relation avec cet enfant.
                 </Text>
               </View>
 
@@ -714,7 +787,9 @@ export default function AddGuardianScreen() {
                 <ExistingCollectorCard
                   key={c.id}
                   item={c}
-                  selected={selectedCollector?.collector_user_id === c.collector_user_id}
+                  selected={
+                    selectedCollector?.collector_user_id === c.collector_user_id
+                  }
                   onPress={setSelectedCollector}
                 />
               ))}
@@ -749,9 +824,7 @@ export default function AddGuardianScreen() {
       >
         <TouchableOpacity
           onPress={
-            mode === 'new'
-              ? handleSubmit(onSubmitNew)
-              : handleLinkExisting
+            mode === 'new' ? handleSubmit(onSubmitNew) : handleLinkExisting
           }
           disabled={
             isSubmitting ||
@@ -776,9 +849,11 @@ export default function AddGuardianScreen() {
             <ActivityIndicator color="#fff" size="small" />
           ) : (
             <>
-              <Check size={18} color="#fff" strokeWidth={2.5} />
+              <Ionicons name="checkmark" size={18} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-                {mode === 'new' ? "Créer l'autorisation" : 'Attribuer ce collecteur'}
+                {mode === 'new'
+                  ? "Créer l'autorisation"
+                  : 'Attribuer ce collecteur'}
               </Text>
             </>
           )}

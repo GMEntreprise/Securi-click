@@ -10,7 +10,7 @@ import { FlashList } from '@shopify/flash-list';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
-import { Archive, History } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import {
   useHistoryFeed,
@@ -220,9 +220,7 @@ export default function HistoryScreen() {
               </View>
             )}
             <TouchableOpacity
-              onPress={() =>
-                nav.goToParentHistoryArchive()
-              }
+              onPress={() => nav.goToParentHistoryArchive()}
               style={{
                 width: 38,
                 height: 38,
@@ -234,7 +232,11 @@ export default function HistoryScreen() {
                 borderColor: theme.cardBorder,
               }}
             >
-              <Archive size={17} color={theme.textMuted} />
+              <Ionicons
+                name="archive-outline"
+                size={17}
+                color={theme.textMuted}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -273,7 +275,11 @@ export default function HistoryScreen() {
               <ActivityIndicator color={theme.accent} />
             ) : (
               <>
-                <History size={44} color={theme.textMuted} strokeWidth={1.5} />
+                <Ionicons
+                  name="time-outline"
+                  size={44}
+                  color={theme.textMuted}
+                />
                 <Text
                   style={{
                     color: theme.textMuted,

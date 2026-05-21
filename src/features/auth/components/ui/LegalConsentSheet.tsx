@@ -1,13 +1,6 @@
 import { useTheme } from '@/theme';
 import * as Haptics from 'expo-haptics';
-import {
-  Check,
-  ChevronRight,
-  FileText,
-  Lock,
-  Shield,
-  X,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo, useState } from 'react';
 import {
   Modal,
@@ -112,7 +105,11 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                 justifyContent: 'center',
               }}
             >
-              <Shield size={18} color={theme.primary} strokeWidth={2} />
+              <Ionicons
+                name="shield-checkmark"
+                size={18}
+                color={theme.primary}
+              />
             </View>
             <Text
               style={{ fontSize: 18, fontWeight: '800', color: theme.text }}
@@ -131,7 +128,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
               justifyContent: 'center',
             }}
           >
-            <X size={16} color={theme.textSecondary} />
+            <Ionicons name="close" size={16} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -217,7 +214,11 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                   justifyContent: 'center',
                 }}
               >
-                <FileText size={16} color={theme.textMuted} />
+                <Ionicons
+                  name="document-text-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
               </View>
               <Text
                 style={{
@@ -229,7 +230,11 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
               >
                 Mentions légales
               </Text>
-              <ChevronRight size={16} color={theme.textMuted} />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={theme.textMuted}
+              />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -254,7 +259,11 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                   justifyContent: 'center',
                 }}
               >
-                <Lock size={16} color={theme.textMuted} />
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
               </View>
               <Text
                 style={{
@@ -266,7 +275,11 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
               >
                 Politique de confidentialité
               </Text>
-              <ChevronRight size={16} color={theme.textMuted} />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={theme.textMuted}
+              />
             </TouchableOpacity>
           </Animated.View>
 
@@ -349,7 +362,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                 Continuer
               </Text>
               {canContinue && (
-                <Check size={16} color="#fff" strokeWidth={2.5} />
+                <Ionicons name="checkmark" size={16} color="#fff" />
               )}
             </TouchableOpacity>
             {!canContinue && (
@@ -394,7 +407,7 @@ function SummaryPoint({
           flexShrink: 0,
         }}
       >
-        <Check size={11} color={color} strokeWidth={3} />
+        <Ionicons name="checkmark" size={11} color={color} />
       </View>
       <Text
         style={{
@@ -453,7 +466,7 @@ function ConsentRow({
           flexShrink: 0,
         }}
       >
-        {checked && <Check size={12} color="#fff" strokeWidth={3} />}
+        {checked && <Ionicons name="checkmark" size={12} color="#fff" />}
       </View>
       {label}
     </Pressable>

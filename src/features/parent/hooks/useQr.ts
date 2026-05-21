@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
 import { useSession } from '@/features/auth/store/auth.store';
 import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import { qrService } from '../services/qr.service';
@@ -32,8 +31,15 @@ export function useActiveQrCodes(childId?: string) {
     if (!parentId) return;
     return subscribeToTable(
       `qr-codes-${parentId}${childId ? `-${childId}` : ''}`,
-      { event: '*', schema: 'public', table: 'qr_codes', filter: `parent_id=eq.${parentId}` },
-      () => { queryClient.invalidateQueries({ queryKey: QR_KEY(parentId, childId) }); }
+      {
+        event: '*',
+        schema: 'public',
+        table: 'qr_codes',
+        filter: `parent_id=eq.${parentId}`,
+      },
+      () => {
+        queryClient.invalidateQueries({ queryKey: QR_KEY(parentId, childId) });
+      }
     );
   }, [parentId, childId, queryClient]);
 
@@ -51,15 +57,6 @@ export function useRecentScans(childId?: string) {
     enabled: !!parentId,
     staleTime: 30 * 1000,
   });
-
-  useEffect(() => {
-    if (!parentId) return;
-    return subscribeToTable(
-      `pickup-logs-qr-${parentId}${childId ? `-${childId}` : ''}`,
-      { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
-      () => { queryClient.invalidateQueries({ queryKey: SCANS_KEY(parentId, childId) }); }
-    );
-  }, [parentId, childId, queryClient]);
 
   return query;
 }

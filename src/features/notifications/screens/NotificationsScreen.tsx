@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
-import { CheckCheck } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { NotificationItem } from '../components/NotificationItem';
 import {
@@ -86,7 +86,11 @@ export const NotificationsScreen = memo(() => {
             hitSlop={8}
             style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
           >
-            <CheckCheck size={14} color={t.accent} strokeWidth={2} />
+            <Ionicons
+              name="checkmark-done-outline"
+              size={14}
+              color={t.accent}
+            />
             <Text style={{ fontSize: 13, color: t.accent, fontWeight: '600' }}>
               Tout marquer comme lu
             </Text>
@@ -95,16 +99,32 @@ export const NotificationsScreen = memo(() => {
       )}
 
       {isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+        >
           <ActivityIndicator color={t.accent} />
         </View>
       ) : sections.length === 0 ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 10,
+          }}
+        >
           <Text style={{ fontSize: 48 }}>🔔</Text>
           <Text style={{ fontSize: 17, fontWeight: '700', color: t.text }}>
             Aucune notification
           </Text>
-          <Text style={{ fontSize: 14, color: t.textSecondary, textAlign: 'center', paddingHorizontal: 40 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              color: t.textSecondary,
+              textAlign: 'center',
+              paddingHorizontal: 40,
+            }}
+          >
             Vous serez notifié en temps réel des événements importants.
           </Text>
         </View>
@@ -116,7 +136,13 @@ export const NotificationsScreen = memo(() => {
             <NotificationItem item={item} onPress={handlePress} />
           )}
           renderSectionHeader={({ section }) => (
-            <View style={{ paddingHorizontal: 16, paddingVertical: 8, backgroundColor: t.bg }}>
+            <View
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                backgroundColor: t.bg,
+              }}
+            >
               <Text
                 style={{
                   fontSize: 12,
@@ -131,7 +157,13 @@ export const NotificationsScreen = memo(() => {
             </View>
           )}
           ItemSeparatorComponent={() => (
-            <View style={{ height: 1, backgroundColor: t.separator, marginLeft: 68 }} />
+            <View
+              style={{
+                height: 1,
+                backgroundColor: t.separator,
+                marginLeft: 68,
+              }}
+            />
           )}
           contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
           showsVerticalScrollIndicator={false}

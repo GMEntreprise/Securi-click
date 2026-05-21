@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { CheckCircle, Mail, UserPlus, X } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 import { Toast } from '@/shared/ui/molecules/Toast';
@@ -32,11 +32,15 @@ type SheetState =
   | { kind: 'success'; childName: string };
 
 function formatError(raw: string): string {
-  if (raw === 'invalid_token') return "Invitation introuvable ou déjà utilisée.";
-  if (raw === 'pin_locked') return "Trop de tentatives. Réessayez dans 15 minutes.";
-  if (raw === 'access_code_required') return "Un code PIN est requis pour cette invitation.";
-  if (raw === 'invalid_access_code') return "Code incorrect. Vérifiez auprès du parent.";
-  return "Une erreur est survenue. Réessayez.";
+  if (raw === 'invalid_token')
+    return 'Invitation introuvable ou déjà utilisée.';
+  if (raw === 'pin_locked')
+    return 'Trop de tentatives. Réessayez dans 15 minutes.';
+  if (raw === 'access_code_required')
+    return 'Un code PIN est requis pour cette invitation.';
+  if (raw === 'invalid_access_code')
+    return 'Code incorrect. Vérifiez auprès du parent.';
+  return 'Une erreur est survenue. Réessayez.';
 }
 
 export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
@@ -94,9 +98,12 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
           onSuccess: () => {
             const childName = invite.child
               ? `${invite.child.first_name} ${invite.child.last_name}`
-              : 'l\'enfant';
+              : "l'enfant";
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Toast.show(`Accès confirmé pour ${childName}`, { type: 'success', duration: 3000 });
+            Toast.show(`Accès confirmé pour ${childName}`, {
+              type: 'success',
+              duration: 3000,
+            });
             setState({ kind: 'success', childName });
           },
           onError: e => {
@@ -122,9 +129,12 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
           onSuccess: () => {
             const childName = invite.child
               ? `${invite.child.first_name} ${invite.child.last_name}`
-              : 'l\'enfant';
+              : "l'enfant";
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Toast.show(`Accès confirmé pour ${childName}`, { type: 'success', duration: 3000 });
+            Toast.show(`Accès confirmé pour ${childName}`, {
+              type: 'success',
+              duration: 3000,
+            });
             setState({ kind: 'success', childName });
           },
           onError: e => {
@@ -184,12 +194,19 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
               justifyContent: 'center',
             }}
           >
-            <X size={18} color={theme.text} strokeWidth={2} />
+            <Ionicons name="close" size={18} color={theme.text} />
           </TouchableOpacity>
         </View>
 
         {state.kind === 'loading' && (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 16,
+            }}
+          >
             <ActivityIndicator color={theme.accent} size="large" />
             <Text style={{ color: theme.textMuted, fontSize: 14 }}>
               Vérification des invitations…
@@ -218,7 +235,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                 justifyContent: 'center',
               }}
             >
-              <Mail size={32} color={theme.accent} strokeWidth={1.8} />
+              <Ionicons name="mail-outline" size={32} color={theme.accent} />
             </View>
             <Text
               style={{
@@ -238,7 +255,8 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                 lineHeight: 21,
               }}
             >
-              Demandez au parent de vous inviter en renseignant votre adresse email dans le formulaire d'ajout de personne autorisée.
+              Demandez au parent de vous inviter en renseignant votre adresse
+              email dans le formulaire d'ajout de personne autorisée.
             </Text>
             <TouchableOpacity
               onPress={handleDismiss}
@@ -263,7 +281,9 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
             style={{ flex: 1 }}
           >
             {/* Handle */}
-            <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+            <View
+              style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
+            >
               <View
                 style={{
                   width: 40,
@@ -296,7 +316,8 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                   marginBottom: 20,
                 }}
               >
-                {state.invites.length} invitation{state.invites.length > 1 ? 's' : ''}
+                {state.invites.length} invitation
+                {state.invites.length > 1 ? 's' : ''}
               </Text>
 
               <View style={{ gap: 10 }}>
@@ -331,20 +352,33 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                           justifyContent: 'center',
                         }}
                       >
-                        <UserPlus size={20} color={theme.accent} strokeWidth={2} />
+                        <Ionicons
+                          name="person-add-outline"
+                          size={20}
+                          color={theme.accent}
+                        />
                       </View>
                       <View style={{ flex: 1 }}>
                         {childName ? (
                           <Text
-                            style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
+                            style={{
+                              color: theme.text,
+                              fontWeight: '700',
+                              fontSize: 15,
+                            }}
                           >
                             {childName}
                           </Text>
                         ) : null}
                         <Text
-                          style={{ color: theme.textSecondary, fontSize: 13, marginTop: 1 }}
+                          style={{
+                            color: theme.textSecondary,
+                            fontSize: 13,
+                            marginTop: 1,
+                          }}
                         >
-                          {invite.first_name} {invite.last_name} · {invite.relationship}
+                          {invite.first_name} {invite.last_name} ·{' '}
+                          {invite.relationship}
                         </Text>
                       </View>
                       {invite.access_code_hash ? (
@@ -357,7 +391,11 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                           }}
                         >
                           <Text
-                            style={{ color: theme.amber, fontSize: 11, fontWeight: '700' }}
+                            style={{
+                              color: theme.amber,
+                              fontSize: 11,
+                              fontWeight: '700',
+                            }}
                           >
                             PIN requis
                           </Text>
@@ -415,7 +453,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                 justifyContent: 'center',
               }}
             >
-              <CheckCircle size={40} color={theme.green} strokeWidth={2} />
+              <Ionicons name="checkmark-circle" size={40} color={theme.green} />
             </View>
             <Text
               style={{

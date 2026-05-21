@@ -11,17 +11,7 @@ import {
 import Animated, { FadeInDown, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  X,
-  CheckCircle,
-  XCircle,
-  MinusCircle,
-  Pin,
-  Calendar,
-  QrCode,
-  User,
-  School,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import {
   useHistoryDetail,
@@ -35,19 +25,19 @@ interface Props {
 
 const STATUS_CFG = {
   completed: {
-    Icon: CheckCircle,
+    iconName: 'checkmark-circle' as const,
     color: '#10b981',
     bg: 'rgba(16,185,129,0.12)',
     label: 'Validé',
   },
   denied: {
-    Icon: XCircle,
+    iconName: 'close-circle' as const,
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.12)',
     label: 'Refusé',
   },
   cancelled: {
-    Icon: MinusCircle,
+    iconName: 'remove-circle' as const,
     color: '#f59e0b',
     bg: 'rgba(245,158,11,0.12)',
     label: 'Annulé',
@@ -122,7 +112,6 @@ export const HistoryDetailsBottomSheet = memo(
     const cfg = detail
       ? (STATUS_CFG[detail.status] ?? STATUS_CFG.cancelled)
       : null;
-    const StatusIcon = cfg?.Icon ?? null;
 
     return (
       <Modal
@@ -178,10 +167,10 @@ export const HistoryDetailsBottomSheet = memo(
                     justifyContent: 'center',
                   }}
                 >
-                  <Pin
+                  <Ionicons
+                    name="pin"
                     size={16}
                     color={detail.is_pinned ? theme.accent : theme.textMuted}
-                    fill={detail.is_pinned ? theme.accent : 'none'}
                   />
                 </TouchableOpacity>
               )}
@@ -196,7 +185,7 @@ export const HistoryDetailsBottomSheet = memo(
                   justifyContent: 'center',
                 }}
               >
-                <X size={18} color={theme.text} />
+                <Ionicons name="close" size={18} color={theme.text} />
               </TouchableOpacity>
             </View>
           </View>
@@ -228,13 +217,7 @@ export const HistoryDetailsBottomSheet = memo(
                     marginBottom: 20,
                   }}
                 >
-                  {StatusIcon && (
-                    <StatusIcon
-                      size={22}
-                      color={cfg!.color}
-                      strokeWidth={2.5}
-                    />
-                  )}
+                  <Ionicons name={cfg!.iconName} size={22} color={cfg!.color} />
                   <View>
                     <Text
                       style={{
@@ -317,7 +300,13 @@ export const HistoryDetailsBottomSheet = memo(
                   }}
                 >
                   <InfoRow
-                    icon={<User size={15} color={theme.textMuted} />}
+                    icon={
+                      <Ionicons
+                        name="person-outline"
+                        size={15}
+                        color={theme.textMuted}
+                      />
+                    }
                     label="Enfant"
                     value={
                       detail.child
@@ -329,7 +318,13 @@ export const HistoryDetailsBottomSheet = memo(
                     style={{ height: 1, backgroundColor: theme.separator }}
                   />
                   <InfoRow
-                    icon={<User size={15} color={theme.textMuted} />}
+                    icon={
+                      <Ionicons
+                        name="person-outline"
+                        size={15}
+                        color={theme.textMuted}
+                      />
+                    }
                     label="Collecteur"
                     value={
                       detail.guardian
@@ -343,7 +338,13 @@ export const HistoryDetailsBottomSheet = memo(
                         style={{ height: 1, backgroundColor: theme.separator }}
                       />
                       <InfoRow
-                        icon={<School size={15} color={theme.textMuted} />}
+                        icon={
+                          <Ionicons
+                            name="school-outline"
+                            size={15}
+                            color={theme.textMuted}
+                          />
+                        }
                         label="Établissement"
                         value={`${detail.school.name}, ${detail.school.city}`}
                       />
@@ -353,7 +354,13 @@ export const HistoryDetailsBottomSheet = memo(
                     style={{ height: 1, backgroundColor: theme.separator }}
                   />
                   <InfoRow
-                    icon={<Calendar size={15} color={theme.textMuted} />}
+                    icon={
+                      <Ionicons
+                        name="calendar-outline"
+                        size={15}
+                        color={theme.textMuted}
+                      />
+                    }
                     label="Heure exacte"
                     value={new Date(detail.scanned_at).toISOString()}
                   />
@@ -363,7 +370,13 @@ export const HistoryDetailsBottomSheet = memo(
                         style={{ height: 1, backgroundColor: theme.separator }}
                       />
                       <InfoRow
-                        icon={<QrCode size={15} color={theme.textMuted} />}
+                        icon={
+                          <Ionicons
+                            name="qr-code-outline"
+                            size={15}
+                            color={theme.textMuted}
+                          />
+                        }
                         label="QR ID"
                         value={detail.qr_jti}
                       />

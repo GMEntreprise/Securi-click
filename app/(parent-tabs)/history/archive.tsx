@@ -10,11 +10,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import {
-  ArchiveRestore,
-  Archive,
-  ChevronRight,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useMonthlyCounts } from '@/features/parent/hooks/useHistory';
 import {
@@ -89,9 +85,13 @@ function MonthRow({
             }}
           >
             {isArchived ? (
-              <Archive size={18} color={theme.textMuted} />
+              <Ionicons
+                name="archive-outline"
+                size={18}
+                color={theme.textMuted}
+              />
             ) : (
-              <ChevronRight size={18} color={theme.accent} />
+              <Ionicons name="chevron-forward" size={18} color={theme.accent} />
             )}
           </View>
 
@@ -127,7 +127,7 @@ function MonthRow({
                 borderRadius: 10,
               }}
             >
-              <ArchiveRestore size={14} color={theme.accent} />
+              <Ionicons name="archive-outline" size={14} color={theme.accent} />
               <Text
                 style={{ color: theme.accent, fontSize: 12, fontWeight: '700' }}
               >
@@ -149,7 +149,11 @@ function MonthRow({
                 borderColor: theme.cardBorder,
               }}
             >
-              <Archive size={14} color={theme.textMuted} />
+              <Ionicons
+                name="archive-outline"
+                size={14}
+                color={theme.textMuted}
+              />
               <Text
                 style={{
                   color: theme.textSecondary,
@@ -229,7 +233,11 @@ export default function ArchiveScreen() {
           <ActivityIndicator color={theme.accent} style={{ marginTop: 40 }} />
         ) : grouped.length === 0 ? (
           <View style={{ alignItems: 'center', paddingTop: 60, gap: 12 }}>
-            <Archive size={44} color={theme.textMuted} strokeWidth={1.5} />
+            <Ionicons
+              name="archive-outline"
+              size={44}
+              color={theme.textMuted}
+            />
             <Text
               style={{
                 color: theme.textMuted,

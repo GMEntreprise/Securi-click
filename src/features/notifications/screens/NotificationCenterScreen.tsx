@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X, CheckCheck } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { NotificationItem } from '../components/NotificationItem';
@@ -17,7 +17,10 @@ import {
   useMarkAllRead,
   useNotificationsRealtime,
 } from '../hooks/useNotifications';
-import { useNotificationStore, useUnreadCount } from '../stores/notification.store';
+import {
+  useNotificationStore,
+  useUnreadCount,
+} from '../stores/notification.store';
 import { groupNotificationsByDate } from '../utils/groupByDate';
 import { NOTIFICATION_ROUTES } from '../utils/constants';
 import type { Notification } from '../types';
@@ -77,11 +80,16 @@ export const NotificationCenterScreen = memo(() => {
           backgroundColor: t.card,
         }}
       >
-        <Text style={{ flex: 1, fontSize: 18, fontWeight: '800', color: t.text }}>
+        <Text
+          style={{ flex: 1, fontSize: 18, fontWeight: '800', color: t.text }}
+        >
           Notifications
           {unread > 0 && (
-            <Text style={{ fontSize: 14, fontWeight: '600', color: t.textMuted }}>
-              {'  '}{unread} non lue{unread > 1 ? 's' : ''}
+            <Text
+              style={{ fontSize: 14, fontWeight: '600', color: t.textMuted }}
+            >
+              {'  '}
+              {unread} non lue{unread > 1 ? 's' : ''}
             </Text>
           )}
         </Text>
@@ -90,9 +98,18 @@ export const NotificationCenterScreen = memo(() => {
           <Pressable
             onPress={handleMarkAllRead}
             hitSlop={8}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 16 }}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              marginRight: 16,
+            }}
           >
-            <CheckCheck size={16} color={t.accent} strokeWidth={2} />
+            <Ionicons
+              name="checkmark-done-outline"
+              size={16}
+              color={t.accent}
+            />
             <Text style={{ fontSize: 13, color: t.accent, fontWeight: '600' }}>
               Tout lire
             </Text>
@@ -100,16 +117,25 @@ export const NotificationCenterScreen = memo(() => {
         )}
 
         <Pressable onPress={closeCenter} hitSlop={8}>
-          <X size={20} color={t.textSecondary} strokeWidth={2} />
+          <Ionicons name="close" size={20} color={t.textSecondary} />
         </Pressable>
       </View>
 
       {isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+        >
           <ActivityIndicator color={t.accent} />
         </View>
       ) : sections.length === 0 ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+          }}
+        >
           <Text style={{ fontSize: 40 }}>🔔</Text>
           <Text style={{ fontSize: 16, fontWeight: '700', color: t.text }}>
             Aucune notification
@@ -147,7 +173,13 @@ export const NotificationCenterScreen = memo(() => {
             </View>
           )}
           ItemSeparatorComponent={() => (
-            <View style={{ height: 1, backgroundColor: t.separator, marginLeft: 68 }} />
+            <View
+              style={{
+                height: 1,
+                backgroundColor: t.separator,
+                marginLeft: 68,
+              }}
+            />
           )}
           contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
           showsVerticalScrollIndicator={false}

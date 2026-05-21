@@ -7,7 +7,7 @@ import {
   ScrollView,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Search, X, Calendar, ChevronDown } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import type {
   HistoryFilters,
@@ -159,7 +159,7 @@ export const FiltersBar = memo(function FiltersBar({
           gap: 8,
         }}
       >
-        <Search size={16} color={theme.textMuted} />
+        <Ionicons name="search-outline" size={16} color={theme.textMuted} />
         <TextInput
           value={searchValue}
           onChangeText={onSearchChange}
@@ -170,7 +170,7 @@ export const FiltersBar = memo(function FiltersBar({
         />
         {searchValue ? (
           <TouchableOpacity onPress={() => onSearchChange('')}>
-            <X size={15} color={theme.textMuted} />
+            <Ionicons name="close" size={15} color={theme.textMuted} />
           </TouchableOpacity>
         ) : null}
       </View>
@@ -194,7 +194,11 @@ export const FiltersBar = memo(function FiltersBar({
                 gap: 4,
               }}
             >
-              <Calendar size={12} color={theme.textMuted} />
+              <Ionicons
+                name="calendar-outline"
+                size={12}
+                color={theme.textMuted}
+              />
               <Text
                 style={{
                   color: theme.textSecondary,
@@ -236,7 +240,8 @@ export const FiltersBar = memo(function FiltersBar({
                   {y}
                 </Text>
                 {availableYears.length > 1 && (
-                  <ChevronDown
+                  <Ionicons
+                    name="chevron-down"
                     size={11}
                     color={active ? '#fff' : theme.textMuted}
                   />
@@ -260,7 +265,7 @@ export const FiltersBar = memo(function FiltersBar({
                 gap: 4,
               }}
             >
-              <X size={12} color={theme.red} />
+              <Ionicons name="close" size={12} color={theme.red} />
               <Text
                 style={{ color: theme.red, fontSize: 12, fontWeight: '600' }}
               >

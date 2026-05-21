@@ -6,8 +6,11 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { WifiOff, RefreshCw, CloudOff } from 'lucide-react-native';
-import { useGlobalConnectivity, type ConnectivityStatus } from '@/hooks/useGlobalConnectivity';
+import { Ionicons } from '@expo/vector-icons';
+import {
+  useGlobalConnectivity,
+  type ConnectivityStatus,
+} from '@/hooks/useGlobalConnectivity';
 
 const DURATION = 280;
 
@@ -15,7 +18,7 @@ interface BannerConfig {
   message: string;
   color: string;
   bg: string;
-  Icon: React.ComponentType<{ size: number; color: string; strokeWidth: number }>;
+  iconName: 'wifi-outline' | 'cloud-offline-outline' | 'refresh-outline';
   showRetry: boolean;
 }
 
@@ -24,21 +27,21 @@ const CONFIG: Record<Exclude<ConnectivityStatus, 'online'>, BannerConfig> = {
     message: 'Aucune connexion réseau',
     color: '#ffffff',
     bg: '#1a1a2e',
-    Icon: WifiOff,
+    iconName: 'wifi-outline',
     showRetry: true,
   },
   realtime_disconnected: {
     message: 'Synchronisation en attente',
     color: '#ffffff',
     bg: '#7c3aed',
-    Icon: CloudOff,
+    iconName: 'cloud-offline-outline',
     showRetry: true,
   },
   reconnecting: {
     message: 'Reconnexion en cours…',
     color: '#ffffff',
     bg: '#0f766e',
-    Icon: RefreshCw,
+    iconName: 'refresh-outline',
     showRetry: false,
   },
 };
@@ -67,15 +70,19 @@ export function NetworkBanner() {
 
   if (status === 'online') return null;
 
-  const { message, color, bg, Icon, showRetry } = CONFIG[status];
+  const { message, color, bg, iconName, showRetry } = CONFIG[status];
 
   return (
     <Animated.View
-      style={[styles.banner, { backgroundColor: bg, paddingTop: insets.top + 6 }, animStyle]}
+      style={[
+        styles.banner,
+        { backgroundColor: bg, paddingTop: insets.top + 6 },
+        animStyle,
+      ]}
       accessibilityLiveRegion="polite"
       accessibilityLabel={message}
     >
-      <Icon size={16} color={color} strokeWidth={2.5} />
+      <Ionicons name={iconName} size={16} color={color} />
       <Text style={[styles.message, { color }]}>{message}</Text>
 
       {showRetry && (
@@ -86,7 +93,7 @@ export function NetworkBanner() {
           accessibilityLabel="Réessayer"
           style={[styles.retryBtn, { borderColor: `${color}50` }]}
         >
-          <RefreshCw size={10} color={color} strokeWidth={2.5} />
+          <Ionicons name="refresh-outline" size={10} color={color} />
           <Text style={[styles.retryText, { color }]}>Réessayer</Text>
         </TouchableOpacity>
       )}

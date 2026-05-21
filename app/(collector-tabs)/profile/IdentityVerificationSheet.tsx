@@ -13,16 +13,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
-import {
-  X,
-  Camera,
-  Upload,
-  CheckCircle,
-  AlertTriangle,
-  ShieldOff,
-  FileText,
-  User,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import {
   useUploadIdentity,
@@ -134,22 +125,22 @@ export default function IdentityVerificationSheet({
     pending: {
       label: 'En attente de vérification',
       color: '#f59e0b',
-      Icon: AlertTriangle,
+      iconName: 'warning-outline' as const,
     },
     verified: {
       label: 'Identité vérifiée',
       color: '#10b981',
-      Icon: CheckCircle,
+      iconName: 'checkmark-circle' as const,
     },
     refused: {
       label: 'Vérification refusée',
       color: '#ef4444',
-      Icon: ShieldOff,
+      iconName: 'shield-outline' as const,
     },
     expired: {
       label: 'Identité expirée — resoumettez',
       color: '#ef4444',
-      Icon: ShieldOff,
+      iconName: 'shield-outline' as const,
     },
   } as const;
 
@@ -201,7 +192,7 @@ export default function IdentityVerificationSheet({
               justifyContent: 'center',
             }}
           >
-            <X size={18} color={theme.text} />
+            <Ionicons name="close" size={18} color={theme.text} />
           </TouchableOpacity>
         </View>
 
@@ -222,7 +213,6 @@ export default function IdentityVerificationSheet({
                 const st = currentIdentity.verification_status;
                 const cfg = statusConfig[st as keyof typeof statusConfig];
                 if (!cfg) return null;
-                const Icon = cfg.Icon;
                 return (
                   <View
                     style={{
@@ -234,7 +224,7 @@ export default function IdentityVerificationSheet({
                       gap: 10,
                     }}
                   >
-                    <Icon size={18} color={cfg.color} strokeWidth={2.5} />
+                    <Ionicons name={cfg.iconName} size={18} color={cfg.color} />
                     <Text
                       style={{
                         color: cfg.color,
@@ -289,7 +279,8 @@ export default function IdentityVerificationSheet({
                       docType === dt.id ? theme.accent : theme.cardBorder,
                   }}
                 >
-                  <FileText
+                  <Ionicons
+                    name="document-text-outline"
                     size={16}
                     color={docType === dt.id ? theme.accent : theme.textMuted}
                   />
@@ -375,7 +366,7 @@ export default function IdentityVerificationSheet({
             {uploadIdentity.isPending ? (
               <ActivityIndicator color="#fff" size="small" />
             ) : (
-              <Upload size={18} color="#fff" strokeWidth={2.5} />
+              <Ionicons name="cloud-upload-outline" size={18} color="#fff" />
             )}
             <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
               {uploadIdentity.isPending
@@ -441,7 +432,7 @@ function UploadSlot({
               gap: 5,
             }}
           >
-            <Camera size={13} color="#fff" />
+            <Ionicons name="camera-outline" size={13} color="#fff" />
             <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
               Changer
             </Text>
@@ -464,7 +455,11 @@ function UploadSlot({
               gap: 6,
             }}
           >
-            <Upload size={20} color={theme.textMuted} />
+            <Ionicons
+              name="cloud-upload-outline"
+              size={20}
+              color={theme.textMuted}
+            />
             <Text
               style={{
                 color: theme.textMuted,
@@ -490,7 +485,7 @@ function UploadSlot({
               gap: 6,
             }}
           >
-            <Camera size={20} color={theme.accent} />
+            <Ionicons name="camera-outline" size={20} color={theme.accent} />
             <Text
               style={{ color: theme.accent, fontSize: 12, fontWeight: '600' }}
             >

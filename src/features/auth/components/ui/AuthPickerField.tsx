@@ -1,13 +1,7 @@
 import React, { memo, useCallback, useState } from 'react';
-import {
-  Modal,
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
-import { Check, ChevronDown } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '@/theme';
@@ -88,10 +82,10 @@ function AuthPickerFieldInner<T extends FieldValues>({
               >
                 {value || placeholder}
               </Text>
-              <ChevronDown
+              <Ionicons
+                name="chevron-down"
                 size={18}
                 color={value ? t.accent : t.textMuted}
-                strokeWidth={2.5}
               />
             </TouchableOpacity>
 
@@ -152,7 +146,9 @@ function AuthPickerFieldInner<T extends FieldValues>({
                       <TouchableOpacity
                         key={opt}
                         onPress={() => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Light
+                          );
                           onChange(opt);
                           handleClose();
                         }}
@@ -164,11 +160,11 @@ function AuthPickerFieldInner<T extends FieldValues>({
                           paddingHorizontal: 16,
                           borderRadius: 16,
                           borderWidth: 1.5,
-                          borderColor: selected
-                            ? t.accent
-                            : t.cardBorder,
+                          borderColor: selected ? t.accent : t.cardBorder,
                           backgroundColor: selected
-                            ? (t.isDark ? 'rgba(249,115,22,0.12)' : 'rgba(249,115,22,0.08)')
+                            ? t.isDark
+                              ? 'rgba(249,115,22,0.12)'
+                              : 'rgba(249,115,22,0.08)'
                             : t.bg,
                         }}
                       >
@@ -183,7 +179,11 @@ function AuthPickerFieldInner<T extends FieldValues>({
                           {opt}
                         </Text>
                         {selected && (
-                          <Check size={18} color={t.accent} strokeWidth={2.5} />
+                          <Ionicons
+                            name="checkmark"
+                            size={18}
+                            color={t.accent}
+                          />
                         )}
                       </TouchableOpacity>
                     );
@@ -196,7 +196,9 @@ function AuthPickerFieldInner<T extends FieldValues>({
       />
 
       {error && (
-        <Text style={{ color: t.red, fontSize: 12, marginTop: 4, marginLeft: 4 }}>
+        <Text
+          style={{ color: t.red, fontSize: 12, marginTop: 4, marginLeft: 4 }}
+        >
           {error}
         </Text>
       )}

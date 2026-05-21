@@ -253,11 +253,12 @@ export const Avatar: React.FC<IAvatar> & React.FunctionComponent<IAvatar> =
                   },
                 ]}
                 onLoad={() => {
-                  console.log('Image loaded!');
+                  if (__DEV__) console.log('Image loaded!');
                   handleImageLoad();
                 }}
                 onError={e => {
-                  console.error('Image failed to load:', e.nativeEvent);
+                  if (__DEV__)
+                    console.error('Image failed to load:', e.nativeEvent);
                   handleImageError();
                 }}
               />

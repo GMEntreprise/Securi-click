@@ -10,7 +10,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { CheckCircle, Fingerprint, Shield, ShieldOff, Smartphone, XCircle } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useLocalSecurity } from '../hooks/useLocalSecurity';
 
@@ -24,10 +24,19 @@ const TYPE_LABEL: Record<string, string> = {
 export function SecurityScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  const { capability, isEnabled, isLoading, isMutating, enable, disable, test } =
-    useLocalSecurity();
+  const {
+    capability,
+    isEnabled,
+    isLoading,
+    isMutating,
+    enable,
+    disable,
+    test,
+  } = useLocalSecurity();
 
-  const [testResult, setTestResult] = useState<'idle' | 'success' | 'failed'>('idle');
+  const [testResult, setTestResult] = useState<'idle' | 'success' | 'failed'>(
+    'idle'
+  );
 
   const biometricLabel = TYPE_LABEL[capability?.type ?? 'none'];
 
@@ -39,7 +48,7 @@ export function SecurityScreen() {
     } else if (result === 'unavailable') {
       Alert.alert(
         'Non disponible',
-        'Votre appareil ne prend pas en charge la biométrie ou aucun moyen biométrique n\'est enregistré.',
+        "Votre appareil ne prend pas en charge la biométrie ou aucun moyen biométrique n'est enregistré."
       );
     }
   }, [enable]);
@@ -57,11 +66,13 @@ export function SecurityScreen() {
           onPress: async () => {
             const result = await disable();
             if (result === 'success') {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success
+              );
             }
           },
         },
-      ],
+      ]
     );
   }, [disable]);
 
@@ -73,14 +84,21 @@ export function SecurityScreen() {
     Haptics.notificationAsync(
       ok
         ? Haptics.NotificationFeedbackType.Success
-        : Haptics.NotificationFeedbackType.Error,
+        : Haptics.NotificationFeedbackType.Error
     );
     setTimeout(() => setTestResult('idle'), 3000);
   }, [test]);
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <ActivityIndicator color={theme.accent} />
       </View>
     );
@@ -122,11 +140,24 @@ export function SecurityScreen() {
               marginBottom: 14,
             }}
           >
-            {isEnabled
-              ? <Shield size={28} color="#fff" strokeWidth={2} />
-              : <ShieldOff size={28} color={theme.textMuted} strokeWidth={2} />}
+            {isEnabled ? (
+              <Ionicons name="shield-checkmark" size={28} color="#fff" />
+            ) : (
+              <Ionicons
+                name="shield-outline"
+                size={28}
+                color={theme.textMuted}
+              />
+            )}
           </View>
-          <Text style={{ fontSize: 18, fontWeight: '800', color: theme.text, marginBottom: 6 }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: '800',
+              color: theme.text,
+              marginBottom: 6,
+            }}
+          >
             {isEnabled ? 'Accès sécurisé activé' : 'Protection désactivée'}
           </Text>
           <Text
@@ -139,14 +170,26 @@ export function SecurityScreen() {
           >
             {isEnabled
               ? `Votre compte est protégé par ${biometricLabel.toLowerCase()}.`
-              : 'Activez la biométrie pour protéger l\'accès à votre compte.'}
+              : "Activez la biométrie pour protéger l'accès à votre compte."}
           </Text>
         </View>
       </Animated.View>
 
       {/* Compatibilité appareil */}
-      <Animated.View entering={FadeInDown.delay(60).duration(350)} style={{ marginBottom: 16 }}>
-        <Text style={{ fontSize: 12, fontWeight: '700', color: theme.textMuted, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+      <Animated.View
+        entering={FadeInDown.delay(60).duration(350)}
+        style={{ marginBottom: 16 }}
+      >
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: '700',
+            color: theme.textMuted,
+            marginBottom: 8,
+            textTransform: 'uppercase',
+            letterSpacing: 0.8,
+          }}
+        >
           Votre appareil
         </Text>
         <View
@@ -158,7 +201,14 @@ export function SecurityScreen() {
             overflow: 'hidden',
           }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, gap: 14 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              padding: 16,
+              gap: 14,
+            }}
+          >
             <View
               style={{
                 width: 40,
@@ -169,20 +219,34 @@ export function SecurityScreen() {
                 justifyContent: 'center',
               }}
             >
-              {canUseBiometric
-                ? <Fingerprint size={20} color={theme.green} strokeWidth={2} />
-                : <Smartphone size={20} color={theme.textMuted} strokeWidth={2} />}
+              {canUseBiometric ? (
+                <Ionicons
+                  name="finger-print-outline"
+                  size={20}
+                  color={theme.green}
+                />
+              ) : (
+                <Ionicons
+                  name="phone-portrait-outline"
+                  size={20}
+                  color={theme.textMuted}
+                />
+              )}
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: theme.text }}>
+              <Text
+                style={{ fontSize: 15, fontWeight: '700', color: theme.text }}
+              >
                 {canUseBiometric ? biometricLabel : 'Biométrie'}
               </Text>
-              <Text style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}>
+              <Text
+                style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}
+              >
                 {!capability?.isAvailable
                   ? 'Non pris en charge par cet appareil'
                   : !capability.isEnrolled
                     ? 'Aucun moyen biométrique enregistré dans les réglages'
-                    : 'Disponible et prêt à l\'emploi'}
+                    : "Disponible et prêt à l'emploi"}
               </Text>
             </View>
             <View
@@ -190,7 +254,9 @@ export function SecurityScreen() {
                 width: 8,
                 height: 8,
                 borderRadius: 4,
-                backgroundColor: canUseBiometric ? theme.green : theme.textMuted,
+                backgroundColor: canUseBiometric
+                  ? theme.green
+                  : theme.textMuted,
               }}
             />
           </View>
@@ -198,8 +264,20 @@ export function SecurityScreen() {
       </Animated.View>
 
       {/* Actions */}
-      <Animated.View entering={FadeInDown.delay(120).duration(350)} style={{ gap: 12 }}>
-        <Text style={{ fontSize: 12, fontWeight: '700', color: theme.textMuted, marginBottom: 0, textTransform: 'uppercase', letterSpacing: 0.8 }}>
+      <Animated.View
+        entering={FadeInDown.delay(120).duration(350)}
+        style={{ gap: 12 }}
+      >
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: '700',
+            color: theme.textMuted,
+            marginBottom: 0,
+            textTransform: 'uppercase',
+            letterSpacing: 0.8,
+          }}
+        >
           Actions
         </Text>
 
@@ -218,14 +296,34 @@ export function SecurityScreen() {
               opacity: isMutating ? 0.6 : 1,
             }}
           >
-            {isMutating
-              ? <ActivityIndicator color="#fff" size="small" />
-              : <Shield size={22} color={canUseBiometric ? '#fff' : theme.textMuted} strokeWidth={2} />}
+            {isMutating ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Ionicons
+                name="shield-checkmark"
+                size={22}
+                color={canUseBiometric ? '#fff' : theme.textMuted}
+              />
+            )}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 15, fontWeight: '700', color: canUseBiometric ? '#fff' : theme.textMuted }}>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: '700',
+                  color: canUseBiometric ? '#fff' : theme.textMuted,
+                }}
+              >
                 Activer la biométrie
               </Text>
-              <Text style={{ fontSize: 12, color: canUseBiometric ? 'rgba(255,255,255,0.75)' : theme.textMuted, marginTop: 2 }}>
+              <Text
+                style={{
+                  fontSize: 12,
+                  color: canUseBiometric
+                    ? 'rgba(255,255,255,0.75)'
+                    : theme.textMuted,
+                  marginTop: 2,
+                }}
+              >
                 {canUseBiometric
                   ? 'Une confirmation biométrique sera demandée'
                   : 'Disponible uniquement si la biométrie est configurée dans les réglages'}
@@ -249,16 +347,39 @@ export function SecurityScreen() {
                 gap: 14,
               }}
             >
-              {testResult === 'success'
-                ? <CheckCircle size={22} color={theme.green} strokeWidth={2} />
-                : testResult === 'failed'
-                  ? <XCircle size={22} color={theme.red} strokeWidth={2} />
-                  : <Fingerprint size={22} color={theme.accent} strokeWidth={2} />}
+              {testResult === 'success' ? (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={22}
+                  color={theme.green}
+                />
+              ) : testResult === 'failed' ? (
+                <Ionicons name="close-circle" size={22} color={theme.red} />
+              ) : (
+                <Ionicons
+                  name="finger-print-outline"
+                  size={22}
+                  color={theme.accent}
+                />
+              )}
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: theme.text }}>
+                <Text
+                  style={{ fontSize: 15, fontWeight: '700', color: theme.text }}
+                >
                   Tester la protection
                 </Text>
-                <Text style={{ fontSize: 12, color: testResult === 'success' ? theme.green : testResult === 'failed' ? theme.red : theme.textMuted, marginTop: 2 }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color:
+                      testResult === 'success'
+                        ? theme.green
+                        : testResult === 'failed'
+                          ? theme.red
+                          : theme.textMuted,
+                    marginTop: 2,
+                  }}
+                >
                   {testResult === 'success'
                     ? 'Authentification réussie'
                     : testResult === 'failed'
@@ -284,14 +405,25 @@ export function SecurityScreen() {
                 opacity: isMutating ? 0.6 : 1,
               }}
             >
-              {isMutating
-                ? <ActivityIndicator color={theme.red} size="small" />
-                : <ShieldOff size={22} color={theme.red} strokeWidth={2} />}
+              {isMutating ? (
+                <ActivityIndicator color={theme.red} size="small" />
+              ) : (
+                <Ionicons name="shield-outline" size={22} color={theme.red} />
+              )}
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: theme.red }}>
+                <Text
+                  style={{ fontSize: 15, fontWeight: '700', color: theme.red }}
+                >
                   Désactiver la biométrie
                 </Text>
-                <Text style={{ fontSize: 12, color: theme.red, opacity: 0.7, marginTop: 2 }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: theme.red,
+                    opacity: 0.7,
+                    marginTop: 2,
+                  }}
+                >
                   Vous pouvez la réactiver à tout moment
                 </Text>
               </View>
@@ -301,7 +433,10 @@ export function SecurityScreen() {
       </Animated.View>
 
       {/* Info bas de page */}
-      <Animated.View entering={FadeInDown.delay(180).duration(350)} style={{ marginTop: 28 }}>
+      <Animated.View
+        entering={FadeInDown.delay(180).duration(350)}
+        style={{ marginTop: 28 }}
+      >
         <View
           style={{
             backgroundColor: theme.accentBg,
@@ -312,9 +447,22 @@ export function SecurityScreen() {
             alignItems: 'flex-start',
           }}
         >
-          <Shield size={16} color={theme.accent} strokeWidth={2} style={{ marginTop: 1 }} />
-          <Text style={{ flex: 1, fontSize: 12, color: theme.accent, lineHeight: 18 }}>
-            La biométrie ne remplace pas votre mot de passe. Votre session reste active — seul l'accès local à l'app est protégé.
+          <Ionicons
+            name="shield-checkmark"
+            size={16}
+            color={theme.accent}
+            style={{ marginTop: 1 }}
+          />
+          <Text
+            style={{
+              flex: 1,
+              fontSize: 12,
+              color: theme.accent,
+              lineHeight: 18,
+            }}
+          >
+            La biométrie ne remplace pas votre mot de passe. Votre session reste
+            active — seul l'accès local à l'app est protégé.
           </Text>
         </View>
       </Animated.View>

@@ -1,4 +1,4 @@
-import { ArrowLeft, CheckCircle, Mail, Send } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo, useCallback, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -65,11 +65,14 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
           hitSlop={12}
           style={{ marginBottom: 32, alignSelf: 'flex-start' }}
         >
-          <ArrowLeft size={24} color={t.text} />
+          <Ionicons name="arrow-back" size={24} color={t.text} />
         </Pressable>
 
         {emailSent ? (
-          <Animated.View entering={FadeInDown.duration(400)} style={{ flex: 1 }}>
+          <Animated.View
+            entering={FadeInDown.duration(400)}
+            style={{ flex: 1 }}
+          >
             <View
               style={{
                 flex: 1,
@@ -88,7 +91,7 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                   justifyContent: 'center',
                 }}
               >
-                <CheckCircle size={40} color={t.green} strokeWidth={1.5} />
+                <Ionicons name="checkmark-circle" size={40} color={t.green} />
               </View>
 
               <Text
@@ -117,10 +120,14 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                   {getValues('email')}
                 </Text>
                 {'\n\n'}
-                Cliquez sur le lien dans l'email pour créer votre nouveau mot de passe.
+                Cliquez sur le lien dans l'email pour créer votre nouveau mot de
+                passe.
               </Text>
 
-              <Pressable onPress={() => nav.goToLogin()} style={{ marginTop: 8 }}>
+              <Pressable
+                onPress={() => nav.goToLogin()}
+                style={{ marginTop: 8 }}
+              >
                 <Text
                   style={{
                     fontSize: 14,
@@ -156,7 +163,8 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                 marginBottom: 32,
               }}
             >
-              Saisissez votre email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+              Saisissez votre email et nous vous enverrons un lien pour
+              réinitialiser votre mot de passe.
             </Text>
 
             {mutation.error && (
@@ -184,7 +192,9 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
               name="email"
               label="Email"
               placeholder="jean.dupont@exemple.fr"
-              icon={<Mail size={18} color={t.textMuted} />}
+              icon={
+                <Ionicons name="mail-outline" size={18} color={t.textMuted} />
+              }
               error={errors.email?.message}
               keyboardType="email-address"
               autoCapitalize="none"
@@ -196,7 +206,7 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                 onPress={handleSubmit(onSubmit)}
                 isLoading={mutation.isPending}
                 variant="accent"
-                icon={<Send size={18} color="#fff" strokeWidth={2} />}
+                icon={<Ionicons name="send-outline" size={18} color="#fff" />}
               >
                 Envoyer le lien
               </AuthPrimaryButton>

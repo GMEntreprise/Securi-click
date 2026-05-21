@@ -1,7 +1,7 @@
 import React, { memo, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { Controller } from 'react-hook-form';
-import { Eye, EyeOff } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -74,9 +74,9 @@ export const PasswordInput: React.FC<Props> = memo(
         >
           <Animated.View style={eyeStyle}>
             {show ? (
-              <EyeOff size={20} color="#6B7280" />
+              <Ionicons name="eye-off-outline" size={20} color="#6B7280" />
             ) : (
-              <Eye size={20} color="#6B7280" />
+              <Ionicons name="eye-outline" size={20} color="#6B7280" />
             )}
           </Animated.View>
         </TouchableOpacity>

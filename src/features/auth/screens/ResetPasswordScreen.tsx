@@ -1,4 +1,4 @@
-import { CheckCircle, ShieldCheck } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo, useCallback, useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -70,7 +70,10 @@ export const ResetPasswordScreen: React.FC = memo(() => {
         }}
       >
         {success ? (
-          <Animated.View entering={FadeInDown.duration(400)} style={{ flex: 1 }}>
+          <Animated.View
+            entering={FadeInDown.duration(400)}
+            style={{ flex: 1 }}
+          >
             <View
               style={{
                 flex: 1,
@@ -89,7 +92,7 @@ export const ResetPasswordScreen: React.FC = memo(() => {
                   justifyContent: 'center',
                 }}
               >
-                <CheckCircle size={40} color={t.green} strokeWidth={1.5} />
+                <Ionicons name="checkmark-circle" size={40} color={t.green} />
               </View>
 
               <Text
@@ -135,7 +138,7 @@ export const ResetPasswordScreen: React.FC = memo(() => {
                 marginBottom: 20,
               }}
             >
-              <ShieldCheck size={28} color={t.primary} strokeWidth={1.5} />
+              <Ionicons name="shield-checkmark" size={28} color={t.primary} />
             </View>
 
             <Text
@@ -174,11 +177,12 @@ export const ResetPasswordScreen: React.FC = memo(() => {
                 }}
               >
                 <Text style={{ color: t.red, fontSize: 13, fontWeight: '600' }}>
-                  {mutation.error.message.includes('expired') || mutation.error.message.includes('invalid')
+                  {mutation.error.message.includes('expired') ||
+                  mutation.error.message.includes('invalid')
                     ? 'Ce lien a expiré. Demandez un nouveau lien de réinitialisation.'
                     : mutation.error.message.includes('same')
-                    ? 'Ce mot de passe est identique à l\'ancien. Choisissez-en un nouveau.'
-                    : 'Une erreur est survenue. Réessayez.'}
+                      ? "Ce mot de passe est identique à l'ancien. Choisissez-en un nouveau."
+                      : 'Une erreur est survenue. Réessayez.'}
                 </Text>
               </View>
             )}

@@ -12,13 +12,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  AlertCircle,
-  Check,
-  Phone,
-  User,
-  X,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
 import { useTheme } from '@/theme';
@@ -107,7 +101,7 @@ function InputField({
             marginTop: 4,
           }}
         >
-          <AlertCircle size={13} color={theme.red} />
+          <Ionicons name="alert-circle-outline" size={13} color={theme.red} />
           <Text style={{ color: theme.red, fontSize: 12 }}>{error}</Text>
         </View>
       ) : null}
@@ -160,7 +154,9 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
   const [pickerVisible, setPickerVisible] = useState(false);
 
   const uploadPhoto = useCallback(
-    async (picker: () => Promise<{ signedUrl: string; filePath: string } | null>) => {
+    async (
+      picker: () => Promise<{ signedUrl: string; filePath: string } | null>
+    ) => {
       const result = await picker();
       if (!result) return;
       setAvatarUri(result.signedUrl);
@@ -168,7 +164,10 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
         await updateAvatarUrl.mutateAsync(result.signedUrl);
         Toast.show('Photo mise à jour', { type: 'success', duration: 2000 });
       } catch {
-        Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
+        Toast.show('Impossible de sauvegarder la photo. Réessayez.', {
+          type: 'error',
+          duration: 3000,
+        });
       }
     },
     [updateAvatarUrl]
@@ -179,7 +178,10 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
     try {
       await updateAvatarUrl.mutateAsync('');
     } catch {
-      Toast.show("Impossible de supprimer la photo. Réessayez.", { type: 'error', duration: 3000 });
+      Toast.show('Impossible de supprimer la photo. Réessayez.', {
+        type: 'error',
+        duration: 3000,
+      });
     }
   }, [updateAvatarUrl]);
 
@@ -196,11 +198,17 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
         phone: form.phone.trim(),
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show('Profil mis à jour avec succès', { type: 'success', duration: 2500 });
+      Toast.show('Profil mis à jour avec succès', {
+        type: 'success',
+        duration: 2500,
+      });
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show('Impossible d\'enregistrer les modifications', { type: 'error', duration: 3000 });
+      Toast.show("Impossible d'enregistrer les modifications", {
+        type: 'error',
+        duration: 3000,
+      });
     }
   }, [validate, updateProfile, form, onClose]);
 
@@ -245,7 +253,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
             justifyContent: 'center',
           }}
         >
-          <X size={18} color={theme.textSecondary} />
+          <Ionicons name="close" size={18} color={theme.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -298,7 +306,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
                   borderColor: theme.bg,
                 }}
               >
-                <Check size={13} color="#fff" strokeWidth={2.5} />
+                <Ionicons name="checkmark" size={13} color="#fff" />
               </View>
             </TouchableOpacity>
             <Text style={{ color: theme.textMuted, fontSize: 12 }}>
@@ -344,7 +352,11 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
                   justifyContent: 'center',
                 }}
               >
-                <User size={14} color={theme.primary} />
+                <Ionicons
+                  name="person-outline"
+                  size={14}
+                  color={theme.primary}
+                />
               </View>
               <Text
                 style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
@@ -399,7 +411,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
                   justifyContent: 'center',
                 }}
               >
-                <Phone size={14} color={theme.green} />
+                <Ionicons name="call-outline" size={14} color={theme.green} />
               </View>
               <Text
                 style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
@@ -438,7 +450,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <>
-                  <Check size={18} color="#fff" strokeWidth={2.5} />
+                  <Ionicons name="checkmark" size={18} color="#fff" />
                   <Text
                     style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
                   >

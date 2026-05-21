@@ -10,7 +10,7 @@ import {
 import Animated, { FadeInDown, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { X, Clock, CalendarDays, Plus, Trash2, Bell } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import {
@@ -28,18 +28,21 @@ interface Props {
 }
 
 const DAYS = [
-  { key: 'monday',    label: 'Lun' },
-  { key: 'tuesday',   label: 'Mar' },
+  { key: 'monday', label: 'Lun' },
+  { key: 'tuesday', label: 'Mar' },
   { key: 'wednesday', label: 'Mer' },
-  { key: 'thursday',  label: 'Jeu' },
-  { key: 'friday',    label: 'Ven' },
+  { key: 'thursday', label: 'Jeu' },
+  { key: 'friday', label: 'Ven' },
 ] as const;
 
-type DayKey = typeof DAYS[number]['key'];
+type DayKey = (typeof DAYS)[number]['key'];
 
 const HOUR_OPTIONS = Array.from({ length: 14 }, (_, i) => {
   const h = i + 7;
-  return { label: `${String(h).padStart(2, '0')}h00`, value: `${String(h).padStart(2, '0')}:00` };
+  return {
+    label: `${String(h).padStart(2, '0')}h00`,
+    value: `${String(h).padStart(2, '0')}:00`,
+  };
 });
 
 const REMINDER_OPTIONS = [
@@ -63,7 +66,16 @@ const HourPicker = memo(function HourPicker({
   const t = useTheme();
   return (
     <View style={{ flex: 1 }}>
-      <Text style={{ color: t.textMuted, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6 }}>
+      <Text
+        style={{
+          color: t.textMuted,
+          fontSize: 10,
+          fontWeight: '700',
+          textTransform: 'uppercase',
+          letterSpacing: 0.6,
+          marginBottom: 6,
+        }}
+      >
         {label}
       </Text>
       <ScrollView
@@ -89,7 +101,13 @@ const HourPicker = memo(function HourPicker({
                 borderColor: active ? t.accent : t.cardBorder,
               }}
             >
-              <Text style={{ color: active ? '#fff' : t.textSecondary, fontSize: 13, fontWeight: '700' }}>
+              <Text
+                style={{
+                  color: active ? '#fff' : t.textSecondary,
+                  fontSize: 13,
+                  fontWeight: '700',
+                }}
+              >
                 {opt.label}
               </Text>
             </TouchableOpacity>
@@ -128,10 +146,25 @@ const TimeWindowRow = memo(function TimeWindowRow({
         gap: 12,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <View style={{ width: 22, height: 22, borderRadius: 7, backgroundColor: t.accentBg, alignItems: 'center', justifyContent: 'center' }}>
-            <Clock size={11} color={t.accent} strokeWidth={2.5} />
+          <View
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 7,
+              backgroundColor: t.accentBg,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="time-outline" size={11} color={t.accent} />
           </View>
           <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>
             Créneau {index + 1}
@@ -145,7 +178,7 @@ const TimeWindowRow = memo(function TimeWindowRow({
             }}
             style={{ padding: 4 }}
           >
-            <Trash2 size={15} color={t.red} strokeWidth={2} />
+            <Ionicons name="trash-outline" size={15} color={t.red} />
           </TouchableOpacity>
         )}
       </View>
@@ -174,11 +207,18 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
   const t = useTheme();
   const insets = useSafeAreaInsets();
 
-  const { data: existing, isLoading } = usePickupAuthorization(childId, guardianId);
+  const { data: existing, isLoading } = usePickupAuthorization(
+    childId,
+    guardianId
+  );
   const upsert = useUpsertPickupAuthorization();
 
   const [days, setDays] = useState<Record<DayKey, boolean>>({
-    monday: false, tuesday: false, wednesday: false, thursday: false, friday: false,
+    monday: false,
+    tuesday: false,
+    wednesday: false,
+    thursday: false,
+    friday: false,
   });
   const [windows, setWindows] = useState<TimeWindow[]>(DEFAULT_WINDOWS);
   const [reminder, setReminder] = useState(30);
@@ -188,21 +228,32 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
     if (!visible) return;
     if (existing) {
       setDays({
-        monday:    existing.monday,
-        tuesday:   existing.tuesday,
+        monday: existing.monday,
+        tuesday: existing.tuesday,
         wednesday: existing.wednesday,
-        thursday:  existing.thursday,
-        friday:    existing.friday,
+        thursday: existing.thursday,
+        friday: existing.friday,
       });
       setWindows(
         existing.time_windows && existing.time_windows.length > 0
           ? existing.time_windows
-          : [{ start: existing.start_time?.slice(0, 5) ?? '16:00', end: existing.end_time?.slice(0, 5) ?? '18:00' }]
+          : [
+              {
+                start: existing.start_time?.slice(0, 5) ?? '16:00',
+                end: existing.end_time?.slice(0, 5) ?? '18:00',
+              },
+            ]
       );
       setReminder(existing.reminder_before ?? 30);
       setIsActive(existing.is_active);
     } else {
-      setDays({ monday: false, tuesday: false, wednesday: false, thursday: false, friday: false });
+      setDays({
+        monday: false,
+        tuesday: false,
+        wednesday: false,
+        thursday: false,
+        friday: false,
+      });
       setWindows(DEFAULT_WINDOWS);
       setReminder(30);
       setIsActive(true);
@@ -214,9 +265,14 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
     setDays(prev => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  const updateWindow = useCallback((index: number, field: 'start' | 'end', value: string) => {
-    setWindows(prev => prev.map((w, i) => i === index ? { ...w, [field]: value } : w));
-  }, []);
+  const updateWindow = useCallback(
+    (index: number, field: 'start' | 'end', value: string) => {
+      setWindows(prev =>
+        prev.map((w, i) => (i === index ? { ...w, [field]: value } : w))
+      );
+    },
+    []
+  );
 
   const addWindow = useCallback(() => {
     if (windows.length >= 3) return;
@@ -232,7 +288,10 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
 
   const handleSave = useCallback(async () => {
     if (!hasAnyDay) {
-      Toast.show('Sélectionnez au moins un jour', { type: 'error', duration: 2500 });
+      Toast.show('Sélectionnez au moins un jour', {
+        type: 'error',
+        duration: 2500,
+      });
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -251,9 +310,22 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show('Impossible d\'enregistrer le planning', { type: 'error', duration: 3000 });
+      Toast.show("Impossible d'enregistrer le planning", {
+        type: 'error',
+        duration: 3000,
+      });
     }
-  }, [hasAnyDay, childId, guardianId, days, windows, reminder, isActive, upsert, onClose]);
+  }, [
+    hasAnyDay,
+    childId,
+    guardianId,
+    days,
+    windows,
+    reminder,
+    isActive,
+    upsert,
+    onClose,
+  ]);
 
   return (
     <Modal
@@ -264,43 +336,89 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
     >
       <View style={{ flex: 1, backgroundColor: t.bg }}>
         {/* Handle */}
-        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
-          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: t.cardBorder }} />
+        <View
+          style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
+        >
+          <View
+            style={{
+              width: 36,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: t.cardBorder,
+            }}
+          />
         </View>
 
         {/* Header */}
         <Animated.View
           entering={FadeInDown.duration(300)}
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 12 }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: 20,
+            paddingVertical: 12,
+          }}
         >
           <View>
-            <Text style={{ fontSize: 11, fontWeight: '700', color: t.textMuted, textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 2 }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '700',
+                color: t.textMuted,
+                textTransform: 'uppercase',
+                letterSpacing: 1.2,
+                marginBottom: 2,
+              }}
+            >
               Planning de récupération
             </Text>
-            <Text style={{ fontSize: 20, fontWeight: '800', color: t.text, letterSpacing: -0.3 }}>
+            <Text
+              style={{
+                fontSize: 20,
+                fontWeight: '800',
+                color: t.text,
+                letterSpacing: -0.3,
+              }}
+            >
               {guardianName}
             </Text>
           </View>
           <TouchableOpacity
             onPress={onClose}
-            style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: t.iconBg, alignItems: 'center', justifyContent: 'center' }}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              backgroundColor: t.iconBg,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
-            <X size={16} color={t.textMuted} strokeWidth={2.5} />
+            <Ionicons name="close" size={16} color={t.textMuted} />
           </TouchableOpacity>
         </Animated.View>
 
         {isLoading ? (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <View
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+          >
             <ActivityIndicator color={t.accent} />
           </View>
         ) : (
           <ScrollView
-            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 100 }}
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              paddingBottom: insets.bottom + 100,
+            }}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
           >
             {/* Statut actif / désactivé */}
-            <Animated.View entering={FadeInDown.delay(40).duration(280)} style={{ marginBottom: 20 }}>
+            <Animated.View
+              entering={FadeInDown.delay(40).duration(280)}
+              style={{ marginBottom: 20 }}
+            >
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 {[true, false].map(val => {
                   const active = isActive === val;
@@ -316,20 +434,26 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                         paddingVertical: 12,
                         borderRadius: 14,
                         backgroundColor: active
-                          ? val ? t.greenBg : t.redBg
+                          ? val
+                            ? t.greenBg
+                            : t.redBg
                           : t.iconBg,
                         borderWidth: 1.5,
                         borderColor: active
-                          ? val ? t.green : t.red
+                          ? val
+                            ? t.green
+                            : t.red
                           : t.cardBorder,
                         alignItems: 'center',
                       }}
                     >
-                      <Text style={{
-                        fontWeight: '700',
-                        fontSize: 14,
-                        color: active ? (val ? t.green : t.red) : t.textMuted,
-                      }}>
+                      <Text
+                        style={{
+                          fontWeight: '700',
+                          fontSize: 14,
+                          color: active ? (val ? t.green : t.red) : t.textMuted,
+                        }}
+                      >
                         {val ? 'Actif' : 'Désactivé'}
                       </Text>
                     </TouchableOpacity>
@@ -339,12 +463,39 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
             </Animated.View>
 
             {/* Jours */}
-            <Animated.View entering={FadeInDown.delay(80).duration(280)} style={{ marginBottom: 20 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: t.accentBg, alignItems: 'center', justifyContent: 'center' }}>
-                  <CalendarDays size={14} color={t.accent} strokeWidth={2} />
+            <Animated.View
+              entering={FadeInDown.delay(80).duration(280)}
+              style={{ marginBottom: 20 }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 12,
+                }}
+              >
+                <View
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 9,
+                    backgroundColor: t.accentBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons
+                    name="calendar-outline"
+                    size={14}
+                    color={t.accent}
+                  />
                 </View>
-                <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>Jours autorisés</Text>
+                <Text
+                  style={{ color: t.text, fontSize: 15, fontWeight: '700' }}
+                >
+                  Jours autorisés
+                </Text>
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {DAYS.map(({ key, label }) => {
@@ -363,7 +514,13 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                         alignItems: 'center',
                       }}
                     >
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: active ? '#fff' : t.textMuted }}>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '800',
+                          color: active ? '#fff' : t.textMuted,
+                        }}
+                      >
                         {label}
                       </Text>
                     </TouchableOpacity>
@@ -371,28 +528,76 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                 })}
               </View>
               {!hasAnyDay && (
-                <Text style={{ color: t.amber, fontSize: 12, marginTop: 8, fontWeight: '600' }}>
+                <Text
+                  style={{
+                    color: t.amber,
+                    fontSize: 12,
+                    marginTop: 8,
+                    fontWeight: '600',
+                  }}
+                >
                   Sélectionnez au moins un jour
                 </Text>
               )}
             </Animated.View>
 
             {/* Plages horaires */}
-            <Animated.View entering={FadeInDown.delay(120).duration(280)} style={{ marginBottom: 20 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: t.accentBg, alignItems: 'center', justifyContent: 'center' }}>
-                    <Clock size={14} color={t.accent} strokeWidth={2} />
+            <Animated.View
+              entering={FadeInDown.delay(120).duration(280)}
+              style={{ marginBottom: 20 }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 12,
+                }}
+              >
+                <View
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+                >
+                  <View
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: 9,
+                      backgroundColor: t.accentBg,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons name="time-outline" size={14} color={t.accent} />
                   </View>
-                  <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>Horaires</Text>
+                  <Text
+                    style={{ color: t.text, fontSize: 15, fontWeight: '700' }}
+                  >
+                    Horaires
+                  </Text>
                 </View>
                 {windows.length < 3 && (
                   <TouchableOpacity
                     onPress={addWindow}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: t.accentBg, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 }}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 5,
+                      backgroundColor: t.accentBg,
+                      paddingHorizontal: 10,
+                      paddingVertical: 5,
+                      borderRadius: 10,
+                    }}
                   >
-                    <Plus size={13} color={t.accent} strokeWidth={2.5} />
-                    <Text style={{ color: t.accent, fontSize: 12, fontWeight: '700' }}>Ajouter</Text>
+                    <Ionicons name="add" size={13} color={t.accent} />
+                    <Text
+                      style={{
+                        color: t.accent,
+                        fontSize: 12,
+                        fontWeight: '700',
+                      }}
+                    >
+                      Ajouter
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -409,12 +614,39 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
             </Animated.View>
 
             {/* Rappel */}
-            <Animated.View entering={FadeInDown.delay(160).duration(280)} style={{ marginBottom: 28 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: t.amberBg, alignItems: 'center', justifyContent: 'center' }}>
-                  <Bell size={14} color={t.amber} strokeWidth={2} />
+            <Animated.View
+              entering={FadeInDown.delay(160).duration(280)}
+              style={{ marginBottom: 28 }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 12,
+                }}
+              >
+                <View
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 9,
+                    backgroundColor: t.amberBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons
+                    name="notifications-outline"
+                    size={14}
+                    color={t.amber}
+                  />
                 </View>
-                <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>Rappel avant le créneau</Text>
+                <Text
+                  style={{ color: t.text, fontSize: 15, fontWeight: '700' }}
+                >
+                  Rappel avant le créneau
+                </Text>
               </View>
               <View style={{ flexDirection: 'row', gap: 10 }}>
                 {REMINDER_OPTIONS.map(opt => {
@@ -436,7 +668,13 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                         alignItems: 'center',
                       }}
                     >
-                      <Text style={{ fontSize: 13, fontWeight: '700', color: active ? t.amber : t.textMuted }}>
+                      <Text
+                        style={{
+                          fontSize: 13,
+                          fontWeight: '700',
+                          color: active ? t.amber : t.textMuted,
+                        }}
+                      >
                         {opt.label}
                       </Text>
                     </TouchableOpacity>
@@ -448,14 +686,16 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
         )}
 
         {/* CTA */}
-        <View style={{
-          paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 16,
-          paddingTop: 14,
-          backgroundColor: t.ctaBg,
-          borderTopWidth: 1,
-          borderTopColor: t.ctaBorder,
-        }}>
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingBottom: insets.bottom + 16,
+            paddingTop: 14,
+            backgroundColor: t.ctaBg,
+            borderTopWidth: 1,
+            borderTopColor: t.ctaBorder,
+          }}
+        >
           <TouchableOpacity
             onPress={handleSave}
             disabled={upsert.isPending || !hasAnyDay}

@@ -11,16 +11,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  BadgeCheck,
-  Building2,
-  CheckCircle2,
-  MapPin,
-  Search,
-  ShieldCheck,
-  Sparkles,
-  X,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useSchoolSearch } from '@/features/school/hooks/useSchoolSearch';
 import type { SchoolSearchResult } from '@/features/school/services/schoolSearch.service';
@@ -65,7 +56,7 @@ const ConfidenceBadge = memo(function ConfidenceBadge({
           borderRadius: 6,
         }}
       >
-        <ShieldCheck size={10} color={theme.green} strokeWidth={2.5} />
+        <Ionicons name="shield-checkmark" size={10} color={theme.green} />
         <Text style={{ color: theme.green, fontSize: 10, fontWeight: '700' }}>
           Correspondance exacte
         </Text>
@@ -126,12 +117,17 @@ const SchoolCard = memo(function SchoolCard({
           flexShrink: 0,
         }}
       >
-        <Building2 size={20} color={theme.primary} strokeWidth={1.8} />
+        <Ionicons name="business-outline" size={20} color={theme.primary} />
       </View>
 
       <View style={{ flex: 1, gap: 3 }}>
         <View
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            flexWrap: 'wrap',
+          }}
         >
           <Text
             style={{
@@ -148,14 +144,24 @@ const SchoolCard = memo(function SchoolCard({
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <MapPin size={11} color={theme.textMuted} strokeWidth={2} />
-          <Text style={{ color: theme.textMuted, fontSize: 12 }} numberOfLines={1}>
+          <Ionicons name="location-outline" size={11} color={theme.textMuted} />
+          <Text
+            style={{ color: theme.textMuted, fontSize: 12 }}
+            numberOfLines={1}
+          >
             {school.address}, {school.city}
             {school.postal_code ? ` (${school.postal_code})` : ''}
           </Text>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            flexWrap: 'wrap',
+          }}
+        >
           <Text
             style={{
               color: theme.textSecondary,
@@ -168,9 +174,32 @@ const SchoolCard = memo(function SchoolCard({
             {typeLabel(school.type)}
           </Text>
           {school.verified && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: theme.primaryBg, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
-              <BadgeCheck size={10} color={theme.primary} strokeWidth={2.5} />
-              <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '700', letterSpacing: 0.3 }}>OFFICIEL</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 3,
+                backgroundColor: theme.primaryBg,
+                paddingHorizontal: 6,
+                paddingVertical: 2,
+                borderRadius: 6,
+              }}
+            >
+              <Ionicons
+                name="checkmark-circle"
+                size={10}
+                color={theme.primary}
+              />
+              <Text
+                style={{
+                  color: theme.primary,
+                  fontSize: 9,
+                  fontWeight: '700',
+                  letterSpacing: 0.3,
+                }}
+              >
+                OFFICIEL
+              </Text>
             </View>
           )}
         </View>
@@ -193,7 +222,12 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
   const handleSelect = useCallback(
     (school: SchoolSearchResult) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      if (__DEV__) console.log('[SchoolPicker] sélectionné:', school.name, `(${school.confidence}%)`);
+      if (__DEV__)
+        console.log(
+          '[SchoolPicker] sélectionné:',
+          school.name,
+          `(${school.confidence}%)`
+        );
       clear();
       onSelect(school);
     },
@@ -214,7 +248,9 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
     >
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         {/* Handle */}
-        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+        <View
+          style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
+        >
           <View
             style={{
               width: 36,
@@ -271,7 +307,7 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
               justifyContent: 'center',
             }}
           >
-            <X size={16} color={theme.textMuted} strokeWidth={2.5} />
+            <Ionicons name="close" size={16} color={theme.textMuted} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -292,7 +328,7 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
               gap: 10,
             }}
           >
-            <Search size={16} color={theme.textMuted} strokeWidth={2} />
+            <Ionicons name="search-outline" size={16} color={theme.textMuted} />
             <TextInput
               ref={inputRef}
               value={query}
@@ -310,11 +346,16 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
               }}
             />
             {query.length > 0 && (
-              <TouchableOpacity onPress={clear} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <X size={14} color={theme.textMuted} strokeWidth={2.5} />
+              <TouchableOpacity
+                onPress={clear}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="close" size={14} color={theme.textMuted} />
               </TouchableOpacity>
             )}
-            {isSearching && <ActivityIndicator size="small" color={theme.accent} />}
+            {isSearching && (
+              <ActivityIndicator size="small" color={theme.accent} />
+            )}
           </View>
         </Animated.View>
 
@@ -343,7 +384,11 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
                   justifyContent: 'center',
                 }}
               >
-                <Building2 size={26} color={theme.primary} strokeWidth={1.5} />
+                <Ionicons
+                  name="business-outline"
+                  size={26}
+                  color={theme.primary}
+                />
               </View>
               <Text
                 style={{
@@ -353,7 +398,8 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
                   lineHeight: 20,
                 }}
               >
-                Tapez au moins 2 caractères{'\n'}pour rechercher un établissement
+                Tapez au moins 2 caractères{'\n'}pour rechercher un
+                établissement
               </Text>
             </Animated.View>
           )}
@@ -374,7 +420,11 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
                   justifyContent: 'center',
                 }}
               >
-                <Search size={24} color={theme.textMuted} strokeWidth={1.5} />
+                <Ionicons
+                  name="search-outline"
+                  size={24}
+                  color={theme.textMuted}
+                />
               </View>
               <Text
                 style={{
@@ -394,7 +444,8 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
                   lineHeight: 19,
                 }}
               >
-                L'établissement n'est peut-être pas encore inscrit sur SecuriClick.{'\n'}Essayez un nom différent.
+                L'établissement n'est peut-être pas encore inscrit sur
+                SecuriClick.{'\n'}Essayez un nom différent.
               </Text>
             </Animated.View>
           )}
@@ -415,12 +466,21 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
                 gap: 10,
               }}
             >
-              <Sparkles size={16} color={theme.green} strokeWidth={2} />
+              <Ionicons name="sparkles-outline" size={16} color={theme.green} />
               <View style={{ flex: 1 }}>
-                <Text style={{ color: theme.green, fontSize: 13, fontWeight: '700' }}>
+                <Text
+                  style={{
+                    color: theme.green,
+                    fontSize: 13,
+                    fontWeight: '700',
+                  }}
+                >
                   Correspondance exacte trouvée
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }} numberOfLines={1}>
+                <Text
+                  style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
+                  numberOfLines={1}
+                >
                   {results[0].name} · {results[0].city}
                 </Text>
               </View>
@@ -436,8 +496,10 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
                   gap: 5,
                 }}
               >
-                <CheckCircle2 size={13} color="#fff" strokeWidth={2.5} />
-                <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>
+                <Ionicons name="checkmark-circle" size={13} color="#fff" />
+                <Text
+                  style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}
+                >
                   Confirmer
                 </Text>
               </TouchableOpacity>

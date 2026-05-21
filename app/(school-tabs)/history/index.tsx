@@ -11,24 +11,16 @@ import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  CheckCircle2,
-  XCircle,
-  Clock,
-  User,
-  Phone,
-  GraduationCap,
-  X,
-  ChevronRight,
-  ShieldCheck,
-  ShieldOff,
-  AlertTriangle,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useMySchool } from '@/features/school/hooks/useSchool';
 import { usePickupValidations } from '@/features/school/hooks/useValidations';
 import { Avatar } from '@/shared/ui/base/avatar';
-import type { PickupValidation, CollectorIdentityStatus, ValidationStatus } from '@/features/school/types';
+import type {
+  PickupValidation,
+  CollectorIdentityStatus,
+  ValidationStatus,
+} from '@/features/school/types';
 
 type FilterKey = 'all' | ValidationStatus;
 
@@ -198,7 +190,7 @@ export default function SchoolHistoryScreen() {
               paddingBottom: 100,
             }}
           >
-            <Clock size={48} color={theme.textMuted} strokeWidth={1.2} />
+            <Ionicons name="time-outline" size={48} color={theme.textMuted} />
             <Text
               style={{
                 color: theme.textMuted,
@@ -210,8 +202,8 @@ export default function SchoolHistoryScreen() {
               {filter === 'all'
                 ? 'Aucune validation enregistrée'
                 : filter === 'validated'
-                ? 'Aucune validation réussie'
-                : 'Aucun refus enregistré'}
+                  ? 'Aucune validation réussie'
+                  : 'Aucun refus enregistré'}
             </Text>
           </View>
         ) : (
@@ -376,7 +368,7 @@ const HistoryRow = memo(function HistoryRow({
         </View>
         <Text style={{ color: theme.textMuted, fontSize: 11 }}>{time}</Text>
       </View>
-      <ChevronRight size={14} color={theme.textMuted} />
+      <Ionicons name="chevron-forward" size={14} color={theme.textMuted} />
     </TouchableOpacity>
   );
 });
@@ -389,15 +381,40 @@ const IdentityBadgeInline = memo(function IdentityBadgeInline({
   const theme = useTheme();
 
   const cfg = {
-    verified: { icon: ShieldCheck, color: theme.green, bg: theme.greenBg, label: 'Identité vérifiée' },
-    pending: { icon: Clock, color: theme.amber, bg: theme.amberBg, label: 'Vérification en attente' },
-    refused: { icon: ShieldOff, color: theme.red, bg: theme.redBg, label: 'Identité refusée' },
-    expired: { icon: ShieldOff, color: theme.red, bg: theme.redBg, label: 'Identité expirée' },
-    none: { icon: AlertTriangle, color: theme.amber, bg: theme.amberBg, label: 'Identité non vérifiée' },
-  } as const;
+    verified: {
+      iconName: 'shield-checkmark' as const,
+      color: theme.green,
+      bg: theme.greenBg,
+      label: 'Identité vérifiée',
+    },
+    pending: {
+      iconName: 'time-outline' as const,
+      color: theme.amber,
+      bg: theme.amberBg,
+      label: 'Vérification en attente',
+    },
+    refused: {
+      iconName: 'shield-outline' as const,
+      color: theme.red,
+      bg: theme.redBg,
+      label: 'Identité refusée',
+    },
+    expired: {
+      iconName: 'shield-outline' as const,
+      color: theme.red,
+      bg: theme.redBg,
+      label: 'Identité expirée',
+    },
+    none: {
+      iconName: 'warning-outline' as const,
+      color: theme.amber,
+      bg: theme.amberBg,
+      label: 'Identité non vérifiée',
+    },
+  };
 
   const key = (status ?? 'none') as keyof typeof cfg;
-  const { icon: Icon, color, bg, label } = cfg[key] ?? cfg.none;
+  const { iconName, color, bg, label } = cfg[key] ?? cfg.none;
 
   return (
     <View
@@ -413,7 +430,7 @@ const IdentityBadgeInline = memo(function IdentityBadgeInline({
         marginTop: 6,
       }}
     >
-      <Icon size={12} color={color} strokeWidth={2.5} />
+      <Ionicons name={iconName} size={12} color={color} />
       <Text style={{ color, fontSize: 11, fontWeight: '700' }}>{label}</Text>
     </View>
   );
@@ -478,7 +495,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
             justifyContent: 'center',
           }}
         >
-          <X size={18} color={theme.textSecondary} />
+          <Ionicons name="close" size={18} color={theme.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -499,9 +516,9 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
             }}
           >
             {isOk ? (
-              <CheckCircle2 size={28} color={color} strokeWidth={2} />
+              <Ionicons name="checkmark-circle" size={28} color={color} />
             ) : (
-              <XCircle size={28} color={color} strokeWidth={2} />
+              <Ionicons name="close-circle" size={28} color={color} />
             )}
             <View style={{ flex: 1 }}>
               <Text style={{ color, fontSize: 16, fontWeight: '800' }}>
@@ -519,7 +536,9 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
 
           {/* Date */}
           <DetailRow
-            icon={<Clock size={16} color={theme.textMuted} />}
+            icon={
+              <Ionicons name="time-outline" size={16} color={theme.textMuted} />
+            }
             label="Date et heure"
             value={dateStr}
           />
@@ -536,7 +555,13 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
               }}
             >
               <SectionTitle
-                icon={<User size={14} color={theme.primary} />}
+                icon={
+                  <Ionicons
+                    name="person-outline"
+                    size={14}
+                    color={theme.primary}
+                  />
+                }
                 label="Enfant"
                 bg={theme.primaryBg}
               />
@@ -572,7 +597,11 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
                         marginTop: 4,
                       }}
                     >
-                      <GraduationCap size={13} color={theme.textMuted} />
+                      <Ionicons
+                        name="school-outline"
+                        size={13}
+                        color={theme.textMuted}
+                      />
                       <Text style={{ color: theme.textMuted, fontSize: 13 }}>
                         {item.child.class_name}
                       </Text>
@@ -595,7 +624,13 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
               }}
             >
               <SectionTitle
-                icon={<User size={14} color={theme.accent} />}
+                icon={
+                  <Ionicons
+                    name="person-outline"
+                    size={14}
+                    color={theme.accent}
+                  />
+                }
                 label="Collecteur"
                 bg={theme.accentBg}
               />
@@ -639,7 +674,11 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
                       marginTop: 4,
                     }}
                   >
-                    <Phone size={13} color={theme.textMuted} />
+                    <Ionicons
+                      name="call-outline"
+                      size={13}
+                      color={theme.textMuted}
+                    />
                     <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
                       {item.guardian.phone}
                     </Text>

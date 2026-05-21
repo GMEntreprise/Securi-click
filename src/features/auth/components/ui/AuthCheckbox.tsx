@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
@@ -43,7 +43,7 @@ function AuthCheckboxInner<T extends FieldValues>({
                 marginTop: 2,
               }}
             >
-              {value && <Check size={12} color="#fff" strokeWidth={3} />}
+              {value && <Ionicons name="checkmark" size={12} color="#fff" />}
             </View>
             <View style={{ flex: 1 }}>
               {typeof label === 'string' ? (

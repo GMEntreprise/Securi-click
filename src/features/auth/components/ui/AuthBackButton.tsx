@@ -1,4 +1,4 @@
-import { ChevronLeft } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo } from 'react';
 import { Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -32,7 +32,7 @@ export const AuthBackButton: React.FC<AuthBackButtonProps> = memo(
           borderColor: t.cardBorder,
         }}
       >
-        <ChevronLeft size={22} color={t.text} strokeWidth={2.5} />
+        <Ionicons name="chevron-back" size={22} color={t.text} />
       </Pressable>
     );
   }

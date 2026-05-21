@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { Eye, EyeOff, Lock, ShieldAlert, X } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import type { PendingInvite } from '../../hooks/useCollector';
 
@@ -57,7 +57,10 @@ export const PinEntrySheet = memo(function PinEntrySheet({
     setVisible(v => {
       if (!v) {
         if (autoHideTimer.current) clearTimeout(autoHideTimer.current);
-        autoHideTimer.current = setTimeout(() => setVisible(false), AUTO_HIDE_MS);
+        autoHideTimer.current = setTimeout(
+          () => setVisible(false),
+          AUTO_HIDE_MS
+        );
       } else {
         if (autoHideTimer.current) clearTimeout(autoHideTimer.current);
       }
@@ -91,7 +94,9 @@ export const PinEntrySheet = memo(function PinEntrySheet({
     >
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         {/* Handle */}
-        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+        <View
+          style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
+        >
           <View
             style={{
               width: 40,
@@ -126,7 +131,12 @@ export const PinEntrySheet = memo(function PinEntrySheet({
               Invitation reçue
             </Text>
             <Text
-              style={{ color: theme.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.3 }}
+              style={{
+                color: theme.text,
+                fontSize: 20,
+                fontWeight: '800',
+                letterSpacing: -0.3,
+              }}
             >
               Code de sécurité
             </Text>
@@ -143,7 +153,7 @@ export const PinEntrySheet = memo(function PinEntrySheet({
               justifyContent: 'center',
             }}
           >
-            <X size={18} color={theme.textSecondary} />
+            <Ionicons name="close" size={18} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -160,11 +170,19 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                 gap: 4,
               }}
             >
-              <Text style={{ color: theme.textMuted, fontSize: 12, fontWeight: '600' }}>
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontSize: 12,
+                  fontWeight: '600',
+                }}
+              >
                 Autorisation pour
               </Text>
               {childName ? (
-                <Text style={{ color: theme.text, fontSize: 16, fontWeight: '700' }}>
+                <Text
+                  style={{ color: theme.text, fontSize: 16, fontWeight: '700' }}
+                >
                   {childName}
                 </Text>
               ) : null}
@@ -186,11 +204,22 @@ export const PinEntrySheet = memo(function PinEntrySheet({
               padding: 12,
             }}
           >
-            <ShieldAlert size={14} color={theme.amber} strokeWidth={2} style={{ marginTop: 1 }} />
+            <Ionicons
+              name="warning-outline"
+              size={14}
+              color={theme.amber}
+              style={{ marginTop: 1 }}
+            />
             <Text
-              style={{ flex: 1, fontSize: 12, color: theme.textSecondary, lineHeight: 17 }}
+              style={{
+                flex: 1,
+                fontSize: 12,
+                color: theme.textSecondary,
+                lineHeight: 17,
+              }}
             >
-              Le parent qui vous a invité vous a communiqué ce code à 6 chiffres en privé.
+              Le parent qui vous a invité vous a communiqué ce code à 6 chiffres
+              en privé.
             </Text>
           </Animated.View>
 
@@ -212,7 +241,11 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                 },
               ]}
             >
-              <Lock size={16} color={theme.textMuted} strokeWidth={2} />
+              <Ionicons
+                name="lock-closed-outline"
+                size={16}
+                color={theme.textMuted}
+              />
               <TextInput
                 value={pin}
                 onChangeText={t => setPin(t.replace(/\D/g, '').slice(0, 6))}
@@ -232,11 +265,23 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                 placeholder={visible ? '——————' : '••••••'}
                 editable={!isLoading}
               />
-              <TouchableOpacity onPress={handleReveal} hitSlop={10} disabled={isLoading}>
+              <TouchableOpacity
+                onPress={handleReveal}
+                hitSlop={10}
+                disabled={isLoading}
+              >
                 {visible ? (
-                  <EyeOff size={18} color={theme.textMuted} />
+                  <Ionicons
+                    name="eye-off-outline"
+                    size={18}
+                    color={theme.textMuted}
+                  />
                 ) : (
-                  <Eye size={18} color={theme.textMuted} />
+                  <Ionicons
+                    name="eye-outline"
+                    size={18}
+                    color={theme.textMuted}
+                  />
                 )}
               </TouchableOpacity>
             </Animated.View>
@@ -256,7 +301,14 @@ export const PinEntrySheet = memo(function PinEntrySheet({
             ) : null}
 
             {error ? (
-              <Text style={{ color: theme.red, fontSize: 13, marginTop: 8, textAlign: 'center' }}>
+              <Text
+                style={{
+                  color: theme.red,
+                  fontSize: 13,
+                  marginTop: 8,
+                  textAlign: 'center',
+                }}
+              >
                 {error}
               </Text>
             ) : null}
@@ -282,8 +334,10 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
                 <>
-                  <Lock size={16} color="#fff" strokeWidth={2.5} />
-                  <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
+                  <Ionicons name="lock-closed-outline" size={16} color="#fff" />
+                  <Text
+                    style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
+                  >
                     Confirmer l'accès
                   </Text>
                 </>

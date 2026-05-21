@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Lock } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo, useCallback, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Control, Controller, FieldValues, Path } from 'react-hook-form';
@@ -68,7 +68,12 @@ function AuthPasswordFieldInner<T extends FieldValues>({
               opacity: disabled ? 0.5 : 1,
             }}
           >
-            <Lock size={18} color={t.textMuted} style={{ marginRight: 10 }} />
+            <Ionicons
+              name="lock-closed-outline"
+              size={18}
+              color={t.textMuted}
+              style={{ marginRight: 10 }}
+            />
             <TextInput
               style={{
                 flex: 1,
@@ -88,9 +93,13 @@ function AuthPasswordFieldInner<T extends FieldValues>({
             />
             <Pressable onPress={toggle} hitSlop={12} disabled={disabled}>
               {visible ? (
-                <EyeOff size={20} color={t.textMuted} />
+                <Ionicons
+                  name="eye-off-outline"
+                  size={20}
+                  color={t.textMuted}
+                />
               ) : (
-                <Eye size={20} color={t.textMuted} />
+                <Ionicons name="eye-outline" size={20} color={t.textMuted} />
               )}
             </Pressable>
           </View>

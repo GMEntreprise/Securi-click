@@ -15,14 +15,7 @@ import { useTheme } from '@/theme';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  Shield,
-  Phone,
-  UserPlus,
-  GraduationCap,
-  Pencil,
-  Trash2,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useChild, useDeleteChild } from '@/features/parent/hooks/useChildren';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import {
@@ -144,7 +137,11 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
               >
-                <Phone size={12} color={theme.textMuted} />
+                <Ionicons
+                  name="call-outline"
+                  size={12}
+                  color={theme.textMuted}
+                />
                 <Text style={{ color: theme.textMuted, fontSize: 12 }}>
                   {item.phone}
                 </Text>
@@ -188,7 +185,9 @@ export default function ChildDetails() {
 
   useEffect(() => {
     if (child) {
-      navigation.setOptions({ title: `${child.first_name} ${child.last_name}` });
+      navigation.setOptions({
+        title: `${child.first_name} ${child.last_name}`,
+      });
     }
   }, [child, navigation]);
   const { data: authorizations, isLoading: authLoading } =
@@ -211,7 +210,7 @@ export default function ChildDetails() {
             });
           },
           onError: () => {
-            Toast.show('Impossible de modifier l\'accès', { type: 'error' });
+            Toast.show("Impossible de modifier l'accès", { type: 'error' });
           },
         }
       );
@@ -260,7 +259,7 @@ export default function ChildDetails() {
     if (!child) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     Alert.alert(
-      'Supprimer l\'enfant',
+      "Supprimer l'enfant",
       `Voulez-vous vraiment supprimer ${child.first_name} ${child.last_name} ? Toutes les autorisations associées seront également supprimées. Cette action est irréversible.`,
       [
         { text: 'Annuler', style: 'cancel' },
@@ -277,8 +276,12 @@ export default function ChildDetails() {
                 navigation.goBack();
               },
               onError: () => {
-                Toast.show('Impossible de supprimer l\'enfant', { type: 'error' });
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+                Toast.show("Impossible de supprimer l'enfant", {
+                  type: 'error',
+                });
+                Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Error
+                );
               },
             });
           },
@@ -342,7 +345,9 @@ export default function ChildDetails() {
             justifyContent: 'space-between',
           }}
         >
-          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', flex: 1 }}>
+          <View
+            style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', flex: 1 }}
+          >
             {child.class_name ? (
               <View
                 style={{
@@ -355,8 +360,18 @@ export default function ChildDetails() {
                   borderRadius: 10,
                 }}
               >
-                <GraduationCap size={13} color={theme.primary} />
-                <Text style={{ color: theme.primary, fontSize: 12, fontWeight: '700' }}>
+                <Ionicons
+                  name="school-outline"
+                  size={13}
+                  color={theme.primary}
+                />
+                <Text
+                  style={{
+                    color: theme.primary,
+                    fontSize: 12,
+                    fontWeight: '700',
+                  }}
+                >
                   {child.class_name}
                 </Text>
               </View>
@@ -372,9 +387,12 @@ export default function ChildDetails() {
                 borderRadius: 10,
               }}
             >
-              <Shield size={13} color={theme.green} />
-              <Text style={{ color: theme.green, fontSize: 12, fontWeight: '700' }}>
-                {activeCount} autorisation{activeCount > 1 ? 's' : ''} active{activeCount > 1 ? 's' : ''}
+              <Ionicons name="shield-checkmark" size={13} color={theme.green} />
+              <Text
+                style={{ color: theme.green, fontSize: 12, fontWeight: '700' }}
+              >
+                {activeCount} autorisation{activeCount > 1 ? 's' : ''} active
+                {activeCount > 1 ? 's' : ''}
               </Text>
             </View>
           </View>
@@ -394,8 +412,14 @@ export default function ChildDetails() {
                 paddingVertical: 8,
               }}
             >
-              <Pencil size={13} color={theme.textSecondary} strokeWidth={2.5} />
-              <Text style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}>
+              <Ionicons
+                name="pencil-outline"
+                size={13}
+                color={theme.textSecondary}
+              />
+              <Text
+                style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}
+              >
                 Modifier
               </Text>
             </TouchableOpacity>
@@ -410,7 +434,7 @@ export default function ChildDetails() {
                 paddingVertical: 8,
               }}
             >
-              <Trash2 size={15} color={theme.red} strokeWidth={2.5} />
+              <Ionicons name="trash-outline" size={15} color={theme.red} />
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -443,7 +467,7 @@ export default function ChildDetails() {
                 borderRadius: 12,
               }}
             >
-              <UserPlus size={14} color="#fff" strokeWidth={2.5} />
+              <Ionicons name="person-add-outline" size={14} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>
                 Ajouter
               </Text>

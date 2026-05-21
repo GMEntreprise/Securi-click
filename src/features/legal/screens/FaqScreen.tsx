@@ -1,13 +1,8 @@
 import React, { memo, useState } from 'react';
-import {
-  ScrollView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronDown, ChevronUp } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 
 export type FaqRole = 'parent' | 'collector' | 'school';
@@ -32,7 +27,7 @@ const FAQ_PARENT: FaqEntry[] = [
   },
   {
     q: 'Comment désactiver temporairement un collecteur ?',
-    a: "Dans la fiche du collecteur (Enfants > votre enfant > collecteur), utilisez le toggle en haut à droite pour activer ou désactiver son accès instantanément.",
+    a: 'Dans la fiche du collecteur (Enfants > votre enfant > collecteur), utilisez le toggle en haut à droite pour activer ou désactiver son accès instantanément.',
   },
   {
     q: 'Mon QR code est-il valable longtemps ?',
@@ -47,7 +42,7 @@ const FAQ_PARENT: FaqEntry[] = [
     a: "Allez dans l'onglet Enfants, appuyez sur le profil de votre enfant, puis sur l'icône de modification.",
   },
   {
-    q: "Comment contacter le support ?",
+    q: 'Comment contacter le support ?',
     a: 'Envoyez un email à contact@securi-click.com. Nous répondons sous 24 à 48 heures ouvrées.',
   },
 ];
@@ -70,19 +65,19 @@ const FAQ_COLLECTOR: FaqEntry[] = [
     a: "Votre accès peut être désactivé ou le QR code expiré. Contactez le parent pour qu'il réactive votre autorisation ou génère un nouveau code.",
   },
   {
-    q: "Pourquoi doit-on vérifier mon identité ?",
+    q: 'Pourquoi doit-on vérifier mon identité ?',
     a: "La vérification d'identité permet à l'établissement de confirmer que vous êtes bien la personne autorisée par le parent. Elle est optionnelle mais recommandée pour fluidifier les récupérations.",
   },
   {
-    q: 'Comment soumettre ma pièce d\'identité ?',
+    q: "Comment soumettre ma pièce d'identité ?",
     a: "Dans votre profil, appuyez sur « Pièce d'identité » puis suivez les étapes pour prendre une photo de votre document.",
   },
   {
     q: 'Mes données sont-elles sécurisées ?',
-    a: "Oui. Toutes les données sont chiffrées et hébergées en Europe. SecuriClick est conforme au RGPD. Vos informations ne sont jamais partagées à des tiers.",
+    a: 'Oui. Toutes les données sont chiffrées et hébergées en Europe. SecuriClick est conforme au RGPD. Vos informations ne sont jamais partagées à des tiers.',
   },
   {
-    q: "Comment contacter le support ?",
+    q: 'Comment contacter le support ?',
     a: 'Envoyez un email à contact@securi-click.com. Nous répondons sous 24 à 48 heures ouvrées.',
   },
 ];
@@ -106,7 +101,7 @@ const FAQ_SCHOOL: FaqEntry[] = [
   },
   {
     q: 'Les notifications sont-elles en temps réel ?',
-    a: "Oui. Toute validation, refus ou incident déclenche une notification immédiate. La cloche en haut du scanner affiche le nombre de non-lues.",
+    a: 'Oui. Toute validation, refus ou incident déclenche une notification immédiate. La cloche en haut du scanner affiche le nombre de non-lues.',
   },
   {
     q: "Comment gérer le logo de l'établissement ?",
@@ -114,10 +109,10 @@ const FAQ_SCHOOL: FaqEntry[] = [
   },
   {
     q: "Plusieurs agents peuvent-ils utiliser l'application ?",
-    a: "Actuellement, un seul compte administrateur est lié à un établissement. Si vous avez besoin de plusieurs accès, contactez le support.",
+    a: 'Actuellement, un seul compte administrateur est lié à un établissement. Si vous avez besoin de plusieurs accès, contactez le support.',
   },
   {
-    q: "Comment contacter le support ?",
+    q: 'Comment contacter le support ?',
     a: 'Envoyez un email à contact@securi-click.com. Nous répondons sous 24 à 48 heures ouvrées.',
   },
 ];
@@ -128,7 +123,13 @@ const FAQ_BY_ROLE: Record<FaqRole, FaqEntry[]> = {
   school: FAQ_SCHOOL,
 };
 
-const FaqItem = memo(function FaqItem({ entry, index }: { entry: FaqEntry; index: number }) {
+const FaqItem = memo(function FaqItem({
+  entry,
+  index,
+}: {
+  entry: FaqEntry;
+  index: number;
+}) {
   const t = useTheme();
   const [open, setOpen] = useState(false);
 
@@ -165,7 +166,13 @@ const FaqItem = memo(function FaqItem({ entry, index }: { entry: FaqEntry; index
               justifyContent: 'center',
             }}
           >
-            <Text style={{ fontSize: 11, fontWeight: '800', color: open ? t.accent : t.textMuted }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: '800',
+                color: open ? t.accent : t.textMuted,
+              }}
+            >
               {index + 1}
             </Text>
           </View>
@@ -180,10 +187,11 @@ const FaqItem = memo(function FaqItem({ entry, index }: { entry: FaqEntry; index
           >
             {entry.q}
           </Text>
-          {open
-            ? <ChevronUp size={16} color={t.accent} strokeWidth={2.5} />
-            : <ChevronDown size={16} color={t.textMuted} strokeWidth={2} />
-          }
+          {open ? (
+            <Ionicons name="chevron-up" size={16} color={t.accent} />
+          ) : (
+            <Ionicons name="chevron-down" size={16} color={t.textMuted} />
+          )}
         </View>
         {open && (
           <View
@@ -195,7 +203,9 @@ const FaqItem = memo(function FaqItem({ entry, index }: { entry: FaqEntry; index
               borderTopColor: t.separator,
             }}
           >
-            <Text style={{ fontSize: 14, color: t.textSecondary, lineHeight: 22 }}>
+            <Text
+              style={{ fontSize: 14, color: t.textSecondary, lineHeight: 22 }}
+            >
               {entry.a}
             </Text>
           </View>
@@ -241,7 +251,9 @@ export const FaqScreen = memo(({ role }: { role: FaqRole }) => {
         }}
       >
         Vous ne trouvez pas votre réponse ? Contactez-nous à{' '}
-        <Text style={{ color: t.accent, fontWeight: '600' }}>contact@securi-click.com</Text>
+        <Text style={{ color: t.accent, fontWeight: '600' }}>
+          contact@securi-click.com
+        </Text>
       </Text>
 
       {entries.map((entry, i) => (

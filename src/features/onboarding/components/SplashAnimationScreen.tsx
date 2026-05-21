@@ -84,7 +84,7 @@ export function SplashAnimationScreen() {
     );
 
     // 1100ms — scan opacity fade out pendant le scan
-    setTimeout(() => {
+    const scanFadeTimer = setTimeout(() => {
       scanOpacity.value = withSequence(
         withTiming(0.9, { duration: 400 }),
         withTiming(0, { duration: 300 })
@@ -117,6 +117,8 @@ export function SplashAnimationScreen() {
         true
       )
     );
+
+    return () => clearTimeout(scanFadeTimer);
   }, []);
 
   // ── Styles animés ─────────────────────────────────────────────────────────

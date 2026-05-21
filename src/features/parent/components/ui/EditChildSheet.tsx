@@ -13,18 +13,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  AlertCircle,
-  Building2,
-  Camera,
-  CheckCircle2,
-  ChevronRight,
-  GraduationCap,
-  User,
-  X,
-  Check,
-  FileText,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
 import { useUpdateChild } from '../../hooks/useChildren';
@@ -126,7 +115,7 @@ function InputField({
             marginTop: 4,
           }}
         >
-          <AlertCircle size={13} color={theme.red} />
+          <Ionicons name="alert-circle-outline" size={13} color={theme.red} />
           <Text style={{ color: theme.red, fontSize: 12 }}>{error}</Text>
         </View>
       ) : null}
@@ -158,13 +147,26 @@ export const EditChildSheet = memo(function EditChildSheet({
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [photoUri, setPhotoUri] = useState<string | null>(child.photo_url);
-  const [selectedSchool, setSelectedSchool] = useState<SchoolSearchResult | null>(
-    child.school
-      ? { id: child.school.id, name: child.school.name, city: child.school.city, type: child.school.type, normalized_name: '', address: '', postal_code: '', logo_url: null, is_active: true, verified: child.school.verified ?? false, external_id: child.school.external_id ?? null, confidence: 100 }
-      : null
-  );
+  const [selectedSchool, setSelectedSchool] =
+    useState<SchoolSearchResult | null>(
+      child.school
+        ? {
+            id: child.school.id,
+            name: child.school.name,
+            city: child.school.city,
+            type: child.school.type,
+            normalized_name: '',
+            address: '',
+            postal_code: '',
+            logo_url: null,
+            is_active: true,
+            verified: child.school.verified ?? false,
+            external_id: child.school.external_id ?? null,
+            confidence: 100,
+          }
+        : null
+    );
   const [schoolPickerVisible, setSchoolPickerVisible] = useState(false);
-
 
   const setField = useCallback(
     (field: keyof FormState) => (value: string) => {
@@ -227,13 +229,27 @@ export const EditChildSheet = memo(function EditChildSheet({
         },
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show(`Profil de ${form.firstName} mis à jour`, { type: 'success', duration: 2500 });
+      Toast.show(`Profil de ${form.firstName} mis à jour`, {
+        type: 'success',
+        duration: 2500,
+      });
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show('Impossible de sauvegarder les modifications', { type: 'error', duration: 3000 });
+      Toast.show('Impossible de sauvegarder les modifications', {
+        type: 'error',
+        duration: 3000,
+      });
     }
-  }, [validate, updateChild, child.id, form, photoUri, selectedSchool, onClose]);
+  }, [
+    validate,
+    updateChild,
+    child.id,
+    form,
+    photoUri,
+    selectedSchool,
+    onClose,
+  ]);
 
   const isBusy = updateChild.isPending || isUploading;
 
@@ -244,544 +260,715 @@ export const EditChildSheet = memo(function EditChildSheet({
         onSelect={handleSchoolSelect}
         onClose={() => setSchoolPickerVisible(false)}
       />
-    <View style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Handle */}
-      <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+      <View style={{ flex: 1, backgroundColor: theme.bg }}>
+        {/* Handle */}
+        <View
+          style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: theme.inputBorder,
+            }}
+          />
+        </View>
+
+        {/* Header */}
         <View
           style={{
-            width: 40,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: theme.inputBorder,
-          }}
-        />
-      </View>
-
-      {/* Header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: 20,
-          paddingVertical: 12,
-        }}
-      >
-        <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
-          Modifier l'enfant
-        </Text>
-        <TouchableOpacity
-          onPress={onClose}
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 12,
-            backgroundColor: theme.iconBg,
+            flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <X size={18} color={theme.textSecondary} />
-        </TouchableOpacity>
-      </View>
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{
+            justifyContent: 'space-between',
             paddingHorizontal: 20,
-            paddingBottom: insets.bottom + 40,
-            gap: 16,
+            paddingVertical: 12,
           }}
         >
-          {/* Photo */}
-          <Animated.View
-            entering={FadeInDown.duration(300)}
+          <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
+            Modifier l'enfant
+          </Text>
+          <TouchableOpacity
+            onPress={onClose}
             style={{
-              backgroundColor: theme.card,
-              borderRadius: 22,
-              borderWidth: 1,
-              borderColor: theme.cardBorder,
-              padding: 16,
+              width: 36,
+              height: 36,
+              borderRadius: 12,
+              backgroundColor: theme.iconBg,
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <Text
+            <Ionicons name="close" size={18} color={theme.textSecondary} />
+          </TouchableOpacity>
+        </View>
+
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              paddingBottom: insets.bottom + 40,
+              gap: 16,
+            }}
+          >
+            {/* Photo */}
+            <Animated.View
+              entering={FadeInDown.duration(300)}
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 22,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+                padding: 16,
+              }}
+            >
+              <View
                 style={{
-                  color: theme.textMuted,
-                  fontSize: 11,
-                  fontWeight: '700',
-                  letterSpacing: 1.2,
-                  textTransform: 'uppercase',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 14,
                 }}
               >
-                Photo
-              </Text>
-              <Text style={{ color: theme.textMuted, fontSize: 12 }}>(optionnel)</Text>
-            </View>
-            <View style={{ alignItems: 'center', marginBottom: 14 }}>
-              <TouchableOpacity
-                onPress={handlePickPhoto}
-                disabled={isUploading}
-              >
-                <Avatar
-                  image={{
-                    uri: photoUri ?? '',
-                    name: `${form.firstName} ${form.lastName}`.trim(),
-                  }}
-                  size={88}
-                  showBorder={false}
-                  backgroundColor={theme.primaryBg}
-                  textColor={theme.primary}
-                  loading={isUploading}
-                />
-                <View
+                <Text
                   style={{
-                    position: 'absolute',
-                    bottom: -4,
-                    right: -4,
-                    width: 28,
-                    height: 28,
-                    borderRadius: 10,
-                    backgroundColor: theme.accent,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 2,
-                    borderColor: theme.bg,
+                    color: theme.textMuted,
+                    fontSize: 11,
+                    fontWeight: '700',
+                    letterSpacing: 1.2,
+                    textTransform: 'uppercase',
                   }}
                 >
-                  <Camera size={13} color="#fff" strokeWidth={2.5} />
-                </View>
-              </TouchableOpacity>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity
-                onPress={handlePickPhoto}
-                disabled={isUploading}
-                style={{
-                  flex: 1,
-                  height: 44,
-                  backgroundColor: theme.iconBg,
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: theme.cardBorder,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexDirection: 'row',
-                  gap: 6,
-                }}
-              >
-                <Camera size={15} color={theme.textMuted} />
-                <Text style={{ color: theme.textSecondary, fontSize: 13, fontWeight: '600' }}>
-                  {photoUri ? 'Changer' : 'Ajouter une photo'}
+                  Photo
                 </Text>
-              </TouchableOpacity>
-              {photoUri ? (
+                <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+                  (optionnel)
+                </Text>
+              </View>
+              <View style={{ alignItems: 'center', marginBottom: 14 }}>
                 <TouchableOpacity
-                  onPress={() => setPhotoUri(null)}
+                  onPress={handlePickPhoto}
+                  disabled={isUploading}
+                >
+                  <Avatar
+                    image={{
+                      uri: photoUri ?? '',
+                      name: `${form.firstName} ${form.lastName}`.trim(),
+                    }}
+                    size={88}
+                    showBorder={false}
+                    backgroundColor={theme.primaryBg}
+                    textColor={theme.primary}
+                    loading={isUploading}
+                  />
+                  <View
+                    style={{
+                      position: 'absolute',
+                      bottom: -4,
+                      right: -4,
+                      width: 28,
+                      height: 28,
+                      borderRadius: 10,
+                      backgroundColor: theme.accent,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderWidth: 2,
+                      borderColor: theme.bg,
+                    }}
+                  >
+                    <Ionicons name="camera-outline" size={13} color="#fff" />
+                  </View>
+                </TouchableOpacity>
+              </View>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={handlePickPhoto}
+                  disabled={isUploading}
                   style={{
+                    flex: 1,
                     height: 44,
-                    paddingHorizontal: 14,
-                    backgroundColor: theme.redBg,
+                    backgroundColor: theme.iconBg,
                     borderRadius: 12,
                     borderWidth: 1,
-                    borderColor: 'rgba(239,68,68,0.25)',
+                    borderColor: theme.cardBorder,
                     alignItems: 'center',
                     justifyContent: 'center',
+                    flexDirection: 'row',
+                    gap: 6,
                   }}
                 >
-                  <Text style={{ color: theme.red, fontSize: 13, fontWeight: '600' }}>
-                    Supprimer
+                  <Ionicons
+                    name="camera-outline"
+                    size={15}
+                    color={theme.textMuted}
+                  />
+                  <Text
+                    style={{
+                      color: theme.textSecondary,
+                      fontSize: 13,
+                      fontWeight: '600',
+                    }}
+                  >
+                    {photoUri ? 'Changer' : 'Ajouter une photo'}
                   </Text>
                 </TouchableOpacity>
-              ) : null}
-            </View>
-          </Animated.View>
-
-          {/* Identité */}
-          <Animated.View
-            entering={FadeInDown.delay(60).duration(300)}
-            style={{
-              backgroundColor: theme.card,
-              borderRadius: 22,
-              borderWidth: 1,
-              borderColor: theme.cardBorder,
-              padding: 16,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: 14,
-              }}
-            >
-              <View
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 9,
-                  backgroundColor: theme.primaryBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <User size={14} color={theme.primary} />
-              </View>
-              <Text
-                style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
-              >
-                Identité
-              </Text>
-            </View>
-            <InputField
-              label="Prénom"
-              value={form.firstName}
-              onChangeText={setField('firstName')}
-              placeholder="Prénom de l'enfant"
-              autoCapitalize="words"
-              error={errors.firstName}
-            />
-            <InputField
-              label="Nom"
-              value={form.lastName}
-              onChangeText={setField('lastName')}
-              placeholder="Nom de famille"
-              autoCapitalize="words"
-              error={errors.lastName}
-            />
-          </Animated.View>
-
-          {/* Scolarité */}
-          <Animated.View
-            entering={FadeInDown.delay(120).duration(300)}
-            style={{
-              backgroundColor: theme.card,
-              borderRadius: 22,
-              borderWidth: 1,
-              borderColor: theme.cardBorder,
-              padding: 16,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: 14,
-              }}
-            >
-              <View
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 9,
-                  backgroundColor: theme.accentBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <GraduationCap size={14} color={theme.accent} />
-              </View>
-              <Text
-                style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
-              >
-                Scolarité
-              </Text>
-            </View>
-            <Text
-              style={{
-                color: theme.textSecondary,
-                fontSize: 13,
-                fontWeight: '600',
-                marginBottom: 8,
-              }}
-            >
-              Classe
-            </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {GRADES.map(g => {
-                const active = form.className === g;
-                return (
+                {photoUri ? (
                   <TouchableOpacity
-                    key={g}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setField('className')(g);
-                    }}
+                    onPress={() => setPhotoUri(null)}
                     style={{
-                      paddingHorizontal: 12,
-                      paddingVertical: 7,
-                      borderRadius: 10,
-                      backgroundColor: active ? theme.accent : theme.iconBg,
+                      height: 44,
+                      paddingHorizontal: 14,
+                      backgroundColor: theme.redBg,
+                      borderRadius: 12,
                       borderWidth: 1,
-                      borderColor: active ? 'transparent' : theme.cardBorder,
+                      borderColor: 'rgba(239,68,68,0.25)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     <Text
                       style={{
-                        color: active ? '#fff' : theme.textSecondary,
+                        color: theme.red,
                         fontSize: 13,
-                        fontWeight: '700',
+                        fontWeight: '600',
                       }}
                     >
-                      {g}
+                      Supprimer
                     </Text>
                   </TouchableOpacity>
-                );
-              })}
-            </View>
-            {errors.className ? (
+                ) : null}
+              </View>
+            </Animated.View>
+
+            {/* Identité */}
+            <Animated.View
+              entering={FadeInDown.delay(60).duration(300)}
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 22,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+                padding: 16,
+              }}
+            >
               <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  gap: 4,
-                  marginTop: 6,
+                  gap: 8,
+                  marginBottom: 14,
                 }}
               >
-                <AlertCircle size={13} color={theme.red} />
-                <Text style={{ color: theme.red, fontSize: 12 }}>
-                  {errors.className}
+                <View
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 9,
+                    backgroundColor: theme.primaryBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons
+                    name="person-outline"
+                    size={14}
+                    color={theme.primary}
+                  />
+                </View>
+                <Text
+                  style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
+                >
+                  Identité
                 </Text>
               </View>
-            ) : null}
-          </Animated.View>
+              <InputField
+                label="Prénom"
+                value={form.firstName}
+                onChangeText={setField('firstName')}
+                placeholder="Prénom de l'enfant"
+                autoCapitalize="words"
+                error={errors.firstName}
+              />
+              <InputField
+                label="Nom"
+                value={form.lastName}
+                onChangeText={setField('lastName')}
+                placeholder="Nom de famille"
+                autoCapitalize="words"
+                error={errors.lastName}
+              />
+            </Animated.View>
 
-          {/* Établissement */}
-          <Animated.View
-            entering={FadeInDown.delay(150).duration(300)}
-            style={{
-              backgroundColor: theme.card,
-              borderRadius: 22,
-              borderWidth: 1,
-              borderColor: selectedSchool ? 'rgba(16,185,129,0.3)' : theme.cardBorder,
-              padding: 16,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-              <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: theme.primaryBg, alignItems: 'center', justifyContent: 'center' }}>
-                <Building2 size={14} color={theme.primary} />
-              </View>
-              <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}>
-                Établissement
-              </Text>
-              <Text style={{ color: theme.textMuted, fontSize: 12, marginLeft: 4 }}>
-                (optionnel)
-              </Text>
-            </View>
-
-            <TouchableOpacity
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setSchoolPickerVisible(true);
-              }}
-              activeOpacity={0.75}
+            {/* Scolarité */}
+            <Animated.View
+              entering={FadeInDown.delay(120).duration(300)}
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 12,
-                backgroundColor: theme.iconBg,
-                borderRadius: 14,
+                backgroundColor: theme.card,
+                borderRadius: 22,
                 borderWidth: 1,
-                borderColor: selectedSchool ? 'rgba(16,185,129,0.25)' : theme.cardBorder,
-                padding: 14,
+                borderColor: theme.cardBorder,
+                padding: 16,
               }}
             >
-              <View style={{ width: 38, height: 38, borderRadius: 11, backgroundColor: selectedSchool ? theme.greenBg : theme.primaryBg, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                {selectedSchool
-                  ? <CheckCircle2 size={18} color={theme.green} strokeWidth={2} />
-                  : <Building2 size={18} color={theme.primary} strokeWidth={1.8} />
-                }
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 9,
+                    backgroundColor: theme.accentBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons
+                    name="school-outline"
+                    size={14}
+                    color={theme.accent}
+                  />
+                </View>
+                <Text
+                  style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
+                >
+                  Scolarité
+                </Text>
               </View>
-              <View style={{ flex: 1 }}>
-                {selectedSchool ? (
-                  <>
-                    <Text style={{ color: theme.text, fontSize: 14, fontWeight: '700' }} numberOfLines={1}>
-                      {selectedSchool.name}
-                    </Text>
-                    <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }} numberOfLines={1}>
-                      {selectedSchool.city} · {selectedSchool.type}
-                    </Text>
-                  </>
+              <Text
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 13,
+                  fontWeight: '600',
+                  marginBottom: 8,
+                }}
+              >
+                Classe
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {GRADES.map(g => {
+                  const active = form.className === g;
+                  return (
+                    <TouchableOpacity
+                      key={g}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setField('className')(g);
+                      }}
+                      style={{
+                        paddingHorizontal: 12,
+                        paddingVertical: 7,
+                        borderRadius: 10,
+                        backgroundColor: active ? theme.accent : theme.iconBg,
+                        borderWidth: 1,
+                        borderColor: active ? 'transparent' : theme.cardBorder,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: active ? '#fff' : theme.textSecondary,
+                          fontSize: 13,
+                          fontWeight: '700',
+                        }}
+                      >
+                        {g}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+              {errors.className ? (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    marginTop: 6,
+                  }}
+                >
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={13}
+                    color={theme.red}
+                  />
+                  <Text style={{ color: theme.red, fontSize: 12 }}>
+                    {errors.className}
+                  </Text>
+                </View>
+              ) : null}
+            </Animated.View>
+
+            {/* Établissement */}
+            <Animated.View
+              entering={FadeInDown.delay(150).duration(300)}
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 22,
+                borderWidth: 1,
+                borderColor: selectedSchool
+                  ? 'rgba(16,185,129,0.3)'
+                  : theme.cardBorder,
+                padding: 16,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 9,
+                    backgroundColor: theme.primaryBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons
+                    name="business-outline"
+                    size={14}
+                    color={theme.primary}
+                  />
+                </View>
+                <Text
+                  style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
+                >
+                  Établissement
+                </Text>
+                <Text
+                  style={{
+                    color: theme.textMuted,
+                    fontSize: 12,
+                    marginLeft: 4,
+                  }}
+                >
+                  (optionnel)
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSchoolPickerVisible(true);
+                }}
+                activeOpacity={0.75}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  backgroundColor: theme.iconBg,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: selectedSchool
+                    ? 'rgba(16,185,129,0.25)'
+                    : theme.cardBorder,
+                  padding: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 11,
+                    backgroundColor: selectedSchool
+                      ? theme.greenBg
+                      : theme.primaryBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {selectedSchool ? (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={18}
+                      color={theme.green}
+                    />
+                  ) : (
+                    <Ionicons
+                      name="business-outline"
+                      size={18}
+                      color={theme.primary}
+                    />
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  {selectedSchool ? (
+                    <>
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontSize: 14,
+                          fontWeight: '700',
+                        }}
+                        numberOfLines={1}
+                      >
+                        {selectedSchool.name}
+                      </Text>
+                      <Text
+                        style={{
+                          color: theme.textMuted,
+                          fontSize: 12,
+                          marginTop: 2,
+                        }}
+                        numberOfLines={1}
+                      >
+                        {selectedSchool.city} · {selectedSchool.type}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text
+                        style={{
+                          color: theme.text,
+                          fontSize: 14,
+                          fontWeight: '600',
+                        }}
+                      >
+                        Rechercher l'école
+                      </Text>
+                      <Text
+                        style={{
+                          color: theme.textMuted,
+                          fontSize: 12,
+                          marginTop: 2,
+                        }}
+                      >
+                        L'établissement verra votre enfant automatiquement
+                      </Text>
+                    </>
+                  )}
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={theme.textMuted}
+                />
+              </TouchableOpacity>
+
+              {selectedSchool && (
+                <TouchableOpacity
+                  onPress={() => setSelectedSchool(null)}
+                  style={{ marginTop: 10, alignSelf: 'flex-start' }}
+                >
+                  <Text
+                    style={{
+                      color: theme.red,
+                      fontSize: 12,
+                      fontWeight: '600',
+                    }}
+                  >
+                    Retirer l'établissement
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </Animated.View>
+
+            {/* Notes médicales */}
+            <Animated.View
+              entering={FadeInDown.delay(180).duration(300)}
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 22,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+                padding: 16,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                  marginBottom: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 9,
+                    backgroundColor: theme.amberBg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons
+                    name="document-text-outline"
+                    size={14}
+                    color={theme.amber}
+                  />
+                </View>
+                <Text
+                  style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
+                >
+                  Notes médicales
+                </Text>
+              </View>
+              <InputField
+                label="Allergies, traitements, informations utiles"
+                value={form.medicalNotes}
+                onChangeText={setField('medicalNotes')}
+                placeholder="Optionnel"
+                multiline
+              />
+            </Animated.View>
+
+            {/* CTA */}
+            <Animated.View entering={FadeInDown.delay(240).duration(300)}>
+              <TouchableOpacity
+                onPress={handleSave}
+                disabled={isBusy}
+                style={{
+                  backgroundColor: theme.accent,
+                  borderRadius: 18,
+                  paddingVertical: 16,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  opacity: isBusy ? 0.6 : 1,
+                }}
+              >
+                {isBusy ? (
+                  <ActivityIndicator color="#fff" size="small" />
                 ) : (
                   <>
-                    <Text style={{ color: theme.text, fontSize: 14, fontWeight: '600' }}>
-                      Rechercher l'école
-                    </Text>
-                    <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
-                      L'établissement verra votre enfant automatiquement
+                    <Ionicons name="checkmark" size={18} color="#fff" />
+                    <Text
+                      style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
+                    >
+                      Enregistrer les modifications
                     </Text>
                   </>
                 )}
-              </View>
-              <ChevronRight size={16} color={theme.textMuted} strokeWidth={2} />
-            </TouchableOpacity>
-
-            {selectedSchool && (
-              <TouchableOpacity
-                onPress={() => setSelectedSchool(null)}
-                style={{ marginTop: 10, alignSelf: 'flex-start' }}
-              >
-                <Text style={{ color: theme.red, fontSize: 12, fontWeight: '600' }}>
-                  Retirer l'établissement
-                </Text>
               </TouchableOpacity>
-            )}
-          </Animated.View>
-
-          {/* Notes médicales */}
-          <Animated.View
-            entering={FadeInDown.delay(180).duration(300)}
-            style={{
-              backgroundColor: theme.card,
-              borderRadius: 22,
-              borderWidth: 1,
-              borderColor: theme.cardBorder,
-              padding: 16,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-                marginBottom: 14,
-              }}
-            >
-              <View
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 9,
-                  backgroundColor: theme.amberBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <FileText size={14} color={theme.amber} />
-              </View>
-              <Text
-                style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
-              >
-                Notes médicales
-              </Text>
-            </View>
-            <InputField
-              label="Allergies, traitements, informations utiles"
-              value={form.medicalNotes}
-              onChangeText={setField('medicalNotes')}
-              placeholder="Optionnel"
-              multiline
-            />
-          </Animated.View>
-
-          {/* CTA */}
-          <Animated.View entering={FadeInDown.delay(240).duration(300)}>
-            <TouchableOpacity
-              onPress={handleSave}
-              disabled={isBusy}
-              style={{
-                backgroundColor: theme.accent,
-                borderRadius: 18,
-                paddingVertical: 16,
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                opacity: isBusy ? 0.6 : 1,
-              }}
-            >
-              {isBusy ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <>
-                  <Check size={18} color="#fff" strokeWidth={2.5} />
-                  <Text
-                    style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
-                  >
-                    Enregistrer les modifications
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-            {updateChild.isError ? (
-              <Text
-                style={{
-                  color: theme.red,
-                  fontSize: 13,
-                  textAlign: 'center',
-                  marginTop: 8,
-                }}
-              >
-                Impossible d'enregistrer. Réessayez.
-              </Text>
-            ) : null}
-          </Animated.View>
-
-          {/* Zone dangereuse */}
-          {onDelete ? (
-            <Animated.View
-              entering={FadeInDown.delay(280).duration(300)}
-              style={{
-                backgroundColor: theme.card,
-                borderRadius: 18,
-                borderWidth: 1,
-                borderColor: 'rgba(239,68,68,0.2)',
-                overflow: 'hidden',
-              }}
-            >
-              <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 }}>
-                <Text style={{ color: theme.red, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>
-                  Zone dangereuse
+              {updateChild.isError ? (
+                <Text
+                  style={{
+                    color: theme.red,
+                    fontSize: 13,
+                    textAlign: 'center',
+                    marginTop: 8,
+                  }}
+                >
+                  Impossible d'enregistrer. Réessayez.
                 </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-                  Alert.alert(
-                    'Supprimer l\'enfant',
-                    `Voulez-vous vraiment supprimer ${child.first_name} ${child.last_name} ? Toutes les autorisations associées seront également supprimées. Cette action est irréversible.`,
-                    [
-                      { text: 'Annuler', style: 'cancel' },
-                      {
-                        text: 'Supprimer',
-                        style: 'destructive',
-                        onPress: () => onDelete(child.id),
-                      },
-                    ]
-                  );
-                }}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 10,
-                  paddingHorizontal: 16,
-                  paddingVertical: 14,
-                }}
-              >
-                <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: theme.redBg, alignItems: 'center', justifyContent: 'center' }}>
-                  <AlertCircle size={17} color={theme.red} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={{ color: theme.red, fontSize: 14, fontWeight: '700' }}>
-                    Supprimer l'enfant
-                  </Text>
-                  <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
-                    Supprime toutes les autorisations associées
-                  </Text>
-                </View>
-              </TouchableOpacity>
+              ) : null}
             </Animated.View>
-          ) : null}
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+
+            {/* Zone dangereuse */}
+            {onDelete ? (
+              <Animated.View
+                entering={FadeInDown.delay(280).duration(300)}
+                style={{
+                  backgroundColor: theme.card,
+                  borderRadius: 18,
+                  borderWidth: 1,
+                  borderColor: 'rgba(239,68,68,0.2)',
+                  overflow: 'hidden',
+                }}
+              >
+                <View
+                  style={{
+                    paddingHorizontal: 16,
+                    paddingTop: 14,
+                    paddingBottom: 4,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: theme.red,
+                      fontSize: 11,
+                      fontWeight: '700',
+                      letterSpacing: 1,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Zone dangereuse
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                    Alert.alert(
+                      "Supprimer l'enfant",
+                      `Voulez-vous vraiment supprimer ${child.first_name} ${child.last_name} ? Toutes les autorisations associées seront également supprimées. Cette action est irréversible.`,
+                      [
+                        { text: 'Annuler', style: 'cancel' },
+                        {
+                          text: 'Supprimer',
+                          style: 'destructive',
+                          onPress: () => onDelete(child.id),
+                        },
+                      ]
+                    );
+                  }}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    paddingHorizontal: 16,
+                    paddingVertical: 14,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 11,
+                      backgroundColor: theme.redBg,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={17}
+                      color={theme.red}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        color: theme.red,
+                        fontSize: 14,
+                        fontWeight: '700',
+                      }}
+                    >
+                      Supprimer l'enfant
+                    </Text>
+                    <Text
+                      style={{
+                        color: theme.textMuted,
+                        fontSize: 12,
+                        marginTop: 1,
+                      }}
+                    >
+                      Supprime toutes les autorisations associées
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+            ) : null}
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
     </>
   );
 });

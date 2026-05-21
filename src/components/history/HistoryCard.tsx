@@ -2,7 +2,7 @@ import React, { memo, useCallback } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { CheckCircle, XCircle, MinusCircle, Pin } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import type { HistoryEntry } from '@/features/parent/services/history.service';
 
@@ -14,19 +14,19 @@ interface Props {
 
 const STATUS_CFG = {
   completed: {
-    Icon: CheckCircle,
+    iconName: 'checkmark-circle' as const,
     color: '#10b981',
     bg: 'rgba(16,185,129,0.12)',
     label: 'Validé',
   },
   denied: {
-    Icon: XCircle,
+    iconName: 'close-circle' as const,
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.12)',
     label: 'Refusé',
   },
   cancelled: {
-    Icon: MinusCircle,
+    iconName: 'remove-circle' as const,
     color: '#f59e0b',
     bg: 'rgba(245,158,11,0.12)',
     label: 'Annulé',
@@ -40,7 +40,7 @@ export const HistoryCard = memo(function HistoryCard({
 }: Props) {
   const theme = useTheme();
   const cfg = STATUS_CFG[item.status] ?? STATUS_CFG.cancelled;
-  const { Icon } = cfg;
+  const { iconName } = cfg;
 
   const childName = item.child
     ? `${item.child.first_name} ${item.child.last_name}`
@@ -97,7 +97,7 @@ export const HistoryCard = memo(function HistoryCard({
                     justifyContent: 'center',
                   }}
                 >
-                  <Icon size={15} color={cfg.color} strokeWidth={2.5} />
+                  <Ionicons name={iconName} size={15} color={cfg.color} />
                 </View>
                 <Text
                   style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}
@@ -105,7 +105,7 @@ export const HistoryCard = memo(function HistoryCard({
                   {childName}
                 </Text>
                 {item.is_pinned ? (
-                  <Pin size={12} color={theme.accent} fill={theme.accent} />
+                  <Ionicons name="pin" size={12} color={theme.accent} />
                 ) : null}
               </View>
               <View

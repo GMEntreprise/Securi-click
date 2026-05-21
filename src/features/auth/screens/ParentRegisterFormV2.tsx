@@ -1,4 +1,4 @@
-import { ChevronRight, Mail, Phone } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo, useCallback } from 'react';
 import { Text, View } from 'react-native';
 import { useForm } from 'react-hook-form';
@@ -50,7 +50,14 @@ interface ParentRegisterFormV2Props {
 }
 
 export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
-  ({ onSubmit, isLoading, error, defaultEmail = '', onOpenLegal, onOpenPrivacy }) => {
+  ({
+    onSubmit,
+    isLoading,
+    error,
+    defaultEmail = '',
+    onOpenLegal,
+    onOpenPrivacy,
+  }) => {
     const t = useTheme();
     const {
       control,
@@ -155,7 +162,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
           name="email"
           label="Email"
           placeholder="jean.dupont@exemple.fr"
-          icon={<Mail size={18} color={t.textMuted} />}
+          icon={<Ionicons name="mail-outline" size={18} color={t.textMuted} />}
           error={errors.email?.message}
           keyboardType="email-address"
           autoCapitalize="none"
@@ -167,7 +174,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
           name="phone"
           label="Téléphone mobile"
           placeholder="06 12 34 56 78"
-          icon={<Phone size={18} color={t.textMuted} />}
+          icon={<Ionicons name="call-outline" size={18} color={t.textMuted} />}
           error={errors.phone?.message}
           keyboardType="phone-pad"
         />
@@ -230,7 +237,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
             onPress={handleSubmit(submit)}
             isLoading={isLoading}
             variant="accent"
-            icon={<ChevronRight size={18} color="#fff" strokeWidth={2.5} />}
+            icon={<Ionicons name="chevron-forward" size={18} color="#fff" />}
           >
             Suivant
           </AuthPrimaryButton>

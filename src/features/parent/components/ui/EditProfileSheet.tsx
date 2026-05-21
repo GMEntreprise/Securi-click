@@ -8,7 +8,7 @@ import { Toast } from '@/shared/ui/molecules/Toast';
 import { useTheme } from '@/theme';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as Haptics from 'expo-haptics';
-import { Check, Phone, User, X } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import React, { memo, useCallback, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import {
@@ -88,8 +88,6 @@ export const EditProfileSheet = memo(function EditProfileSheet({
     userId,
   });
 
-
-
   const profileForm = useForm<ProfileForm>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -129,14 +127,19 @@ export const EditProfileSheet = memo(function EditProfileSheet({
   );
 
   const upload = useCallback(
-    async (picker: () => Promise<{ signedUrl: string; filePath: string } | null>) => {
+    async (
+      picker: () => Promise<{ signedUrl: string; filePath: string } | null>
+    ) => {
       const result = await picker();
       if (!result) return;
       setAvatarUri(result.signedUrl);
       try {
         await updateAvatar.mutateAsync(result.signedUrl);
       } catch {
-        Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
+        Toast.show('Impossible de sauvegarder la photo. Réessayez.', {
+          type: 'error',
+          duration: 3000,
+        });
       }
     },
     [updateAvatar]
@@ -147,10 +150,12 @@ export const EditProfileSheet = memo(function EditProfileSheet({
     try {
       await updateAvatar.mutateAsync('');
     } catch {
-      Toast.show("Impossible de supprimer la photo. Réessayez.", { type: 'error', duration: 3000 });
+      Toast.show('Impossible de supprimer la photo. Réessayez.', {
+        type: 'error',
+        duration: 3000,
+      });
     }
   }, [updateAvatar]);
-
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -190,7 +195,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
             justifyContent: 'center',
           }}
         >
-          <X size={18} color={theme.textSecondary} />
+          <Ionicons name="close" size={18} color={theme.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -229,7 +234,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
               borderColor: theme.bg,
             }}
           >
-            <Check size={14} color="#fff" strokeWidth={2.5} />
+            <Ionicons name="checkmark" size={14} color="#fff" />
           </View>
         </TouchableOpacity>
         <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 12 }}>
@@ -301,7 +306,13 @@ export const EditProfileSheet = memo(function EditProfileSheet({
                 control={profileForm.control}
                 name="first_name"
                 label="Prénom"
-                icon={<User size={16} color={theme.textMuted} />}
+                icon={
+                  <Ionicons
+                    name="person-outline"
+                    size={16}
+                    color={theme.textMuted}
+                  />
+                }
                 placeholder="Votre prénom"
                 error={profileForm.formState.errors.first_name?.message}
               />
@@ -309,7 +320,13 @@ export const EditProfileSheet = memo(function EditProfileSheet({
                 control={profileForm.control}
                 name="last_name"
                 label="Nom"
-                icon={<User size={16} color={theme.textMuted} />}
+                icon={
+                  <Ionicons
+                    name="person-outline"
+                    size={16}
+                    color={theme.textMuted}
+                  />
+                }
                 placeholder="Votre nom"
                 error={profileForm.formState.errors.last_name?.message}
               />
@@ -317,7 +334,13 @@ export const EditProfileSheet = memo(function EditProfileSheet({
                 control={profileForm.control}
                 name="phone"
                 label="Téléphone"
-                icon={<Phone size={16} color={theme.textMuted} />}
+                icon={
+                  <Ionicons
+                    name="call-outline"
+                    size={16}
+                    color={theme.textMuted}
+                  />
+                }
                 placeholder="+33 6 00 00 00 00"
                 keyboardType="phone-pad"
                 error={profileForm.formState.errors.phone?.message}
@@ -419,7 +442,7 @@ const SaveButton = memo(function SaveButton({
         <ActivityIndicator color="#fff" size="small" />
       ) : (
         <>
-          <Check size={18} color="#fff" strokeWidth={2.5} />
+          <Ionicons name="checkmark" size={18} color="#fff" />
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
             {label}
           </Text>

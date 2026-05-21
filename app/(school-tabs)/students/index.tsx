@@ -11,7 +11,7 @@ import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { Search, Users, GraduationCap, User } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useMySchool } from '@/features/school/hooks/useSchool';
 import { useStudents } from '@/features/school/hooks/useStudents';
@@ -122,7 +122,7 @@ export default function StudentsScreen() {
             gap: 8,
           }}
         >
-          <Search size={16} color={theme.placeholder} />
+          <Ionicons name="search-outline" size={16} color={theme.placeholder} />
           <TextInput
             value={search}
             onChangeText={setSearch}
@@ -194,7 +194,7 @@ export default function StudentsScreen() {
               paddingBottom: 100,
             }}
           >
-            <Search size={40} color={theme.textMuted} strokeWidth={1.2} />
+            <Ionicons name="search-outline" size={40} color={theme.textMuted} />
             <Text
               style={{
                 color: theme.textMuted,
@@ -256,7 +256,7 @@ const StudentsEmptyState = memo(function StudentsEmptyState() {
           justifyContent: 'center',
         }}
       >
-        <GraduationCap size={40} color={theme.primary} strokeWidth={1.5} />
+        <Ionicons name="school-outline" size={40} color={theme.primary} />
       </View>
 
       <View style={{ alignItems: 'center', gap: 6 }}>
@@ -279,7 +279,8 @@ const StudentsEmptyState = memo(function StudentsEmptyState() {
             lineHeight: 20,
           }}
         >
-          Les élèves rattachés à votre établissement par les parents apparaîtront ici.
+          Les élèves rattachés à votre établissement par les parents
+          apparaîtront ici.
         </Text>
       </View>
 
@@ -295,11 +296,20 @@ const StudentsEmptyState = memo(function StudentsEmptyState() {
         }}
       >
         {[
-          { step: '1', label: 'Un parent crée son compte Securi\'Click.' },
-          { step: '2', label: 'Il ajoute son enfant et le rattache à votre établissement.' },
-          { step: '3', label: 'L\'élève apparaît automatiquement dans cette liste.' },
+          { step: '1', label: "Un parent crée son compte Securi'Click." },
+          {
+            step: '2',
+            label: 'Il ajoute son enfant et le rattache à votre établissement.',
+          },
+          {
+            step: '3',
+            label: "L'élève apparaît automatiquement dans cette liste.",
+          },
         ].map(({ step, label }) => (
-          <View key={step} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
+          <View
+            key={step}
+            style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}
+          >
             <View
               style={{
                 width: 24,
@@ -312,9 +322,24 @@ const StudentsEmptyState = memo(function StudentsEmptyState() {
                 marginTop: 1,
               }}
             >
-              <Text style={{ color: theme.primary, fontSize: 12, fontWeight: '800' }}>{step}</Text>
+              <Text
+                style={{
+                  color: theme.primary,
+                  fontSize: 12,
+                  fontWeight: '800',
+                }}
+              >
+                {step}
+              </Text>
             </View>
-            <Text style={{ color: theme.textSecondary, fontSize: 13, lineHeight: 20, flex: 1 }}>
+            <Text
+              style={{
+                color: theme.textSecondary,
+                fontSize: 13,
+                lineHeight: 20,
+                flex: 1,
+              }}
+            >
               {label}
             </Text>
           </View>
@@ -361,7 +386,7 @@ const StudentRow = memo(function StudentRow({ item }: { item: SchoolChild }) {
               marginTop: 2,
             }}
           >
-            <User size={11} color={theme.textMuted} />
+            <Ionicons name="person-outline" size={11} color={theme.textMuted} />
             <Text style={{ color: theme.textMuted, fontSize: 12 }}>
               {item.parent.first_name} {item.parent.last_name}
             </Text>
@@ -380,7 +405,7 @@ const StudentRow = memo(function StudentRow({ item }: { item: SchoolChild }) {
             borderRadius: 9,
           }}
         >
-          <GraduationCap size={12} color={theme.primary} />
+          <Ionicons name="school-outline" size={12} color={theme.primary} />
           <Text
             style={{ color: theme.primary, fontSize: 12, fontWeight: '700' }}
           >

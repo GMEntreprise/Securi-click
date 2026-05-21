@@ -21,16 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import QRCodeStyled from 'react-native-qrcode-styled';
-import {
-  Lock,
-  RefreshCw,
-  CheckCircle,
-  User,
-  ShieldCheck,
-  ChevronDown,
-  XCircle,
-  MinusCircle,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useChildren } from '@/features/parent/hooks/useChildren';
 import {
   useActiveQrCodes,
@@ -39,9 +30,21 @@ import {
 } from '@/features/parent/hooks/useQr';
 
 const STATUS_CFG = {
-  completed: { Icon: CheckCircle, color: '#10b981', label: 'Validé' },
-  denied: { Icon: XCircle, color: '#ef4444', label: 'Refusé' },
-  cancelled: { Icon: MinusCircle, color: '#f59e0b', label: 'Annulé' },
+  completed: {
+    iconName: 'checkmark-circle' as const,
+    color: '#10b981',
+    label: 'Validé',
+  },
+  denied: {
+    iconName: 'close-circle' as const,
+    color: '#ef4444',
+    label: 'Refusé',
+  },
+  cancelled: {
+    iconName: 'remove-circle' as const,
+    color: '#f59e0b',
+    label: 'Annulé',
+  },
 } as const;
 
 export default function QRScreen() {
@@ -81,7 +84,8 @@ export default function QRScreen() {
     const msLeft = new Date(activeQr.expires_at).getTime() - Date.now();
     if (msLeft <= 0) return 'Expiré';
     const hoursLeft = Math.floor(msLeft / 3600000);
-    if (hoursLeft < 24) return `${hoursLeft}h restante${hoursLeft > 1 ? 's' : ''}`;
+    if (hoursLeft < 24)
+      return `${hoursLeft}h restante${hoursLeft > 1 ? 's' : ''}`;
     const daysLeft = Math.floor(hoursLeft / 24);
     return `${daysLeft} jour${daysLeft > 1 ? 's' : ''} restant${daysLeft > 1 ? 's' : ''}`;
   }, [activeQr]);
@@ -124,11 +128,17 @@ export default function QRScreen() {
         onSuccess: () => {
           qrScale.value = withSpring(1);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          Toast.show('QR code généré avec succès', { type: 'success', duration: 2500 });
+          Toast.show('QR code généré avec succès', {
+            type: 'success',
+            duration: 2500,
+          });
         },
         onError: () => {
           qrScale.value = withSpring(1);
-          Toast.show('Impossible de générer le QR code', { type: 'error', duration: 3000 });
+          Toast.show('Impossible de générer le QR code', {
+            type: 'error',
+            duration: 3000,
+          });
         },
       }
     );
@@ -171,7 +181,7 @@ export default function QRScreen() {
             marginBottom: 16,
           }}
         >
-          <ShieldCheck size={13} color={theme.accent} strokeWidth={2.5} />
+          <Ionicons name="shield-checkmark" size={13} color={theme.accent} />
           <Text
             style={{
               color: theme.accent,
@@ -209,7 +219,7 @@ export default function QRScreen() {
                 ? `${activeChild.first_name} ${activeChild.last_name}`
                 : 'Choisir un enfant'}
             </Text>
-            <ChevronDown size={16} color={theme.textMuted} />
+            <Ionicons name="chevron-down" size={16} color={theme.textMuted} />
           </TouchableOpacity>
         ) : (
           <Text
@@ -270,7 +280,11 @@ export default function QRScreen() {
                     justifyContent: 'center',
                   }}
                 >
-                  <User size={15} color={theme.accent} />
+                  <Ionicons
+                    name="person-outline"
+                    size={15}
+                    color={theme.accent}
+                  />
                 </View>
                 <Text
                   style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
@@ -281,7 +295,6 @@ export default function QRScreen() {
             ))}
           </Animated.View>
         )}
-
       </Animated.View>
 
       {/* QR card */}
@@ -318,7 +331,11 @@ export default function QRScreen() {
             <View
               style={{ alignItems: 'center', gap: 10, paddingHorizontal: 20 }}
             >
-              <User size={32} color={theme.textMuted} strokeWidth={1.5} />
+              <Ionicons
+                name="person-outline"
+                size={32}
+                color={theme.textMuted}
+              />
               <Text
                 style={{
                   color: theme.textMuted,
@@ -348,7 +365,11 @@ export default function QRScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Lock size={28} color={theme.textMuted} />
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={28}
+                  color={theme.textMuted}
+                />
               </View>
               <Text
                 style={{
@@ -389,7 +410,7 @@ export default function QRScreen() {
               borderRadius: 20,
             }}
           >
-            <CheckCircle size={13} color="#10b981" strokeWidth={2.5} />
+            <Ionicons name="checkmark-circle" size={13} color="#10b981" />
             <Text style={{ color: '#10b981', fontSize: 12, fontWeight: '700' }}>
               Actif · {timeLeftLabel}
             </Text>
@@ -422,15 +443,19 @@ export default function QRScreen() {
             }}
           >
             {isGenerating ? (
-              <RefreshCw
+              <Ionicons
+                name="refresh-outline"
                 size={18}
                 color={unlocked ? '#fff' : theme.textMuted}
-                strokeWidth={2.5}
               />
             ) : unlocked ? (
-              <RefreshCw size={18} color="#fff" strokeWidth={2.5} />
+              <Ionicons name="refresh-outline" size={18} color="#fff" />
             ) : (
-              <Lock size={18} color={theme.textMuted} strokeWidth={2.5} />
+              <Ionicons
+                name="lock-closed-outline"
+                size={18}
+                color={theme.textMuted}
+              />
             )}
             <Text
               style={{
@@ -483,7 +508,7 @@ export default function QRScreen() {
           ) : (
             recentScans.map((scan, i) => {
               const cfg = STATUS_CFG[scan.status] ?? STATUS_CFG.completed;
-              const { Icon } = cfg;
+              const { iconName } = cfg;
               const guardianName = scan.guardian
                 ? `${scan.guardian.first_name} ${scan.guardian.last_name}`
                 : 'Inconnu';
@@ -519,7 +544,7 @@ export default function QRScreen() {
                       marginRight: 12,
                     }}
                   >
-                    <Icon size={16} color={cfg.color} strokeWidth={2.5} />
+                    <Ionicons name={iconName} size={16} color={cfg.color} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text

@@ -1,17 +1,28 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useSession } from '@/features/auth/store/auth.store';
-import { subscribeToTable, subscribeToTableMulti } from '@/lib/supabase/realtimeRegistry';
+import {
+  subscribeToTable,
+  subscribeToTableMulti,
+} from '@/lib/supabase/realtimeRegistry';
 import { collectorService } from '../services/collector.service';
 import type { CollectorGuardian, DocumentType } from '../types';
-import type { PendingInvite, CollectorQrCode, CollectorRecentScan } from '../services/collector.service';
+import type {
+  PendingInvite,
+  CollectorQrCode,
+  CollectorRecentScan,
+} from '../services/collector.service';
 
-export const GUARDIANS_KEY = (uid: string) => ['collector-guardians', uid] as const;
-export const IDENTITY_KEY = (uid: string) => ['collector-identity', uid] as const;
+export const GUARDIANS_KEY = (uid: string) =>
+  ['collector-guardians', uid] as const;
+export const IDENTITY_KEY = (uid: string) =>
+  ['collector-identity', uid] as const;
 export const LOGS_KEY = (uid: string) => ['collector-logs', uid] as const;
 export const PROFILE_KEY = (uid: string) => ['collector-profile', uid] as const;
-export const QR_KEY = (uid: string, childId?: string) => ['collector-qr', uid, childId ?? 'all'] as const;
-export const SCANS_KEY = (uid: string, childId?: string) => ['collector-scans', uid, childId ?? 'all'] as const;
+export const QR_KEY = (uid: string, childId?: string) =>
+  ['collector-qr', uid, childId ?? 'all'] as const;
+export const SCANS_KEY = (uid: string, childId?: string) =>
+  ['collector-scans', uid, childId ?? 'all'] as const;
 
 export function useMyGuardians() {
   const session = useSession();
@@ -30,29 +41,42 @@ export function useMyGuardians() {
 
     const unsub1 = subscribeToTableMulti(`collector-guardians-${uid}`, [
       {
-        config: { event: 'UPDATE', schema: 'public', table: 'guardians', filter: `collector_user_id=eq.${uid}` },
+        config: {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'guardians',
+          filter: `collector_user_id=eq.${uid}`,
+        },
         callback: payload => {
-          queryClient.setQueryData<CollectorGuardian[]>(GUARDIANS_KEY(uid), old => {
-            if (!old) return old;
-            return old.map(g =>
-              g.id === payload.new.id ? { ...g, ...(payload.new as Partial<CollectorGuardian>) } : g
-            );
-          });
+          queryClient.setQueryData<CollectorGuardian[]>(
+            GUARDIANS_KEY(uid),
+            old => {
+              if (!old) return old;
+              return old.map(g =>
+                g.id === payload.new.id
+                  ? { ...g, ...(payload.new as Partial<CollectorGuardian>) }
+                  : g
+              );
+            }
+          );
         },
       },
       {
-        config: { event: 'INSERT', schema: 'public', table: 'guardians', filter: `collector_user_id=eq.${uid}` },
-        callback: () => { queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) }); },
+        config: {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'guardians',
+          filter: `collector_user_id=eq.${uid}`,
+        },
+        callback: () => {
+          queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) });
+        },
       },
     ]);
 
-    const unsub2 = subscribeToTable(
-      `collector-children-${uid}`,
-      { event: 'UPDATE', schema: 'public', table: 'children' },
-      () => { queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) }); }
-    );
-
-    return () => { unsub1(); unsub2(); };
+    return () => {
+      unsub1();
+    };
   }, [uid, queryClient]);
 
   return query;
@@ -82,15 +106,6 @@ export function useMyPickupLogs() {
     staleTime: 30 * 1000,
   });
 
-  useEffect(() => {
-    if (!uid) return;
-    return subscribeToTable(
-      `collector-logs-${uid}`,
-      { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
-      () => { queryClient.invalidateQueries({ queryKey: LOGS_KEY(uid) }); }
-    );
-  }, [uid, queryClient]);
-
   return query;
 }
 
@@ -110,8 +125,15 @@ export function useCollectorProfile() {
     if (!uid) return;
     return subscribeToTable(
       `collector-profile-${uid}`,
-      { event: 'UPDATE', schema: 'public', table: 'user_profiles', filter: `user_id=eq.${uid}` },
-      () => { queryClient.invalidateQueries({ queryKey: PROFILE_KEY(uid) }); }
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'user_profiles',
+        filter: `user_id=eq.${uid}`,
+      },
+      () => {
+        queryClient.invalidateQueries({ queryKey: PROFILE_KEY(uid) });
+      }
     );
   }, [uid, queryClient]);
 
@@ -252,7 +274,9 @@ export function useAcceptInvite() {
     }) => collectorService.acceptInvite(token, accessCode),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(uid) });
-      queryClient.invalidateQueries({ queryKey: ['collector-pending-invites', email] });
+      queryClient.invalidateQueries({
+        queryKey: ['collector-pending-invites', email],
+      });
     },
   });
 }
@@ -270,15 +294,6 @@ export function useCollectorQrCode(childId?: string) {
     enabled: !!uid,
     staleTime: 30 * 1000,
   });
-
-  useEffect(() => {
-    if (!uid) return;
-    return subscribeToTable(
-      `collector-qr-${uid}`,
-      { event: '*', schema: 'public', table: 'qr_codes' },
-      () => { queryClient.invalidateQueries({ queryKey: QR_KEY(uid, childId) }); }
-    );
-  }, [uid, childId, queryClient]);
 
   return query;
 }
@@ -300,7 +315,9 @@ export function useCollectorRecentScans(childId?: string) {
     return subscribeToTable(
       `collector-scans-${uid}`,
       { event: 'INSERT', schema: 'public', table: 'pickup_logs' },
-      () => { queryClient.invalidateQueries({ queryKey: SCANS_KEY(uid, childId) }); }
+      () => {
+        queryClient.invalidateQueries({ queryKey: SCANS_KEY(uid, childId) });
+      }
     );
   }, [uid, childId, queryClient]);
 
@@ -313,8 +330,13 @@ export function useCollectorGenerateQr() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ childId, guardianId }: { childId: string; guardianId: string }) =>
-      collectorService.generateCollectorQrCode(uid, childId, guardianId),
+    mutationFn: ({
+      childId,
+      guardianId,
+    }: {
+      childId: string;
+      guardianId: string;
+    }) => collectorService.generateCollectorQrCode(uid, childId, guardianId),
     onSuccess: (_data, { childId }) => {
       queryClient.invalidateQueries({ queryKey: QR_KEY(uid, childId) });
       queryClient.invalidateQueries({ queryKey: QR_KEY(uid) });

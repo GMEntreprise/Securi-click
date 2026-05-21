@@ -1,4 +1,9 @@
-import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useState,
+} from 'react';
 import {
   View,
   Text,
@@ -18,13 +23,7 @@ import { z } from 'zod';
 import { useQuery } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import {
-  User,
-  Phone,
-  Mail,
-  Check,
-  Trash2,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSection';
@@ -68,7 +67,10 @@ export default function GuardianDetailScreen() {
   const navigation = useNavigation();
   const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
-  const { id, childId } = useLocalSearchParams<{ id: string; childId: string }>();
+  const { id, childId } = useLocalSearchParams<{
+    id: string;
+    childId: string;
+  }>();
 
   const { data: guardian, isLoading } = useQuery({
     queryKey: ['guardian', id],
@@ -143,16 +145,22 @@ export default function GuardianDetailScreen() {
         });
 
         if (usePinCode && data.access_code?.trim()) {
-          const { error: rpcError } = await supabase.rpc('update_guardian_pin', {
-            p_guardian_id: id,
-            p_access_code: data.access_code.trim(),
-          });
+          const { error: rpcError } = await supabase.rpc(
+            'update_guardian_pin',
+            {
+              p_guardian_id: id,
+              p_access_code: data.access_code.trim(),
+            }
+          );
           if (rpcError) throw new Error(rpcError.message);
         } else if (!usePinCode) {
-          const { error: rpcError } = await supabase.rpc('update_guardian_pin', {
-            p_guardian_id: id,
-            p_access_code: null,
-          });
+          const { error: rpcError } = await supabase.rpc(
+            'update_guardian_pin',
+            {
+              p_guardian_id: id,
+              p_access_code: null,
+            }
+          );
           if (rpcError) throw new Error(rpcError.message);
         }
 
@@ -165,11 +173,14 @@ export default function GuardianDetailScreen() {
     [id, updateGuardian, usePinCode, router]
   );
 
-  const handleToggle = useCallback((nextValue: boolean) => {
-    if (!id || !guardian) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    toggleGuardian.mutate({ guardianId: id, isActive: nextValue });
-  }, [id, guardian, toggleGuardian]);
+  const handleToggle = useCallback(
+    (nextValue: boolean) => {
+      if (!id || !guardian) return;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      toggleGuardian.mutate({ guardianId: id, isActive: nextValue });
+    },
+    [id, guardian, toggleGuardian]
+  );
 
   const handleDelete = useCallback(() => {
     if (!id || !guardian) return;
@@ -229,7 +240,10 @@ export default function GuardianDetailScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={{ padding: 20, paddingBottom: tabBarHeight + 120 }}
+        contentContainerStyle={{
+          padding: 20,
+          paddingBottom: tabBarHeight + 120,
+        }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -237,7 +251,9 @@ export default function GuardianDetailScreen() {
           <Animated.View
             entering={FadeInDown.delay(60).duration(300)}
             style={{
-              backgroundColor: guardian.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.10)',
+              backgroundColor: guardian.is_active
+                ? 'rgba(16,185,129,0.12)'
+                : 'rgba(239,68,68,0.10)',
               borderRadius: 14,
               padding: 12,
               marginBottom: 20,
@@ -273,7 +289,13 @@ export default function GuardianDetailScreen() {
             control={control}
             name="first_name"
             label="Prénom"
-            icon={<User size={16} color={theme.textMuted} />}
+            icon={
+              <Ionicons
+                name="person-outline"
+                size={16}
+                color={theme.textMuted}
+              />
+            }
             placeholder="Ex. Jean"
             error={errors.first_name?.message}
           />
@@ -281,7 +303,13 @@ export default function GuardianDetailScreen() {
             control={control}
             name="last_name"
             label="Nom"
-            icon={<User size={16} color={theme.textMuted} />}
+            icon={
+              <Ionicons
+                name="person-outline"
+                size={16}
+                color={theme.textMuted}
+              />
+            }
             placeholder="Ex. Dupont"
             error={errors.last_name?.message}
           />
@@ -289,7 +317,9 @@ export default function GuardianDetailScreen() {
             control={control}
             name="email"
             label="Email"
-            icon={<Mail size={16} color={theme.textMuted} />}
+            icon={
+              <Ionicons name="mail-outline" size={16} color={theme.textMuted} />
+            }
             placeholder="collecteur@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -300,7 +330,9 @@ export default function GuardianDetailScreen() {
             control={control}
             name="phone"
             label="Téléphone (optionnel)"
-            icon={<Phone size={16} color={theme.textMuted} />}
+            icon={
+              <Ionicons name="call-outline" size={16} color={theme.textMuted} />
+            }
             placeholder="+33 6 00 00 00 00"
             keyboardType="phone-pad"
             error={errors.phone?.message}
@@ -413,13 +445,22 @@ export default function GuardianDetailScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Trash2 size={18} color={theme.red} />
+              <Ionicons name="trash-outline" size={18} color={theme.red} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: theme.red, fontWeight: '700', fontSize: 14 }}>
+              <Text
+                style={{ color: theme.red, fontWeight: '700', fontSize: 14 }}
+              >
                 Supprimer l'autorisation
               </Text>
-              <Text style={{ color: theme.red, fontSize: 12, opacity: 0.7, marginTop: 2 }}>
+              <Text
+                style={{
+                  color: theme.red,
+                  fontSize: 12,
+                  opacity: 0.7,
+                  marginTop: 2,
+                }}
+              >
                 Cette personne ne pourra plus récupérer l'enfant.
               </Text>
             </View>
@@ -451,14 +492,19 @@ export default function GuardianDetailScreen() {
             opacity: isSaving ? 0.6 : 1,
           }}
         >
-          <Check size={18} color="#fff" strokeWidth={2.5} />
+          <Ionicons name="checkmark" size={18} color="#fff" />
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
             {isSaving ? 'Enregistrement…' : 'Enregistrer les modifications'}
           </Text>
         </TouchableOpacity>
         {updateGuardian.isError ? (
           <Text
-            style={{ color: theme.red, fontSize: 13, textAlign: 'center', marginTop: 8 }}
+            style={{
+              color: theme.red,
+              fontSize: 13,
+              textAlign: 'center',
+              marginTop: 8,
+            }}
           >
             Une erreur est survenue. Réessayez.
           </Text>
