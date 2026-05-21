@@ -1,31 +1,28 @@
+import { useEffect } from 'react';
 import { Redirect } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import {
   useIsAuthenticated,
   useIsRestoring,
   useUserRole,
 } from '@/features/auth/store/auth.store';
-import { View, ActivityIndicator } from 'react-native';
-import { useTheme } from '@/theme';
+import { SplashAnimationScreen } from '@/features/onboarding/components/SplashAnimationScreen';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function Index() {
   const isAuthenticated = useIsAuthenticated();
   const isRestoring = useIsRestoring();
   const role = useUserRole();
-  const theme = useTheme();
+
+  useEffect(() => {
+    if (!isRestoring) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [isRestoring]);
 
   if (isRestoring) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: theme.bg,
-        }}
-      >
-        <ActivityIndicator size="large" color={theme.accent} />
-      </View>
-    );
+    return <SplashAnimationScreen />;
   }
 
   if (isAuthenticated) {
