@@ -12,7 +12,7 @@ const SCHOOL_SELECT =
   'id, name, type, email, phone, address, city, postal_code, manager_first_name, manager_last_name, manager_function, admin_user_id, logo_url, opening_hours, slug, is_active, verified, external_id, created_at, updated_at';
 
 const CHILD_SELECT =
-  'id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, parent:user_profiles!children_parent_id_fkey(first_name, last_name, phone)';
+  'id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, parent:user_profiles!children_parent_id_user_profiles_fkey(first_name, last_name, phone)';
 
 const VALIDATION_SELECT =
   'id, school_id, child_id, guardian_id, qr_code_id, scanner_user_id, status, refusal_reason, scanned_at, meta, created_at, child:children(id, first_name, last_name, photo_url, class_name), guardian:guardians(id, first_name, last_name, phone, photo_url, relationship, identity_status)';
