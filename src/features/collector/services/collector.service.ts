@@ -14,7 +14,11 @@ export interface CollectorQrCode {
   expires_at: string;
   is_used: boolean;
   created_at: string;
-  child?: { first_name: string; last_name: string; photo_url: string | null } | null;
+  child?: {
+    first_name: string;
+    last_name: string;
+    photo_url: string | null;
+  } | null;
 }
 
 export interface CollectorRecentScan {
@@ -25,7 +29,11 @@ export interface CollectorRecentScan {
   status: 'completed' | 'denied' | 'cancelled';
   denial_reason: string | null;
   child?: { first_name: string; last_name: string } | null;
-  guardian?: { first_name: string; last_name: string; relationship: string } | null;
+  guardian?: {
+    first_name: string;
+    last_name: string;
+    relationship: string;
+  } | null;
 }
 
 const GUARDIAN_SELECT = `
@@ -219,12 +227,15 @@ export const collectorService = {
 
   async uploadAvatar(userId: string, uri: string): Promise<string> {
     const ALLOWED: Record<string, string> = {
-      jpg: 'image/jpeg', jpeg: 'image/jpeg',
-      png: 'image/png', webp: 'image/webp',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      png: 'image/png',
+      webp: 'image/webp',
     };
     const rawExt = (uri.split('?')[0].split('.').pop() ?? '').toLowerCase();
     const contentType = ALLOWED[rawExt];
-    if (!contentType) throw new Error('Format image non supporté. Utilisez JPG, PNG ou WebP.');
+    if (!contentType)
+      throw new Error('Format image non supporté. Utilisez JPG, PNG ou WebP.');
     const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
     const path = `${userId}/avatar.${ext}`;
     const response = await fetch(uri);
@@ -272,7 +283,9 @@ export const collectorService = {
 
     const { data, error } = await supabase
       .from('qr_codes')
-      .select('id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children!qr_codes_child_id_fkey(first_name, last_name, photo_url)')
+      .select(
+        'id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children!qr_codes_child_id_fkey(first_name, last_name, photo_url)'
+      )
       .in('guardian_id', guardianIds)
       .eq('child_id', targetChildId)
       .eq('is_used', false)
@@ -300,7 +313,9 @@ export const collectorService = {
 
     let q = supabase
       .from('pickup_logs')
-      .select('id, child_id, guardian_id, pickup_time, status, denial_reason, child:children!pickup_logs_child_id_fkey(first_name, last_name), guardian:guardians!pickup_logs_guardian_id_fkey(first_name, last_name, relationship)')
+      .select(
+        'id, child_id, guardian_id, pickup_time, status, denial_reason, child:children!pickup_logs_child_id_fkey(first_name, last_name), guardian:guardians!pickup_logs_guardian_id_fkey(first_name, last_name, relationship)'
+      )
       .in('guardian_id', guardianIds)
       .order('pickup_time', { ascending: false })
       .limit(limit);
@@ -313,23 +328,13 @@ export const collectorService = {
   },
 
   async generateCollectorQrCode(
-    collectorUserId: string,
+    _collectorUserId: string,
     childId: string,
     guardianId: string
   ): Promise<CollectorQrCode> {
-    // Find the parent_id via the guardian record to call the RPC correctly
-    const { data: guardian, error: gErr } = await supabase
-      .from('guardians')
-      .select('parent_id')
-      .eq('id', guardianId)
-      .eq('collector_user_id', collectorUserId)
-      .single();
-    if (gErr) throw gErr;
-
-    const { data, error } = await supabase.rpc('generate_qr_code', {
-      p_parent_id: guardian.parent_id,
-      p_child_id: childId,
+    const { data, error } = await supabase.rpc('generate_collector_qr_code', {
       p_guardian_id: guardianId,
+      p_child_id: childId,
       p_expires_in_hours: 24,
     });
     if (error) throw error;
@@ -337,7 +342,9 @@ export const collectorService = {
     const qrId = data as string;
     const { data: qr, error: fetchErr } = await supabase
       .from('qr_codes')
-      .select('id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children!qr_codes_child_id_fkey(first_name, last_name, photo_url)')
+      .select(
+        'id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children!qr_codes_child_id_fkey(first_name, last_name, photo_url)'
+      )
       .eq('id', qrId)
       .single();
     if (fetchErr) throw fetchErr;
