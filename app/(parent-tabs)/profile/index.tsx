@@ -10,20 +10,8 @@ import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { useTheme } from '@/theme';
 import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
-import {
-  Bell,
-  ChevronRight,
-  FileText,
-  HelpCircle,
-  Lock,
-  LogOut,
-  Moon,
-  Pencil,
-  Shield,
-  Smartphone,
-  User,
-} from 'lucide-react-native';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
@@ -124,7 +112,7 @@ const SettingRow = React.memo(function SettingRow({
           ios_backgroundColor={theme.switchTrackOff}
         />
       ) : (
-        <ChevronRight size={16} color={theme.textMuted} />
+        <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
       )}
     </TouchableOpacity>
   );
@@ -183,6 +171,7 @@ export default function ProfileScreen() {
   const lastName = profile?.last_name ?? session?.user.profile?.last_name ?? '';
   const email = session?.user.email ?? '';
   const phone = profile?.phone ?? session?.user.profile?.phone ?? '';
+
   const handleBiometricToggle = useCallback(async (value: boolean) => {
     if (value) await enableBiometric();
     else await disableBiometric();
@@ -229,14 +218,14 @@ export default function ProfileScreen() {
         title: 'Compte',
         items: [
           {
-            icon: <User size={16} color={theme.primary} strokeWidth={2.5} />,
+            icon: <Ionicons name="person-outline" size={16} color={theme.primary} />,
             iconBg: theme.primaryBg,
             title: 'Informations personnelles',
             subtitle: 'Nom, email, téléphone',
             onPress: () => setEditSheetVisible(true),
           },
           {
-            icon: <Shield size={16} color={theme.accent} strokeWidth={2.5} />,
+            icon: <Ionicons name="shield-checkmark-outline" size={16} color={theme.accent} />,
             iconBg: theme.accentBg,
             title: 'Sécurité',
             subtitle: 'Biométrie, verrouillage',
@@ -248,9 +237,7 @@ export default function ProfileScreen() {
         title: 'Préférences',
         items: [
           {
-            icon: (
-              <Moon size={16} color={theme.textSecondary} strokeWidth={2.5} />
-            ),
+            icon: <Ionicons name="moon-outline" size={16} color={theme.textSecondary} />,
             iconBg: theme.iconBg,
             title: 'Mode sombre',
             subtitle: isDark ? 'Activé' : 'Désactivé',
@@ -258,14 +245,14 @@ export default function ProfileScreen() {
             onPress: () => {},
           },
           {
-            icon: <Bell size={16} color={theme.green} strokeWidth={2.5} />,
+            icon: <Ionicons name="notifications-outline" size={16} color={theme.green} />,
             iconBg: theme.greenBg,
             title: 'Notifications',
             subtitle: 'Voir mes notifications',
             onPress: () => nav.goToParentNotifications(),
           },
           {
-            icon: <Smartphone size={16} color="#6366f1" strokeWidth={2.5} />,
+            icon: <Ionicons name="phone-portrait-outline" size={16} color="#6366f1" />,
             iconBg: 'rgba(99,102,241,0.1)',
             title: 'Authentification biométrique',
             subtitle: biometricEnabled ? 'Activée' : 'Désactivée',
@@ -281,23 +268,19 @@ export default function ProfileScreen() {
         title: 'Support',
         items: [
           {
-            icon: (
-              <HelpCircle size={16} color={theme.amber} strokeWidth={2.5} />
-            ),
+            icon: <Ionicons name="help-circle-outline" size={16} color={theme.amber} />,
             iconBg: theme.amberBg,
             title: 'Aide & FAQ',
             onPress: () => nav.goToParentFaq(),
           },
           {
-            icon: (
-              <FileText size={16} color={theme.textMuted} strokeWidth={2.5} />
-            ),
+            icon: <Ionicons name="document-text-outline" size={16} color={theme.textMuted} />,
             iconBg: theme.iconBg,
             title: 'Mentions légales',
             onPress: () => nav.goToParentLegalMentions(),
           },
           {
-            icon: <Lock size={16} color={theme.textMuted} strokeWidth={2.5} />,
+            icon: <Ionicons name="lock-closed-outline" size={16} color={theme.textMuted} />,
             iconBg: theme.iconBg,
             title: 'Politique de confidentialité',
             onPress: () => nav.goToParentPrivacyPolicy(),
@@ -368,7 +351,7 @@ export default function ProfileScreen() {
                     borderColor: theme.card,
                   }}
                 >
-                  <Pencil size={10} color="#fff" strokeWidth={2.5} />
+                  <Ionicons name="pencil-outline" size={10} color="#fff" />
                 </View>
               </TouchableOpacity>
               <View style={{ flex: 1 }}>
@@ -416,7 +399,7 @@ export default function ProfileScreen() {
                 gap: 6,
               }}
             >
-              <Pencil size={14} color={theme.textSecondary} strokeWidth={2.5} />
+              <Ionicons name="pencil-outline" size={14} color={theme.textSecondary} />
               <Text
                 style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
               >
@@ -484,7 +467,7 @@ export default function ProfileScreen() {
                 gap: 8,
               }}
             >
-              <LogOut size={18} color={theme.red} strokeWidth={2.5} />
+              <Ionicons name="log-out-outline" size={18} color={theme.red} />
               <Text
                 style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}
               >
@@ -495,7 +478,6 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      {/* Edit Profile Modal Sheet */}
       <Modal
         visible={editSheetVisible}
         animationType="slide"

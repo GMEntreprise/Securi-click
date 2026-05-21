@@ -11,20 +11,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import {
-  Bell,
-  Building2,
-  ChevronRight,
-  FileText,
-  HelpCircle,
-  Lock,
-  LogOut,
-  Mail,
-  MapPin,
-  Pencil,
-  Phone,
-  Shield,
-} from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
 import { useTheme } from '@/theme';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
@@ -143,7 +130,7 @@ export default function SchoolProfileScreen() {
                 borderColor: theme.bg,
               }}
             >
-              <Pencil size={12} color="#fff" strokeWidth={2.5} />
+              <Ionicons name="pencil-outline" size={12} color="#fff" />
             </View>
           </TouchableOpacity>
 
@@ -186,7 +173,7 @@ export default function SchoolProfileScreen() {
               gap: 6,
             }}
           >
-            <Pencil size={13} color={theme.textSecondary} strokeWidth={2.5} />
+            <Ionicons name="pencil-outline" size={13} color={theme.textSecondary} />
             <Text
               style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
             >
@@ -210,22 +197,22 @@ export default function SchoolProfileScreen() {
             }}
           >
             <InfoRow
-              icon={<Building2 size={15} color={theme.textMuted} />}
+              iconName="business-outline"
               label="Responsable"
               value={`${school?.manager_first_name ?? ''} ${school?.manager_last_name ?? ''}`.trim()}
             />
             <InfoRow
-              icon={<Mail size={15} color={theme.textMuted} />}
+              iconName="mail-outline"
               label="Email"
               value={school?.email ?? '—'}
             />
             <InfoRow
-              icon={<Phone size={15} color={theme.textMuted} />}
+              iconName="call-outline"
               label="Téléphone"
               value={school?.phone ?? '—'}
             />
             <InfoRow
-              icon={<MapPin size={15} color={theme.textMuted} />}
+              iconName="location-outline"
               label="Adresse"
               value={
                 school
@@ -265,7 +252,7 @@ export default function SchoolProfileScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Bell size={18} color={theme.green} />
+              <Ionicons name="notifications-outline" size={18} color={theme.green} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
@@ -292,7 +279,7 @@ export default function SchoolProfileScreen() {
                 </Text>
               </View>
             )}
-            <ChevronRight size={16} color={theme.textMuted} />
+            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -324,7 +311,7 @@ export default function SchoolProfileScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Shield size={18} color={theme.accent} strokeWidth={2.5} />
+              <Ionicons name="shield-checkmark-outline" size={18} color={theme.accent} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
@@ -334,7 +321,7 @@ export default function SchoolProfileScreen() {
                 Biométrie, verrouillage
               </Text>
             </View>
-            <ChevronRight size={16} color={theme.textMuted} />
+            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -373,12 +360,12 @@ export default function SchoolProfileScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <HelpCircle size={16} color={theme.amber} strokeWidth={2.5} />
+                <Ionicons name="help-circle-outline" size={16} color={theme.amber} />
               </View>
               <Text style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}>
                 Aide & FAQ
               </Text>
-              <ChevronRight size={16} color={theme.textMuted} />
+              <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => nav.goToSchoolLegalMentions()}
@@ -401,12 +388,12 @@ export default function SchoolProfileScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <FileText size={16} color={theme.textMuted} strokeWidth={2.5} />
+                <Ionicons name="document-text-outline" size={16} color={theme.textMuted} />
               </View>
               <Text style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}>
                 Mentions légales
               </Text>
-              <ChevronRight size={16} color={theme.textMuted} />
+              <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => nav.goToSchoolPrivacyPolicy()}
@@ -427,12 +414,12 @@ export default function SchoolProfileScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Lock size={16} color={theme.textMuted} strokeWidth={2.5} />
+                <Ionicons name="lock-closed-outline" size={16} color={theme.textMuted} />
               </View>
               <Text style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}>
                 Politique de confidentialité
               </Text>
-              <ChevronRight size={16} color={theme.textMuted} />
+              <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -451,7 +438,7 @@ export default function SchoolProfileScreen() {
               gap: 10,
             }}
           >
-            <LogOut size={18} color={theme.red} strokeWidth={2.5} />
+            <Ionicons name="log-out-outline" size={18} color={theme.red} />
             <Text style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}>
               Se déconnecter
             </Text>
@@ -479,12 +466,12 @@ export default function SchoolProfileScreen() {
 }
 
 function InfoRow({
-  icon,
+  iconName,
   label,
   value,
   isLast = false,
 }: {
-  icon: React.ReactNode;
+  iconName: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
   value: string;
   isLast?: boolean;
@@ -502,7 +489,7 @@ function InfoRow({
         borderBottomColor: theme.separator,
       }}
     >
-      {icon}
+      <Ionicons name={iconName} size={15} color={theme.textMuted} />
       <View style={{ flex: 1 }}>
         <Text
           style={{ color: theme.textMuted, fontSize: 11, fontWeight: '600' }}
