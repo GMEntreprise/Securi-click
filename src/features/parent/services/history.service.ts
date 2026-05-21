@@ -12,10 +12,9 @@ export interface HistoryEntry {
   qr_jti: string | null;
   status: HistoryStatus;
   scanned_at: string;
+  pickup_time: string | null;
   created_at: string;
-  validated_at: string | null;
   denial_reason: string | null;
-  notes: Record<string, unknown>;
   is_pinned: boolean;
   is_archived: boolean;
   archived_at: string | null;
@@ -33,9 +32,8 @@ export interface HistoryEntry {
 }
 
 export interface HistoryDetail extends HistoryEntry {
-  device_info: Record<string, unknown>;
+  device_info: Record<string, unknown> | null;
   school: { name: string; address: string; city: string } | null;
-  staff: { first_name: string; last_name: string } | null;
 }
 
 export interface HistoryFilters {
@@ -55,6 +53,7 @@ export interface HistoryPage {
   total: number;
 }
 
+// Colonnes réelles de pickup_history + jointures valides via FK explicites
 const HISTORY_SELECT = `
   id,
   child_id,
@@ -65,16 +64,15 @@ const HISTORY_SELECT = `
   qr_jti,
   status,
   scanned_at,
+  pickup_time,
   created_at,
-  validated_at,
   denial_reason,
-  notes,
   is_pinned,
   is_archived,
   archived_at,
-  child:children(first_name, last_name, photo_url),
-  guardian:guardians(first_name, last_name, relationship, photo_url)
-`;
+  child:children!pickup_history_child_id_fkey(first_name, last_name, photo_url),
+  guardian:guardians!pickup_history_collector_id_fkey(first_name, last_name, relationship, photo_url)
+`.trim();
 
 const HISTORY_DETAIL_SELECT = `
   id,
@@ -86,19 +84,17 @@ const HISTORY_DETAIL_SELECT = `
   qr_jti,
   status,
   scanned_at,
+  pickup_time,
   created_at,
-  validated_at,
   denial_reason,
-  notes,
   device_info,
   is_pinned,
   is_archived,
   archived_at,
-  child:children(first_name, last_name, photo_url),
-  guardian:guardians(first_name, last_name, relationship, photo_url),
-  school:schools(name, address, city),
-  staff:user_profiles!pickup_history_staff_id_fkey(first_name, last_name)
-`;
+  child:children!pickup_history_child_id_fkey(first_name, last_name, photo_url),
+  guardian:guardians!pickup_history_collector_id_fkey(first_name, last_name, relationship, photo_url),
+  school:schools!pickup_history_school_id_fkey(name, address, city)
+`.trim();
 
 export const historyService = {
   async fetchPage(

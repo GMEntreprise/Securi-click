@@ -586,7 +586,11 @@ export default function CollectorsScreen() {
   const childrenCount = children?.length ?? 0;
 
   const [childrenSheetVisible, setChildrenSheetVisible] = useState(false);
-  const [editingChild, setEditingChild] = useState<Child | null>(null);
+  const [editingChildId, setEditingChildId] = useState<string | null>(null);
+  const editingChild = useMemo(
+    () => (editingChildId ? (children ?? []).find(c => c.id === editingChildId) ?? null : null),
+    [editingChildId, children]
+  );
 
   const { pendingOpen, consume } = useChildrenSheetStore();
 
@@ -605,13 +609,13 @@ export default function CollectorsScreen() {
   // Clic sur un enfant dans la sheet liste → ouvre EditChildSheet
   const handleSelectChild = useCallback((child: Child) => {
     setChildrenSheetVisible(false);
-    setTimeout(() => setEditingChild(child), 300);
+    setTimeout(() => setEditingChildId(child.id), 300);
   }, []);
 
   // Clic sur un enfant dans la section guardians → ouvre EditChildSheet
   const handleChildSectionPress = useCallback((child: Child) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setEditingChild(child);
+    setEditingChildId(child.id);
   }, []);
 
   const handleAddChildFromSheet = useCallback(() => {
@@ -624,7 +628,7 @@ export default function CollectorsScreen() {
       const child = children?.find(c => c.id === childId);
       deleteChild.mutate(childId, {
         onSuccess: () => {
-          setEditingChild(null);
+          setEditingChildId(null);
           Toast.show(`${child?.first_name ?? 'L\'enfant'} a été supprimé(e)`, {
             type: 'success',
             duration: 3000,
@@ -810,12 +814,13 @@ export default function CollectorsScreen() {
         visible={editingChild !== null}
         animationType="slide"
         presentationStyle="pageSheet"
-        onRequestClose={() => setEditingChild(null)}
+        onRequestClose={() => setEditingChildId(null)}
       >
         {editingChild ? (
           <EditChildSheet
+            key={`${editingChild.id}-${editingChild.updated_at}`}
             child={editingChild}
-            onClose={() => setEditingChild(null)}
+            onClose={() => setEditingChildId(null)}
             onDelete={handleDeleteChild}
           />
         ) : null}

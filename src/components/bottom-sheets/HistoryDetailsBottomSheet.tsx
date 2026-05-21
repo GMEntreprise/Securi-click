@@ -349,18 +349,6 @@ export const HistoryDetailsBottomSheet = memo(
                       />
                     </>
                   )}
-                  {detail.staff && (
-                    <>
-                      <View
-                        style={{ height: 1, backgroundColor: theme.separator }}
-                      />
-                      <InfoRow
-                        icon={<User size={15} color={theme.textMuted} />}
-                        label="Validé par"
-                        value={`${detail.staff.first_name} ${detail.staff.last_name}`}
-                      />
-                    </>
-                  )}
                   <View
                     style={{ height: 1, backgroundColor: theme.separator }}
                   />

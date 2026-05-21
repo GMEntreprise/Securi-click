@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useSession } from '@/features/auth/store/auth.store';
 import { schoolService } from '../services/school.service';
 import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
-import type { PickupValidation } from '../types';
 
 export const VALIDATIONS_KEY = (schoolId: string) =>
   ['school', 'validations', schoolId] as const;
@@ -28,14 +27,8 @@ export function usePickupValidations(schoolId: string) {
     return subscribeToTable(
       `school-validations-${schoolId}`,
       { event: 'INSERT', schema: 'public', table: 'pickup_validations', filter: `school_id=eq.${schoolId}` },
-      payload => {
-        queryClient.setQueryData<PickupValidation[]>(
-          VALIDATIONS_KEY(schoolId),
-          old => {
-            if (!old) return old;
-            return [payload.new as PickupValidation, ...old].slice(0, 30);
-          }
-        );
+      () => {
+        queryClient.invalidateQueries({ queryKey: VALIDATIONS_KEY(schoolId) });
         queryClient.invalidateQueries({ queryKey: DASHBOARD_KEY(schoolId) });
         queryClient.invalidateQueries({ queryKey: TODAY_VALIDATIONS_KEY(schoolId) });
       }

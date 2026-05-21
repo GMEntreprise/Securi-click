@@ -86,24 +86,28 @@ export const parentService = {
         photo_url: payload.photo_url ?? null,
         medical_notes: payload.medical_notes ?? null,
       })
-      .select()
+      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )')
       .single();
     if (error) throw error;
-    return data as Child;
+    return data as unknown as Child;
   },
 
   async updateChild(
     childId: string,
     payload: Partial<AddChildPayload>
   ): Promise<Child> {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('children')
       .update({ ...payload, updated_at: new Date().toISOString() })
-      .eq('id', childId)
-      .select()
-      .single();
+      .eq('id', childId);
     if (error) throw error;
-    return data as Child;
+    const { data, error: fetchError } = await supabase
+      .from('children')
+      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )')
+      .eq('id', childId)
+      .single();
+    if (fetchError) throw fetchError;
+    return data as unknown as Child;
   },
 
   async deleteChild(childId: string): Promise<void> {
@@ -115,30 +119,46 @@ export const parentService = {
   },
 
   async getExistingCollectors(parentId: string): Promise<Guardian[]> {
+    // Include collectors who have accepted (collector_user_id set) AND
+    // collectors who have a PIN defined but haven't accepted yet (access_code_hash set).
     const { data, error } = await supabase
       .from('guardians')
-      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id')
+      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash')
       .eq('parent_id', parentId)
-      .not('collector_user_id', 'is', null)
+      .or('collector_user_id.not.is.null,access_code_hash.not.is.null')
       .order('first_name', { ascending: true });
     if (error) throw error;
-    // Deduplicate by collector_user_id — keep one representative row per collector
-    const seen = new Set<string>();
-    const unique: Guardian[] = [];
-    for (const row of (data ?? []) as (Guardian & { collector_user_id: string })[]) {
-      if (!seen.has(row.collector_user_id)) {
-        seen.add(row.collector_user_id);
-        unique.push(row);
+    // Deduplicate: prefer the row with collector_user_id set, then deduplicate by
+    // collector_user_id (accepted) or email (pending). One entry per real person.
+    const byCollectorId = new Map<string, Guardian>();
+    const byEmail = new Map<string, Guardian>();
+    for (const row of (data ?? []) as Guardian[]) {
+      if (row.collector_user_id) {
+        byCollectorId.set(row.collector_user_id, row);
+      } else if (row.email) {
+        if (!byEmail.has(row.email)) byEmail.set(row.email, row);
       }
     }
-    return unique;
+    // Merge: accepted collectors take priority over pending ones with same email
+    const result = new Map<string, Guardian>();
+    for (const [, g] of byCollectorId) {
+      const key = g.email ?? g.id;
+      result.set(key, g);
+    }
+    for (const [email, g] of byEmail) {
+      if (!result.has(email)) result.set(email, g);
+    }
+    return Array.from(result.values()).sort((a, b) =>
+      a.first_name.localeCompare(b.first_name)
+    );
   },
 
   async linkCollectorToChild(
     parentId: string,
     childId: string,
     payload: {
-      collector_user_id: string;
+      collector_user_id: string | null;
+      access_code_hash: string | null;
       first_name: string;
       last_name: string;
       phone: string | null;
@@ -146,30 +166,66 @@ export const parentService = {
       relationship: string;
     }
   ): Promise<Guardian> {
-    // Check for existing link to avoid duplicate
+    // Path A — collector has already accepted: direct INSERT with collector_user_id
+    if (payload.collector_user_id) {
+      const { data: existing } = await supabase
+        .from('guardians')
+        .select('id')
+        .eq('child_id', childId)
+        .eq('collector_user_id', payload.collector_user_id)
+        .maybeSingle();
+      if (existing) throw new Error('Ce collecteur est déjà autorisé pour cet enfant.');
+
+      const { data, error } = await supabase
+        .from('guardians')
+        .insert({
+          parent_id: parentId,
+          child_id: childId,
+          collector_user_id: payload.collector_user_id,
+          first_name: payload.first_name,
+          last_name: payload.last_name,
+          phone: payload.phone ?? null,
+          email: payload.email ?? null,
+          relationship: payload.relationship,
+          is_active: true,
+          priority: 1,
+        })
+        .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash')
+        .single();
+      if (error) throw error;
+      return data as Guardian;
+    }
+
+    // Path B — collector created but not yet accepted: re-use existing PIN via RPC
+    if (!payload.access_code_hash || !payload.email) {
+      throw new Error("Impossible d'identifier ce collecteur.");
+    }
     const { data: existing } = await supabase
       .from('guardians')
       .select('id')
       .eq('child_id', childId)
-      .eq('collector_user_id', payload.collector_user_id)
+      .eq('email', payload.email)
       .maybeSingle();
-    if (existing) throw new Error('Ce collecteur est déjà autorisé pour cet enfant.');
+    if (existing) throw new Error('Ce collecteur est déjà associé à cet enfant.');
+
+    const { error: rpcError } = await supabase.rpc('invite_guardian', {
+      p_child_id: childId,
+      p_first_name: payload.first_name,
+      p_last_name: payload.last_name,
+      p_phone: payload.phone,
+      p_relationship: payload.relationship,
+      p_access_code_hash: payload.access_code_hash,
+      p_email: payload.email,
+    });
+    if (rpcError) throw new Error(rpcError.message);
 
     const { data, error } = await supabase
       .from('guardians')
-      .insert({
-        parent_id: parentId,
-        child_id: childId,
-        collector_user_id: payload.collector_user_id,
-        first_name: payload.first_name,
-        last_name: payload.last_name,
-        phone: payload.phone ?? null,
-        email: payload.email ?? null,
-        relationship: payload.relationship,
-        is_active: true,
-        priority: 1,
-      })
-      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at')
+      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash')
+      .eq('child_id', childId)
+      .eq('email', payload.email)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single();
     if (error) throw error;
     return data as Guardian;

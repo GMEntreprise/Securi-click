@@ -162,7 +162,8 @@ export function useExistingCollectors() {
     queryKey: EXISTING_COLLECTORS_KEY(parentId),
     queryFn: () => parentService.getExistingCollectors(parentId),
     enabled: !!parentId,
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
+    refetchOnMount: true,
   });
 }
 
@@ -173,7 +174,8 @@ export function useLinkCollector(childId: string) {
 
   return useMutation({
     mutationFn: (payload: {
-      collector_user_id: string;
+      collector_user_id: string | null;
+      access_code_hash: string | null;
       first_name: string;
       last_name: string;
       phone: string | null;

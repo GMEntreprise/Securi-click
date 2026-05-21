@@ -27,6 +27,7 @@ export interface Guardian {
   priority: number;
   is_active: boolean;
   collector_user_id?: string | null;
+  access_code_hash?: string | null;
   created_at: string;
   updated_at: string;
 }

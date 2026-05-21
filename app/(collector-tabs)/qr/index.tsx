@@ -18,8 +18,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
+import QRCodeStyled from 'react-native-qrcode-styled';
 import {
-  QrCode,
   Lock,
   RefreshCw,
   ShieldCheck,
@@ -337,9 +337,19 @@ export default function CollectorQRScreen() {
                 Accès suspendu par le parent
               </Text>
             </View>
-          ) : unlocked ? (
-            <View style={{ alignItems: 'center' }}>
-              <QrCode size={130} color={theme.primary} strokeWidth={1.5} />
+          ) : unlocked && activeQr ? (
+            <QRCodeStyled
+              data={activeQr.token}
+              size={170}
+              padding={10}
+              style={{ borderRadius: 12, backgroundColor: '#fff' }}
+            />
+          ) : unlocked && !activeQr ? (
+            <View style={{ alignItems: 'center', gap: 10, paddingHorizontal: 20 }}>
+              <Lock size={28} color={theme.textMuted} />
+              <Text style={{ color: theme.textSecondary, fontSize: 13, textAlign: 'center' }}>
+                Aucun QR actif — appuyez sur Générer
+              </Text>
             </View>
           ) : (
             <View style={{ alignItems: 'center', gap: 10 }}>

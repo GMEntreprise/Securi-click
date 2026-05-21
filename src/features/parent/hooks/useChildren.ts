@@ -19,7 +19,7 @@ export function useChildren() {
     queryKey: CHILDREN_KEY(parentId),
     queryFn: () => parentService.getChildren(parentId),
     enabled: !!parentId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 30 * 1000,
   });
 
   useEffect(() => {
@@ -33,12 +33,7 @@ export function useChildren() {
             (prev ?? []).filter(c => c.id !== payload.old.id)
           );
         } else if (payload.eventType === 'INSERT') {
-          queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev => {
-            const existing = prev ?? [];
-            if (existing.some(c => c.id === (payload.new as Child).id))
-              return existing;
-            return [payload.new as Child, ...existing];
-          });
+          queryClient.invalidateQueries({ queryKey: CHILDREN_KEY(parentId) });
         } else {
           queryClient.invalidateQueries({ queryKey: CHILDREN_KEY(parentId) });
         }
@@ -66,8 +61,10 @@ export function useAddChild() {
   return useMutation({
     mutationFn: (payload: AddChildPayload) =>
       parentService.addChild(parentId, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CHILDREN_KEY(parentId) });
+    onSuccess: added => {
+      queryClient.setQueryData<Child[]>(CHILDREN_KEY(parentId), prev =>
+        [added, ...(prev ?? []).filter(c => c.id !== added.id)]
+      );
     },
   });
 }

@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useState } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -165,13 +165,6 @@ export const EditChildSheet = memo(function EditChildSheet({
   );
   const [schoolPickerVisible, setSchoolPickerVisible] = useState(false);
 
-  useEffect(() => {
-    setSelectedSchool(
-      child.school
-        ? { id: child.school.id, name: child.school.name, city: child.school.city, type: child.school.type, normalized_name: '', address: '', postal_code: '', logo_url: null, is_active: true, verified: child.school.verified ?? false, external_id: child.school.external_id ?? null, confidence: 100 }
-        : null
-    );
-  }, [child.school?.id]);
 
   const setField = useCallback(
     (field: keyof FormState) => (value: string) => {

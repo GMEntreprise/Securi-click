@@ -34,13 +34,13 @@ export interface RecentScan {
 
 const QR_SELECT = `
   id, parent_id, child_id, guardian_id, token, expires_at, is_used, used_at, created_at,
-  child:children ( first_name, last_name, photo_url )
+  child:children!qr_codes_child_id_fkey ( first_name, last_name, photo_url )
 `.trim();
 
 const SCAN_SELECT = `
   id, child_id, guardian_id, pickup_time, status, denial_reason,
-  child:children ( first_name, last_name ),
-  guardian:guardians ( first_name, last_name, relationship )
+  child:children!pickup_logs_child_id_fkey ( first_name, last_name ),
+  guardian:guardians!pickup_logs_guardian_id_fkey ( first_name, last_name, relationship )
 `.trim();
 
 export const qrService = {

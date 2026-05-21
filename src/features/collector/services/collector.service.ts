@@ -67,7 +67,7 @@ const IDENTITY_SELECT = `
 
 const LOG_SELECT = `
   id, child_id, guardian_id, pickup_time, status, denial_reason,
-  child:children ( first_name, last_name, photo_url )
+  child:children!pickup_logs_child_id_fkey ( first_name, last_name, photo_url )
 `.trim();
 
 export const collectorService = {
@@ -272,7 +272,7 @@ export const collectorService = {
 
     const { data, error } = await supabase
       .from('qr_codes')
-      .select('id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children(first_name, last_name, photo_url)')
+      .select('id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children!qr_codes_child_id_fkey(first_name, last_name, photo_url)')
       .in('guardian_id', guardianIds)
       .eq('child_id', targetChildId)
       .eq('is_used', false)
@@ -300,7 +300,7 @@ export const collectorService = {
 
     let q = supabase
       .from('pickup_logs')
-      .select('id, child_id, guardian_id, pickup_time, status, denial_reason, child:children(first_name, last_name), guardian:guardians(first_name, last_name, relationship)')
+      .select('id, child_id, guardian_id, pickup_time, status, denial_reason, child:children!pickup_logs_child_id_fkey(first_name, last_name), guardian:guardians!pickup_logs_guardian_id_fkey(first_name, last_name, relationship)')
       .in('guardian_id', guardianIds)
       .order('pickup_time', { ascending: false })
       .limit(limit);
@@ -337,7 +337,7 @@ export const collectorService = {
     const qrId = data as string;
     const { data: qr, error: fetchErr } = await supabase
       .from('qr_codes')
-      .select('id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children(first_name, last_name, photo_url)')
+      .select('id, child_id, guardian_id, token, expires_at, is_used, created_at, child:children!qr_codes_child_id_fkey(first_name, last_name, photo_url)')
       .eq('id', qrId)
       .single();
     if (fetchErr) throw fetchErr;

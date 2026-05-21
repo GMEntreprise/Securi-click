@@ -20,8 +20,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
+import QRCodeStyled from 'react-native-qrcode-styled';
 import {
-  QrCode,
   Lock,
   RefreshCw,
   CheckCircle,
@@ -282,11 +282,6 @@ export default function QRScreen() {
           </Animated.View>
         )}
 
-        {activeQr && (
-          <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}>
-            {activeQr.token}
-          </Text>
-        )}
       </Animated.View>
 
       {/* QR card */}
@@ -335,20 +330,12 @@ export default function QRScreen() {
               </Text>
             </View>
           ) : unlocked && activeQr ? (
-            <View style={{ alignItems: 'center' }}>
-              <QrCode size={130} color={theme.primary} strokeWidth={1.5} />
-              <Text
-                style={{
-                  color: theme.textMuted,
-                  fontSize: 11,
-                  fontWeight: '700',
-                  letterSpacing: 0.5,
-                  marginTop: 8,
-                }}
-              >
-                {activeQr.token}
-              </Text>
-            </View>
+            <QRCodeStyled
+              data={activeQr.token}
+              size={170}
+              padding={10}
+              style={{ borderRadius: 12, backgroundColor: '#fff' }}
+            />
           ) : (
             <View style={{ alignItems: 'center', gap: 10 }}>
               <View

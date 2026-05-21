@@ -30,6 +30,7 @@ import { Toast } from '@/shared/ui/molecules/Toast';
 import { Avatar } from '@/shared/ui/base/avatar';
 import {
   useExistingCollectors,
+  useGuardians,
   useLinkCollector,
 } from '@/features/parent/hooks/useGuardians';
 import type { Guardian } from '@/features/parent/types';
@@ -97,9 +98,16 @@ function ExistingCollectorCard({
         textColor={selected ? theme.accent : theme.textMuted}
       />
       <View style={{ flex: 1 }}>
-        <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}>
-          {item.first_name} {item.last_name}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}>
+            {item.first_name} {item.last_name}
+          </Text>
+          {!item.collector_user_id && (
+            <View style={{ backgroundColor: theme.amberBg, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 }}>
+              <Text style={{ color: theme.amber, fontSize: 10, fontWeight: '700' }}>En attente</Text>
+            </View>
+          )}
+        </View>
         <Text style={{ color: theme.textMuted, fontSize: 13, marginTop: 2 }}>
           {item.relationship}
           {item.phone ? ` · ${item.phone}` : ''}
@@ -311,11 +319,17 @@ export default function AddGuardianScreen() {
 
   const { data: existingCollectors, isLoading: loadingCollectors } =
     useExistingCollectors();
+  const { data: childGuardians } = useGuardians(childId ?? '');
   const linkCollector = useLinkCollector(childId ?? '');
 
-  // Filter out collectors already linked to this child
+  // Filter out collectors already linked to this specific child (by collector_user_id)
+  const alreadyLinkedIds = new Set(
+    (childGuardians ?? [])
+      .map(g => g.collector_user_id)
+      .filter(Boolean) as string[]
+  );
   const availableCollectors = (existingCollectors ?? []).filter(
-    c => c.child_id !== childId
+    c => c.collector_user_id != null && !alreadyLinkedIds.has(c.collector_user_id)
   );
 
   // ── New collector form ────────────────────────────────────────────────────
@@ -405,7 +419,8 @@ export default function AddGuardianScreen() {
 
     try {
       await linkCollector.mutateAsync({
-        collector_user_id: selectedCollector.collector_user_id!,
+        collector_user_id: selectedCollector.collector_user_id ?? null,
+        access_code_hash: selectedCollector.access_code_hash ?? null,
         first_name: selectedCollector.first_name,
         last_name: selectedCollector.last_name,
         phone: selectedCollector.phone,
