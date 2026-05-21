@@ -1,7 +1,10 @@
 import { useSession } from '@/features/auth/store/auth.store';
 import { useLocalSecurity } from '@/features/auth/hooks/useLocalSecurity';
 import { EditProfileSheet } from '@/features/parent/components/ui/EditProfileSheet';
-import { useParentProfile, useUpdateAvatar } from '@/features/parent/hooks/useParentProfile';
+import {
+  useParentProfile,
+  useUpdateAvatar,
+} from '@/features/parent/hooks/useParentProfile';
 import { useUploadImage } from '@/features/parent/hooks/useUploadImage';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
@@ -11,6 +14,7 @@ import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch
 import { useTheme } from '@/theme';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { RateAppRow } from '@/features/settings/components/RateAppRow';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
@@ -128,7 +132,12 @@ export default function ProfileScreen() {
   const [editSheetVisible, setEditSheetVisible] = useState(false);
   const [avatarPickerVisible, setAvatarPickerVisible] = useState(false);
 
-  const { isEnabled: biometricEnabled, isMutating: biometricMutating, enable: enableBiometric, disable: disableBiometric } = useLocalSecurity();
+  const {
+    isEnabled: biometricEnabled,
+    isMutating: biometricMutating,
+    enable: enableBiometric,
+    disable: disableBiometric,
+  } = useLocalSecurity();
 
   const { data: profile } = useParentProfile();
   const updateAvatar = useUpdateAvatar();
@@ -148,7 +157,10 @@ export default function ProfileScreen() {
       try {
         await updateAvatar.mutateAsync(result.signedUrl);
       } catch {
-        Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
+        Toast.show('Impossible de sauvegarder la photo. Réessayez.', {
+          type: 'error',
+          duration: 3000,
+        });
       }
     },
     [updateAvatar]
@@ -159,7 +171,10 @@ export default function ProfileScreen() {
     try {
       await updateAvatar.mutateAsync('');
     } catch {
-      Toast.show("Impossible de supprimer la photo. Réessayez.", { type: 'error', duration: 3000 });
+      Toast.show('Impossible de supprimer la photo. Réessayez.', {
+        type: 'error',
+        duration: 3000,
+      });
     }
   }, [updateAvatar]);
 
@@ -172,10 +187,13 @@ export default function ProfileScreen() {
   const email = session?.user.email ?? '';
   const phone = profile?.phone ?? session?.user.profile?.phone ?? '';
 
-  const handleBiometricToggle = useCallback(async (value: boolean) => {
-    if (value) await enableBiometric();
-    else await disableBiometric();
-  }, [enableBiometric, disableBiometric]);
+  const handleBiometricToggle = useCallback(
+    async (value: boolean) => {
+      if (value) await enableBiometric();
+      else await disableBiometric();
+    },
+    [enableBiometric, disableBiometric]
+  );
 
   const handleLogout = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -218,14 +236,22 @@ export default function ProfileScreen() {
         title: 'Compte',
         items: [
           {
-            icon: <Ionicons name="person-outline" size={16} color={theme.primary} />,
+            icon: (
+              <Ionicons name="person-outline" size={16} color={theme.primary} />
+            ),
             iconBg: theme.primaryBg,
             title: 'Informations personnelles',
             subtitle: 'Nom, email, téléphone',
             onPress: () => setEditSheetVisible(true),
           },
           {
-            icon: <Ionicons name="shield-checkmark-outline" size={16} color={theme.accent} />,
+            icon: (
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={16}
+                color={theme.accent}
+              />
+            ),
             iconBg: theme.accentBg,
             title: 'Sécurité',
             subtitle: 'Biométrie, verrouillage',
@@ -237,7 +263,13 @@ export default function ProfileScreen() {
         title: 'Préférences',
         items: [
           {
-            icon: <Ionicons name="moon-outline" size={16} color={theme.textSecondary} />,
+            icon: (
+              <Ionicons
+                name="moon-outline"
+                size={16}
+                color={theme.textSecondary}
+              />
+            ),
             iconBg: theme.iconBg,
             title: 'Mode sombre',
             subtitle: isDark ? 'Activé' : 'Désactivé',
@@ -245,14 +277,26 @@ export default function ProfileScreen() {
             onPress: () => {},
           },
           {
-            icon: <Ionicons name="notifications-outline" size={16} color={theme.green} />,
+            icon: (
+              <Ionicons
+                name="notifications-outline"
+                size={16}
+                color={theme.green}
+              />
+            ),
             iconBg: theme.greenBg,
             title: 'Notifications',
             subtitle: 'Voir mes notifications',
             onPress: () => nav.goToParentNotifications(),
           },
           {
-            icon: <Ionicons name="phone-portrait-outline" size={16} color="#6366f1" />,
+            icon: (
+              <Ionicons
+                name="phone-portrait-outline"
+                size={16}
+                color="#6366f1"
+              />
+            ),
             iconBg: 'rgba(99,102,241,0.1)',
             title: 'Authentification biométrique',
             subtitle: biometricEnabled ? 'Activée' : 'Désactivée',
@@ -268,19 +312,37 @@ export default function ProfileScreen() {
         title: 'Support',
         items: [
           {
-            icon: <Ionicons name="help-circle-outline" size={16} color={theme.amber} />,
+            icon: (
+              <Ionicons
+                name="help-circle-outline"
+                size={16}
+                color={theme.amber}
+              />
+            ),
             iconBg: theme.amberBg,
             title: 'Aide & FAQ',
             onPress: () => nav.goToParentFaq(),
           },
           {
-            icon: <Ionicons name="document-text-outline" size={16} color={theme.textMuted} />,
+            icon: (
+              <Ionicons
+                name="document-text-outline"
+                size={16}
+                color={theme.textMuted}
+              />
+            ),
             iconBg: theme.iconBg,
             title: 'Mentions légales',
             onPress: () => nav.goToParentLegalMentions(),
           },
           {
-            icon: <Ionicons name="lock-closed-outline" size={16} color={theme.textMuted} />,
+            icon: (
+              <Ionicons
+                name="lock-closed-outline"
+                size={16}
+                color={theme.textMuted}
+              />
+            ),
             iconBg: theme.iconBg,
             title: 'Politique de confidentialité',
             onPress: () => nav.goToParentPrivacyPolicy(),
@@ -288,7 +350,14 @@ export default function ProfileScreen() {
         ] as RowItem[],
       },
     ],
-    [biometricEnabled, handleBiometricToggle, theme, isDark, darkModeSwitch, nav]
+    [
+      biometricEnabled,
+      handleBiometricToggle,
+      theme,
+      isDark,
+      darkModeSwitch,
+      nav,
+    ]
   );
 
   return (
@@ -399,7 +468,11 @@ export default function ProfileScreen() {
                 gap: 6,
               }}
             >
-              <Ionicons name="pencil-outline" size={14} color={theme.textSecondary} />
+              <Ionicons
+                name="pencil-outline"
+                size={14}
+                color={theme.textSecondary}
+              />
               <Text
                 style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
               >
@@ -448,9 +521,40 @@ export default function ProfileScreen() {
             </Animated.View>
           ))}
 
+          {/* Rate app */}
+          <Animated.View
+            entering={FadeInDown.delay(300).duration(400)}
+            style={{ marginBottom: 20 }}
+          >
+            <Text
+              style={{
+                color: theme.textMuted,
+                fontSize: 11,
+                fontWeight: '700',
+                letterSpacing: 1.2,
+                textTransform: 'uppercase',
+                marginBottom: 8,
+                marginLeft: 4,
+              }}
+            >
+              Application
+            </Text>
+            <View
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+                overflow: 'hidden',
+              }}
+            >
+              <RateAppRow isLast />
+            </View>
+          </Animated.View>
+
           {/* Logout */}
           <Animated.View
-            entering={FadeInDown.delay(320).duration(400)}
+            entering={FadeInDown.delay(360).duration(400)}
             style={{ marginBottom: 8 }}
           >
             <TouchableOpacity

@@ -12,6 +12,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { RateAppRow } from '@/features/settings/components/RateAppRow';
 import { useTheme } from '@/theme';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
@@ -46,7 +47,10 @@ export default function CollectorProfileScreen() {
         active={isDark}
         onToggle={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          toggleTheme({ animationType: 'circular' as any, animationDuration: 500 });
+          toggleTheme({
+            animationType: 'circular' as any,
+            animationDuration: 500,
+          });
         }}
         size={64}
         activeColor={theme.primary}
@@ -79,7 +83,10 @@ export default function CollectorProfileScreen() {
       try {
         await updateAvatarUrl.mutateAsync(result.signedUrl);
       } catch {
-        Toast.show("Impossible de sauvegarder la photo. Réessayez.", { type: 'error', duration: 3000 });
+        Toast.show('Impossible de sauvegarder la photo. Réessayez.', {
+          type: 'error',
+          duration: 3000,
+        });
       }
     },
     [updateAvatarUrl]
@@ -90,7 +97,10 @@ export default function CollectorProfileScreen() {
     try {
       await updateAvatarUrl.mutateAsync('');
     } catch {
-      Toast.show("Impossible de supprimer la photo. Réessayez.", { type: 'error', duration: 3000 });
+      Toast.show('Impossible de supprimer la photo. Réessayez.', {
+        type: 'error',
+        duration: 3000,
+      });
     }
   }, [updateAvatarUrl]);
 
@@ -237,7 +247,11 @@ export default function CollectorProfileScreen() {
               gap: 6,
             }}
           >
-            <Ionicons name="pencil-outline" size={13} color={theme.textSecondary} />
+            <Ionicons
+              name="pencil-outline"
+              size={13}
+              color={theme.textSecondary}
+            />
             <Text
               style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
             >
@@ -365,7 +379,11 @@ export default function CollectorProfileScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="document-text-outline" size={18} color={theme.accent} />
+              <Ionicons
+                name="document-text-outline"
+                size={18}
+                color={theme.accent}
+              />
             </View>
             <View style={{ flex: 1 }}>
               <Text
@@ -381,7 +399,11 @@ export default function CollectorProfileScreen() {
                   : 'Soumettre pour vérification'}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={theme.textMuted}
+            />
           </TouchableOpacity>
         </Animated.View>
 
@@ -412,13 +434,21 @@ export default function CollectorProfileScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="moon-outline" size={18} color={theme.textSecondary} />
+              <Ionicons
+                name="moon-outline"
+                size={18}
+                color={theme.textSecondary}
+              />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
+              <Text
+                style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
+              >
                 Mode sombre
               </Text>
-              <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+              <Text
+                style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
+              >
                 {isDark ? 'Activé' : 'Désactivé'}
               </Text>
             </View>
@@ -454,14 +484,24 @@ export default function CollectorProfileScreen() {
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="notifications-outline" size={18} color={theme.green} />
+              <Ionicons
+                name="notifications-outline"
+                size={18}
+                color={theme.green}
+              />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}>
+              <Text
+                style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
+              >
                 Notifications
               </Text>
-              <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
-                {unreadCount > 0 ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}` : '0 notification'}
+              <Text
+                style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
+              >
+                {unreadCount > 0
+                  ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}`
+                  : '0 notification'}
               </Text>
             </View>
             {unreadCount > 0 && (
@@ -476,12 +516,18 @@ export default function CollectorProfileScreen() {
                   paddingHorizontal: 5,
                 }}
               >
-                <Text style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}>
+                <Text
+                  style={{ color: '#fff', fontSize: 11, fontWeight: '800' }}
+                >
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </Text>
               </View>
             )}
-            <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={theme.textMuted}
+            />
           </TouchableOpacity>
         </Animated.View>
 
@@ -520,12 +566,27 @@ export default function CollectorProfileScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="help-circle-outline" size={16} color={theme.amber} />
+                <Ionicons
+                  name="help-circle-outline"
+                  size={16}
+                  color={theme.amber}
+                />
               </View>
-              <Text style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}>
+              <Text
+                style={{
+                  flex: 1,
+                  color: theme.text,
+                  fontWeight: '600',
+                  fontSize: 15,
+                }}
+              >
                 Aide & FAQ
               </Text>
-              <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={theme.textMuted}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => nav.goToCollectorLegalMentions()}
@@ -548,12 +609,27 @@ export default function CollectorProfileScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="document-text-outline" size={16} color={theme.textMuted} />
+                <Ionicons
+                  name="document-text-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
               </View>
-              <Text style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}>
+              <Text
+                style={{
+                  flex: 1,
+                  color: theme.text,
+                  fontWeight: '600',
+                  fontSize: 15,
+                }}
+              >
                 Mentions légales
               </Text>
-              <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={theme.textMuted}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => nav.goToCollectorPrivacyPolicy()}
@@ -574,18 +650,64 @@ export default function CollectorProfileScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <Ionicons name="lock-closed-outline" size={16} color={theme.textMuted} />
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={16}
+                  color={theme.textMuted}
+                />
               </View>
-              <Text style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}>
+              <Text
+                style={{
+                  flex: 1,
+                  color: theme.text,
+                  fontWeight: '600',
+                  fontSize: 15,
+                }}
+              >
                 Politique de confidentialité
               </Text>
-              <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={theme.textMuted}
+              />
             </TouchableOpacity>
           </View>
         </Animated.View>
 
+        {/* Rate app */}
+        <Animated.View
+          entering={FadeInDown.delay(245).duration(350)}
+          style={{ marginBottom: 16 }}
+        >
+          <Text
+            style={{
+              color: theme.textMuted,
+              fontSize: 11,
+              fontWeight: '700',
+              letterSpacing: 1.2,
+              textTransform: 'uppercase',
+              marginBottom: 8,
+              marginLeft: 4,
+            }}
+          >
+            Application
+          </Text>
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              overflow: 'hidden',
+            }}
+          >
+            <RateAppRow isLast />
+          </View>
+        </Animated.View>
+
         {/* Logout */}
-        <Animated.View entering={FadeInDown.delay(260).duration(350)}>
+        <Animated.View entering={FadeInDown.delay(280).duration(350)}>
           <TouchableOpacity
             onPress={handleLogout}
             style={{
