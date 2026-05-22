@@ -34,43 +34,56 @@ export default function SchoolTabsLayout() {
   );
 
   return (
-    <Tabs
-      screenOptions={{ headerShown: false }}
-      tabBar={renderTabBar}
-    >
+    <Tabs screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
       <Tabs.Screen
-        name="home/index"
+        name="home"
         options={{
           title: 'Accueil',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="home-outline" size={ICON_SIZE} color={color} />
+            <MaterialCommunityIcons
+              name="home-outline"
+              size={ICON_SIZE}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
-        name="students/index"
+        name="students"
         options={{
           title: 'Élèves',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="account-group" size={ICON_SIZE} color={color} />
+            <MaterialCommunityIcons
+              name="account-group"
+              size={ICON_SIZE}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
-        name="scanner/index"
+        name="scanner"
         options={{
           title: 'Scanner',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="line-scan" size={ICON_SIZE} color={color} />
+            <MaterialCommunityIcons
+              name="line-scan"
+              size={ICON_SIZE}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
-        name="history/index"
+        name="history"
         options={{
           title: 'Historique',
           tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="history" size={ICON_SIZE} color={color} />
+            <MaterialCommunityIcons
+              name="history"
+              size={ICON_SIZE}
+              color={color}
+            />
           ),
         }}
       />
