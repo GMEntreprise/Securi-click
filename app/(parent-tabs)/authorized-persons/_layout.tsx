@@ -8,14 +8,29 @@ export default function AuthorizedPersonsLayout() {
       screenOptions={{
         headerShown: true,
         headerBackTitle: '',
+        headerBackButtonDisplayMode: 'minimal',
         headerTintColor: theme.accent,
         headerStyle: { backgroundColor: theme.card },
         headerShadowVisible: true,
-        headerTitleStyle: { color: theme.text, fontWeight: '700', fontSize: 17 },
+        headerTitleStyle: {
+          color: theme.text,
+          fontWeight: '700',
+          fontSize: 17,
+        },
       }}
     >
-      <Stack.Screen name="add" options={{ title: 'Ajouter une personne', presentation: 'modal' }} />
-      <Stack.Screen name="[id]" options={{ title: "Modifier l'autorisation" }} />
+      <Stack.Screen
+        name="add"
+        options={{
+          title: 'Ajouter une personne',
+          presentation: 'modal',
+          headerBackTitle: '',
+        }}
+      />
+      <Stack.Screen
+        name="[id]"
+        options={{ title: "Modifier l'autorisation", headerBackTitle: '' }}
+      />
     </Stack>
   );
 }
