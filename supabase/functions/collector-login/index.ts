@@ -29,18 +29,20 @@ Deno.serve(async req => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // ── 1. Find active guardian by email ──────────────────────────────────
-    const { data: guardian, error: guardianError } = await admin
+    // ── 1. Find guardian by email ─────────────────────────────────────────
+    // A collector can be linked to multiple children (one guardian row per child).
+    // Only ONE of those rows carries the access_code_hash (the first accepted one).
+    // We need:
+    //   a) at least one ACTIVE guardian row for this email (to allow login)
+    //   b) the guardian row that has access_code_hash (to verify the PIN)
+    // Those two may be different rows, so we fetch all rows for this email.
+    const { data: allGuardians, error: guardianError } = await admin
       .from('guardians')
       .select(
-        'id, first_name, last_name, access_code_hash, access_code_version, pin_failed_attempts, pin_locked_until, child_id'
+        'id, first_name, last_name, access_code_hash, access_code_version, pin_failed_attempts, pin_locked_until, child_id, is_active, collector_user_id'
       )
       .eq('email', normalizedEmail)
-      .eq('is_active', true)
-      .not('access_code_hash', 'is', null)
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .order('updated_at', { ascending: false });
 
     if (guardianError) {
       console.error(
@@ -49,6 +51,17 @@ Deno.serve(async req => {
       );
       return json({ error: 'server_error' });
     }
+
+    // Must have at least one active guardian row for login to be allowed
+    const hasActiveGuardian = (allGuardians ?? []).some(g => g.is_active);
+    if (!allGuardians || allGuardians.length === 0 || !hasActiveGuardian) {
+      return json({ error: 'no_active_guardian' });
+    }
+
+    // Find the guardian row that holds the PIN hash (may be inactive if all active
+    // ones were added via "existing collector" path and have no hash)
+    const guardian =
+      allGuardians.find(g => g.access_code_hash !== null) ?? null;
     if (!guardian) return json({ error: 'no_active_guardian' });
 
     // ── 2. Lockout check ───────────────────────────────────────────────────
@@ -146,14 +159,18 @@ Deno.serve(async req => {
       { onConflict: 'user_id', ignoreDuplicates: true }
     );
 
-    // ── 7. Link collector_user_id if not yet set ───────────────────────────
+    // ── 7. Link collector_user_id on ALL guardian rows for this email ─────
+    // A collector may have multiple guardian rows (one per child). Only the first
+    // accepted row carried the hash; rows added later via "existing collector"
+    // path have collector_user_id already set but no hash. We sync the user ID
+    // across all rows so getMyGuardians() can find them all by collector_user_id.
     await admin
       .from('guardians')
       .update({
         collector_user_id: userId,
         updated_at: new Date().toISOString(),
       })
-      .eq('id', guardian.id)
+      .eq('email', normalizedEmail)
       .is('collector_user_id', null);
 
     // ── 8. Generate session via generateLink (works on all Supabase plans) ─
