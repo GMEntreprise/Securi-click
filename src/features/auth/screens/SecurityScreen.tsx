@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
+import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useLocalSecurity } from '../hooks/useLocalSecurity';
 
 const TYPE_LABEL: Record<string, string> = {
@@ -24,6 +25,36 @@ const TYPE_LABEL: Record<string, string> = {
 export function SecurityScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const nav = useAppNavigation();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    Alert.alert(
+      'Supprimer mon compte',
+      'Cette action est irréversible. Toutes vos données (enfants, autorisations, historiques) seront définitivement supprimées.\n\nVoulez-vous vraiment supprimer votre compte ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer définitivement',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await nav.deleteAccount();
+            } catch {
+              setIsDeleting(false);
+              Alert.alert(
+                'Erreur',
+                'Impossible de supprimer votre compte. Réessayez dans quelques instants.'
+              );
+            }
+          },
+        },
+      ]
+    );
+  }, [nav]);
+
   const {
     capability,
     isEnabled,
@@ -465,6 +496,63 @@ export function SecurityScreen() {
             active — seul l'accès local à l'app est protégé.
           </Text>
         </View>
+      </Animated.View>
+
+      {/* Zone danger — suppression de compte */}
+      <Animated.View
+        entering={FadeInDown.delay(240).duration(350)}
+        style={{ marginTop: 32 }}
+      >
+        <Text
+          style={{
+            fontSize: 12,
+            fontWeight: '700',
+            color: theme.red,
+            marginBottom: 10,
+            textTransform: 'uppercase',
+            letterSpacing: 0.8,
+          }}
+        >
+          Zone de danger
+        </Text>
+        <TouchableOpacity
+          onPress={handleDeleteAccount}
+          disabled={isDeleting}
+          activeOpacity={0.8}
+          style={{
+            backgroundColor: theme.redBg,
+            borderRadius: 18,
+            borderWidth: 1,
+            borderColor: 'rgba(239,68,68,0.25)',
+            padding: 18,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 14,
+            opacity: isDeleting ? 0.6 : 1,
+          }}
+        >
+          {isDeleting ? (
+            <ActivityIndicator color={theme.red} size="small" />
+          ) : (
+            <Ionicons name="trash-outline" size={22} color={theme.red} />
+          )}
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: theme.red }}>
+              Supprimer mon compte
+            </Text>
+            <Text
+              style={{
+                fontSize: 12,
+                color: theme.red,
+                opacity: 0.7,
+                marginTop: 2,
+                lineHeight: 16,
+              }}
+            >
+              Action irréversible · Toutes les données seront effacées
+            </Text>
+          </View>
+        </TouchableOpacity>
       </Animated.View>
     </ScrollView>
   );

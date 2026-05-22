@@ -161,6 +161,35 @@ export default function CollectorProfileScreen() {
     ]);
   }, [nav]);
 
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAccount = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    Alert.alert(
+      'Supprimer mon compte',
+      'Cette action est irréversible. Toutes vos données (autorisations, historiques) seront définitivement supprimées.\n\nVoulez-vous vraiment supprimer votre compte ?',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Supprimer définitivement',
+          style: 'destructive',
+          onPress: async () => {
+            setIsDeleting(true);
+            try {
+              await nav.deleteAccount();
+            } catch {
+              setIsDeleting(false);
+              Alert.alert(
+                'Erreur',
+                'Impossible de supprimer votre compte. Réessayez dans quelques instants.'
+              );
+            }
+          },
+        },
+      ]
+    );
+  }, [nav]);
+
   const status = identity?.verification_status ?? 'none';
   const idCfg =
     IDENTITY_CFG[status as keyof typeof IDENTITY_CFG] ?? IDENTITY_CFG.none;
@@ -686,6 +715,47 @@ export default function CollectorProfileScreen() {
                 style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}
               >
                 Se déconnecter
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* Suppression de compte */}
+          <Animated.View
+            entering={FadeInDown.delay(310).duration(350)}
+            style={{ marginTop: 8 }}
+          >
+            <TouchableOpacity
+              onPress={handleDeleteAccount}
+              disabled={isDeleting}
+              activeOpacity={0.8}
+              style={{
+                borderRadius: 20,
+                padding: 16,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+                opacity: isDeleting ? 0.6 : 1,
+              }}
+            >
+              {isDeleting ? (
+                <ActivityIndicator color={theme.textMuted} size="small" />
+              ) : (
+                <Ionicons
+                  name="trash-outline"
+                  size={15}
+                  color={theme.textMuted}
+                />
+              )}
+              <Text
+                style={{
+                  color: theme.textMuted,
+                  fontWeight: '600',
+                  fontSize: 13,
+                  textDecorationLine: 'underline',
+                }}
+              >
+                Supprimer mon compte
               </Text>
             </TouchableOpacity>
           </Animated.View>

@@ -49,6 +49,20 @@ export function useAppNavigation() {
     router.replace(ROUTES.auth.login as any);
   }, [router]);
 
+  // ── Delete account (shared by all roles) ────────────────────────────────────
+
+  const deleteAccount = useCallback(async () => {
+    const { authService } =
+      await import('@/features/auth/services/supabaseAuth.service');
+    const clearPin = useCollectorSessionStore.getState().clear;
+    setExplicitLogoutInProgress(true);
+    await authService.deleteAccount();
+    await Promise.allSettled([clearPin()]);
+    useAuthStore.setState({ session: null });
+    setExplicitLogoutInProgress(false);
+    router.replace(ROUTES.auth.login as any);
+  }, [router]);
+
   // ── Parent ──────────────────────────────────────────────────────────────────
 
   const goToParentDashboard = useCallback(() => {
@@ -203,6 +217,7 @@ export function useAppNavigation() {
     goToForgotPassword,
     goToCollectorPin,
     logout,
+    deleteAccount,
     // parent
     goToParentDashboard,
     goToParentChildren,

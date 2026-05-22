@@ -17,7 +17,11 @@ async function signInWithPassword(
 
   if (error) {
     const msg = error.message.toLowerCase();
-    if (msg.includes('invalid') || msg.includes('credentials') || msg.includes('password')) {
+    if (
+      msg.includes('invalid') ||
+      msg.includes('credentials') ||
+      msg.includes('password')
+    ) {
       throw new Error('Email ou mot de passe incorrect.');
     }
     if (msg.includes('email not confirmed')) {
@@ -123,6 +127,11 @@ async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
+async function deleteAccount(): Promise<void> {
+  const { error } = await supabase.rpc('delete_own_account');
+  if (error) throw new Error(error.message);
+}
+
 async function forgotPassword(email: string): Promise<void> {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: 'securiclick://auth/callback',
@@ -140,4 +149,5 @@ export const authService = {
   restoreSession,
   signOut,
   forgotPassword,
+  deleteAccount,
 };
