@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { useTheme } from '@/theme';
 
-export default function CollectorHistoryLayout() {
+export default function SchoolStudentsLayout() {
   const theme = useTheme();
   return (
     <Stack
