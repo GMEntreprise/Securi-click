@@ -188,7 +188,7 @@ export default function CollectorProfileScreen() {
     <>
       <ScrollView
         style={{ flex: 1, backgroundColor: theme.bg }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 80 }}
         showsVerticalScrollIndicator={false}
       >
         {/* Hero header avec gradient */}
