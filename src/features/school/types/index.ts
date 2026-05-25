@@ -69,6 +69,10 @@ export interface PickupValidation {
     last_name: string;
     photo_url: string | null;
     class_name: string | null;
+    parent?: {
+      first_name: string;
+      last_name: string;
+    } | null;
   } | null;
   guardian?: {
     id: string;
@@ -81,7 +85,12 @@ export interface PickupValidation {
   } | null;
 }
 
-export type CollectorIdentityStatus = 'none' | 'pending' | 'verified' | 'refused' | 'expired';
+export type CollectorIdentityStatus =
+  | 'none'
+  | 'pending'
+  | 'verified'
+  | 'refused'
+  | 'expired';
 
 export interface QrScanResult {
   success: boolean;

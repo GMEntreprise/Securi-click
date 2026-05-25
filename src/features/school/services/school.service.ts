@@ -15,7 +15,7 @@ const CHILD_SELECT =
   'id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, parent:user_profiles!children_parent_id_user_profiles_fkey(first_name, last_name, phone)';
 
 const VALIDATION_SELECT =
-  'id, school_id, child_id, guardian_id, qr_code_id, scanner_user_id, status, refusal_reason, scanned_at, meta, created_at, child:children(id, first_name, last_name, photo_url, class_name), guardian:guardians(id, first_name, last_name, phone, photo_url, relationship, identity_status)';
+  'id, school_id, child_id, guardian_id, qr_code_id, scanner_user_id, status, refusal_reason, scanned_at, meta, created_at, child:children(id, first_name, last_name, photo_url, class_name, parent:user_profiles!children_parent_id_user_profiles_fkey(first_name, last_name)), guardian:guardians(id, first_name, last_name, phone, photo_url, relationship, identity_status)';
 
 export const schoolService = {
   async getSchoolByAdminUserId(userId: string): Promise<SchoolProfile | null> {

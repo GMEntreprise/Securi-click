@@ -347,11 +347,37 @@ const HistoryRow = memo(function HistoryRow({
         <Text style={{ color: theme.text, fontSize: 14, fontWeight: '700' }}>
           {item.child?.first_name} {item.child?.last_name}
         </Text>
-        <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
-          {item.guardian
-            ? `${item.guardian.first_name} ${item.guardian.last_name} · ${item.guardian.relationship}`
-            : 'QR parent (sans collecteur assigné)'}
-        </Text>
+        {item.guardian ? (
+          <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+            {item.guardian.first_name} {item.guardian.last_name} ·{' '}
+            {item.guardian.relationship}
+          </Text>
+        ) : (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 5,
+              marginTop: 2,
+            }}
+          >
+            <Avatar
+              image={{
+                uri: '',
+                name: `${item.child?.parent?.first_name ?? ''} ${item.child?.parent?.last_name ?? ''}`.trim(),
+              }}
+              size={18}
+              showBorder={false}
+              backgroundColor={theme.primaryBg}
+              textColor={theme.primary}
+            />
+            <Text style={{ color: theme.textMuted, fontSize: 12 }}>
+              {item.child?.parent
+                ? `${item.child.parent.first_name} ${item.child.parent.last_name} · Parent`
+                : 'QR Parent'}
+            </Text>
+          </View>
+        )}
       </View>
       <View style={{ alignItems: 'flex-end', gap: 4 }}>
         <View
@@ -612,8 +638,8 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
             </View>
           )}
 
-          {/* Guardian */}
-          {item.guardian && (
+          {/* Guardian or Parent fallback */}
+          {item.guardian ? (
             <View
               style={{
                 backgroundColor: theme.card,
@@ -687,7 +713,82 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
                 </View>
               </View>
             </View>
-          )}
+          ) : item.child?.parent ? (
+            <View
+              style={{
+                backgroundColor: theme.card,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: theme.cardBorder,
+                padding: 16,
+              }}
+            >
+              <SectionTitle
+                icon={
+                  <Ionicons
+                    name="home-outline"
+                    size={14}
+                    color={theme.primary}
+                  />
+                }
+                label="Parent"
+                bg={theme.primaryBg}
+              />
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
+              >
+                <Avatar
+                  image={{
+                    uri: '',
+                    name: `${item.child.parent.first_name} ${item.child.parent.last_name}`,
+                  }}
+                  size={56}
+                  showBorder={false}
+                  backgroundColor={theme.primaryBg}
+                  textColor={theme.primary}
+                />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{
+                      color: theme.text,
+                      fontSize: 16,
+                      fontWeight: '800',
+                    }}
+                  >
+                    {item.child.parent.first_name} {item.child.parent.last_name}
+                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      marginTop: 6,
+                      backgroundColor: theme.primaryBg,
+                      borderRadius: 8,
+                      paddingHorizontal: 8,
+                      paddingVertical: 5,
+                      alignSelf: 'flex-start',
+                    }}
+                  >
+                    <Ionicons
+                      name="qr-code-outline"
+                      size={12}
+                      color={theme.primary}
+                    />
+                    <Text
+                      style={{
+                        color: theme.primary,
+                        fontSize: 11,
+                        fontWeight: '700',
+                      }}
+                    >
+                      QR parent direct
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
     </View>
