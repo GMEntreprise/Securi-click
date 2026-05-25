@@ -90,7 +90,9 @@ export function useUpdateGuardian(childId: string) {
       payload: UpdateGuardianPayload;
     }) => parentService.updateGuardian(guardianId, payload),
     onSuccess: data => {
-      // Update the current child's cache immediately
+      // Update the individual guardian cache used by the edit screen
+      queryClient.setQueryData<Guardian>(['guardian', data.id], data);
+      // Update the current child's list cache immediately
       queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev =>
         (prev ?? []).map(g => (g.id === data.id ? data : g))
       );
