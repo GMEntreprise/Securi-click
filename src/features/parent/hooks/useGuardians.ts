@@ -28,7 +28,12 @@ export function useGuardians(childId: string) {
     if (!childId) return;
     return subscribeToTable(
       `guardians-${childId}`,
-      { event: '*', schema: 'public', table: 'guardians', filter: `child_id=eq.${childId}` },
+      {
+        event: '*',
+        schema: 'public',
+        table: 'guardians',
+        filter: `child_id=eq.${childId}`,
+      },
       payload => {
         if (payload.eventType === 'DELETE') {
           queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev =>
@@ -72,6 +77,8 @@ export function useAddGuardian() {
 }
 
 export function useUpdateGuardian(childId: string) {
+  const session = useSession();
+  const parentId = session?.user.id ?? '';
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -83,9 +90,22 @@ export function useUpdateGuardian(childId: string) {
       payload: UpdateGuardianPayload;
     }) => parentService.updateGuardian(guardianId, payload),
     onSuccess: data => {
+      // Update the current child's cache immediately
       queryClient.setQueryData<Guardian[]>(GUARDIANS_KEY(childId), prev =>
         (prev ?? []).map(g => (g.id === data.id ? data : g))
       );
+      // Invalidate ALL guardians queries for this parent — the service may have
+      // updated other children's guardian rows if it's the same collector.
+      queryClient.invalidateQueries({
+        predicate: query =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0] === 'parent' &&
+          query.queryKey[1] === 'guardians' &&
+          query.queryKey[2] !== childId,
+      });
+      queryClient.invalidateQueries({
+        queryKey: EXISTING_COLLECTORS_KEY(parentId),
+      });
     },
   });
 }
@@ -184,7 +204,9 @@ export function useLinkCollector(childId: string) {
     }) => parentService.linkCollectorToChild(parentId, childId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: GUARDIANS_KEY(childId) });
-      queryClient.invalidateQueries({ queryKey: EXISTING_COLLECTORS_KEY(parentId) });
+      queryClient.invalidateQueries({
+        queryKey: EXISTING_COLLECTORS_KEY(parentId),
+      });
     },
   });
 }

@@ -255,6 +255,7 @@ const ResultSheet = memo(function ResultSheet({
             backgroundColor: t.bg,
             borderTopLeftRadius: 28,
             borderTopRightRadius: 28,
+            minHeight: '40%',
             maxHeight: '85%',
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -4 },
@@ -283,8 +284,10 @@ const ResultSheet = memo(function ResultSheet({
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingHorizontal: 20,
-            paddingBottom: insets.bottom + 24,
+            paddingTop: 8,
+            paddingBottom: insets.bottom + 32,
             gap: 14,
+            minHeight: 280,
           }}
         >
           {/* Status banner */}

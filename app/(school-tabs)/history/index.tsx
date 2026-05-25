@@ -349,8 +349,8 @@ const HistoryRow = memo(function HistoryRow({
         </Text>
         <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
           {item.guardian
-            ? `${item.guardian.first_name} ${item.guardian.last_name}`
-            : 'Parent direct'}
+            ? `${item.guardian.first_name} ${item.guardian.last_name} · ${item.guardian.relationship}`
+            : 'QR parent (sans collecteur assigné)'}
         </Text>
       </View>
       <View style={{ alignItems: 'flex-end', gap: 4 }}>

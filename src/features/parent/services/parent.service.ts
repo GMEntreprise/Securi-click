@@ -14,7 +14,9 @@ export const parentService = {
   async getProfile(userId: string): Promise<ParentProfile> {
     const { data, error } = await supabase
       .from('user_profiles')
-      .select('id, user_id, first_name, last_name, phone, avatar_url, role, school_id, created_at, updated_at')
+      .select(
+        'id, user_id, first_name, last_name, phone, avatar_url, role, school_id, created_at, updated_at'
+      )
       .eq('user_id', userId)
       .single();
     if (error) throw error;
@@ -56,7 +58,9 @@ export const parentService = {
   async getChildren(parentId: string): Promise<Child[]> {
     const { data, error } = await supabase
       .from('children')
-      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )')
+      .select(
+        'id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )'
+      )
       .eq('parent_id', parentId)
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -66,7 +70,9 @@ export const parentService = {
   async getChild(childId: string): Promise<Child> {
     const { data, error } = await supabase
       .from('children')
-      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )')
+      .select(
+        'id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )'
+      )
       .eq('id', childId)
       .single();
     if (error) throw error;
@@ -86,7 +92,9 @@ export const parentService = {
         photo_url: payload.photo_url ?? null,
         medical_notes: payload.medical_notes ?? null,
       })
-      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )')
+      .select(
+        'id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )'
+      )
       .single();
     if (error) throw error;
     return data as unknown as Child;
@@ -103,7 +111,9 @@ export const parentService = {
     if (error) throw error;
     const { data, error: fetchError } = await supabase
       .from('children')
-      .select('id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )')
+      .select(
+        'id, parent_id, school_id, first_name, last_name, date_of_birth, photo_url, class_name, medical_notes, is_active, created_at, updated_at, school:schools ( id, name, city, type, verified, external_id )'
+      )
       .eq('id', childId)
       .single();
     if (fetchError) throw fetchError;
@@ -123,7 +133,9 @@ export const parentService = {
     // collectors who have a PIN defined but haven't accepted yet (access_code_hash set).
     const { data, error } = await supabase
       .from('guardians')
-      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash')
+      .select(
+        'id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash'
+      )
       .eq('parent_id', parentId)
       .or('collector_user_id.not.is.null,access_code_hash.not.is.null')
       .order('first_name', { ascending: true });
@@ -174,7 +186,8 @@ export const parentService = {
         .eq('child_id', childId)
         .eq('collector_user_id', payload.collector_user_id)
         .maybeSingle();
-      if (existing) throw new Error('Ce collecteur est déjà autorisé pour cet enfant.');
+      if (existing)
+        throw new Error('Ce collecteur est déjà autorisé pour cet enfant.');
 
       const { data, error } = await supabase
         .from('guardians')
@@ -190,7 +203,9 @@ export const parentService = {
           is_active: true,
           priority: 1,
         })
-        .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash')
+        .select(
+          'id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash'
+        )
         .single();
       if (error) throw error;
       return data as Guardian;
@@ -206,7 +221,8 @@ export const parentService = {
       .eq('child_id', childId)
       .eq('email', payload.email)
       .maybeSingle();
-    if (existing) throw new Error('Ce collecteur est déjà associé à cet enfant.');
+    if (existing)
+      throw new Error('Ce collecteur est déjà associé à cet enfant.');
 
     const { error: rpcError } = await supabase.rpc('invite_guardian', {
       p_child_id: childId,
@@ -221,7 +237,9 @@ export const parentService = {
 
     const { data, error } = await supabase
       .from('guardians')
-      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash')
+      .select(
+        'id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash'
+      )
       .eq('child_id', childId)
       .eq('email', payload.email)
       .order('created_at', { ascending: false })
@@ -234,7 +252,9 @@ export const parentService = {
   async getGuardians(childId: string): Promise<Guardian[]> {
     const { data, error } = await supabase
       .from('guardians')
-      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at')
+      .select(
+        'id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at'
+      )
       .eq('child_id', childId)
       .order('priority', { ascending: true });
     if (error) throw error;
@@ -244,7 +264,9 @@ export const parentService = {
   async getGuardian(guardianId: string): Promise<Guardian> {
     const { data, error } = await supabase
       .from('guardians')
-      .select('id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at')
+      .select(
+        'id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at'
+      )
       .eq('id', guardianId)
       .single();
     if (error) throw error;
@@ -279,11 +301,35 @@ export const parentService = {
     guardianId: string,
     payload: UpdateGuardianPayload
   ): Promise<Guardian> {
+    // Fetch the target row first to get collector_user_id + parent_id
+    const { data: target, error: fetchError } = await supabase
+      .from('guardians')
+      .select('id, parent_id, collector_user_id')
+      .eq('id', guardianId)
+      .single();
+    if (fetchError) throw fetchError;
+
+    const updatePayload = { ...payload, updated_at: new Date().toISOString() };
+
+    // If this collector is linked to multiple children (same collector_user_id),
+    // propagate common fields to all their guardian rows under this parent.
+    if (target.collector_user_id) {
+      await supabase
+        .from('guardians')
+        .update(updatePayload)
+        .eq('parent_id', target.parent_id)
+        .eq('collector_user_id', target.collector_user_id)
+        .neq('id', guardianId);
+    }
+
+    // Update the target row and return it
     const { data, error } = await supabase
       .from('guardians')
-      .update({ ...payload, updated_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', guardianId)
-      .select()
+      .select(
+        'id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at'
+      )
       .single();
     if (error) throw error;
     return data as Guardian;
