@@ -1,6 +1,6 @@
 import React, { memo, useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useTheme } from '@/theme';
@@ -23,44 +23,62 @@ export const NotificationItem = memo(({ item, onPress }: Props) => {
   });
 
   return (
-    <Animated.View entering={FadeIn.duration(200)}>
+    <Animated.View
+      entering={FadeInDown.duration(200)}
+      style={{ paddingHorizontal: 16, paddingVertical: 4 }}
+    >
       <Pressable
         onPress={handlePress}
         style={({ pressed }) => ({
           flexDirection: 'row',
           alignItems: 'flex-start',
           gap: 12,
-          paddingHorizontal: 16,
+          paddingHorizontal: 14,
           paddingVertical: 14,
           backgroundColor: item.is_read
-            ? t.bg
+            ? t.card
             : t.isDark
-              ? 'rgba(59,130,246,0.05)'
-              : 'rgba(249,115,22,0.04)',
-          opacity: pressed ? 0.75 : 1,
+              ? 'rgba(249,115,22,0.07)'
+              : 'rgba(249,115,22,0.05)',
+          borderRadius: 18,
+          borderWidth: 1,
+          borderColor: item.is_read
+            ? t.cardBorder
+            : t.isDark
+              ? 'rgba(249,115,22,0.18)'
+              : 'rgba(249,115,22,0.15)',
+          opacity: pressed ? 0.8 : 1,
         })}
       >
         <NotificationIcon type={item.type} />
 
-        <View style={{ flex: 1, gap: 2 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{ flex: 1, gap: 3 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+            }}
+          >
             <Text
               style={{
                 fontSize: 14,
-                fontWeight: item.is_read ? '500' : '700',
+                fontWeight: item.is_read ? '600' : '700',
                 color: t.text,
                 flex: 1,
-                marginRight: 8,
               }}
               numberOfLines={1}
             >
               {item.title}
             </Text>
-            <Text style={{ fontSize: 11, color: t.textMuted }}>{timeAgo}</Text>
+            <Text style={{ fontSize: 11, color: t.textMuted, flexShrink: 0 }}>
+              {timeAgo}
+            </Text>
           </View>
 
           <Text
-            style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
+            style={{ fontSize: 13, color: t.textSecondary, lineHeight: 19 }}
             numberOfLines={2}
           >
             {item.body}
@@ -74,7 +92,7 @@ export const NotificationItem = memo(({ item, onPress }: Props) => {
               height: 8,
               borderRadius: 4,
               backgroundColor: t.accent,
-              marginTop: 4,
+              marginTop: 5,
               flexShrink: 0,
             }}
           />

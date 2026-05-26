@@ -67,32 +67,45 @@ export const NotificationCenterScreen = memo(() => {
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
+      {/* Handle bar */}
+      <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
+        <View
+          style={{
+            width: 40,
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: t.inputBorder,
+          }}
+        />
+      </View>
+
       {/* Header */}
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
-          paddingTop: insets.top + 8,
-          paddingBottom: 12,
-          paddingHorizontal: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: t.separator,
-          backgroundColor: t.card,
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 16,
         }}
       >
-        <Text
-          style={{ flex: 1, fontSize: 18, fontWeight: '800', color: t.text }}
-        >
-          Notifications
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 22,
+              fontWeight: '800',
+              color: t.text,
+              letterSpacing: -0.4,
+            }}
+          >
+            Notifications
+          </Text>
           {unread > 0 && (
-            <Text
-              style={{ fontSize: 14, fontWeight: '600', color: t.textMuted }}
-            >
-              {'  '}
+            <Text style={{ fontSize: 13, color: t.textMuted, marginTop: 2 }}>
               {unread} non lue{unread > 1 ? 's' : ''}
             </Text>
           )}
-        </Text>
+        </View>
 
         {unread > 0 && (
           <Pressable
@@ -101,25 +114,50 @@ export const NotificationCenterScreen = memo(() => {
             style={{
               flexDirection: 'row',
               alignItems: 'center',
-              gap: 4,
-              marginRight: 16,
+              gap: 5,
+              backgroundColor: t.accentBg,
+              borderRadius: 10,
+              paddingHorizontal: 12,
+              paddingVertical: 7,
+              marginRight: 10,
             }}
           >
             <Ionicons
               name="checkmark-done-outline"
-              size={16}
+              size={14}
               color={t.accent}
             />
-            <Text style={{ fontSize: 13, color: t.accent, fontWeight: '600' }}>
+            <Text style={{ fontSize: 13, color: t.accent, fontWeight: '700' }}>
               Tout lire
             </Text>
           </Pressable>
         )}
 
-        <Pressable onPress={closeCenter} hitSlop={8}>
-          <Ionicons name="close" size={20} color={t.textSecondary} />
+        <Pressable
+          onPress={closeCenter}
+          hitSlop={8}
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            backgroundColor: t.iconBg,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Ionicons name="close" size={18} color={t.textSecondary} />
         </Pressable>
       </View>
+
+      {/* Divider */}
+      <View
+        style={{
+          height: 1,
+          backgroundColor: t.cardBorder,
+          marginHorizontal: 20,
+          marginBottom: 4,
+        }}
+      />
 
       {isLoading ? (
         <View
@@ -133,15 +171,40 @@ export const NotificationCenterScreen = memo(() => {
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 8,
+            gap: 10,
+            paddingBottom: 60,
           }}
         >
-          <Text style={{ fontSize: 40 }}>🔔</Text>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: t.text }}>
+          <View
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 22,
+              backgroundColor: t.iconBg,
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 4,
+            }}
+          >
+            <Ionicons
+              name="notifications-outline"
+              size={32}
+              color={t.textMuted}
+            />
+          </View>
+          <Text style={{ fontSize: 17, fontWeight: '700', color: t.text }}>
             Aucune notification
           </Text>
-          <Text style={{ fontSize: 14, color: t.textSecondary }}>
-            Vous serez notifié en temps réel
+          <Text
+            style={{
+              fontSize: 14,
+              color: t.textSecondary,
+              textAlign: 'center',
+              paddingHorizontal: 40,
+              lineHeight: 20,
+            }}
+          >
+            Vous serez notifié en temps réel des activités importantes.
           </Text>
         </View>
       ) : (
@@ -154,35 +217,31 @@ export const NotificationCenterScreen = memo(() => {
           renderSectionHeader={({ section }) => (
             <View
               style={{
-                paddingHorizontal: 16,
-                paddingVertical: 8,
+                paddingHorizontal: 20,
+                paddingTop: 16,
+                paddingBottom: 6,
                 backgroundColor: t.bg,
               }}
             >
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: '700',
                   color: t.textMuted,
                   textTransform: 'uppercase',
-                  letterSpacing: 0.8,
+                  letterSpacing: 0.9,
                 }}
               >
                 {section.title}
               </Text>
             </View>
           )}
-          ItemSeparatorComponent={() => (
-            <View
-              style={{
-                height: 1,
-                backgroundColor: t.separator,
-                marginLeft: 68,
-              }}
-            />
-          )}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + 32,
+            paddingTop: 4,
+          }}
           showsVerticalScrollIndicator={false}
+          stickySectionHeadersEnabled={false}
         />
       )}
     </View>
