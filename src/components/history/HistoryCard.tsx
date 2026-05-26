@@ -47,7 +47,7 @@ export const HistoryCard = memo(function HistoryCard({
     : '—';
   const guardianName = item.guardian
     ? `${item.guardian.first_name} ${item.guardian.last_name}`
-    : 'Inconnu';
+    : 'QR Parent direct';
   const d = new Date(item.scanned_at);
   const time = d.toLocaleTimeString('fr-FR', {
     hour: '2-digit',
@@ -140,13 +140,21 @@ export const HistoryCard = memo(function HistoryCard({
             </View>
 
             <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
-              Par{' '}
-              <Text style={{ fontWeight: '600', color: theme.text }}>
-                {guardianName}
-              </Text>
-              {item.guardian?.relationship
-                ? ` · ${item.guardian.relationship}`
-                : ''}
+              {item.guardian ? (
+                <>
+                  Par{' '}
+                  <Text style={{ fontWeight: '600', color: theme.text }}>
+                    {guardianName}
+                  </Text>
+                  {item.guardian.relationship
+                    ? ` · ${item.guardian.relationship}`
+                    : ''}
+                </>
+              ) : (
+                <Text style={{ fontWeight: '600', color: theme.text }}>
+                  QR Parent direct
+                </Text>
+              )}
             </Text>
 
             {item.denial_reason ? (

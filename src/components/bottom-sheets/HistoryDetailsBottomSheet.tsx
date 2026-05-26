@@ -328,8 +328,8 @@ export const HistoryDetailsBottomSheet = memo(
                     label="Collecteur"
                     value={
                       detail.guardian
-                        ? `${detail.guardian.first_name} ${detail.guardian.last_name} · ${detail.guardian.relationship}`
-                        : '—'
+                        ? `${detail.guardian.first_name} ${detail.guardian.last_name}${detail.guardian.relationship ? ` · ${detail.guardian.relationship}` : ''}`
+                        : 'QR Parent direct'
                     }
                   />
                   {detail.school && (
