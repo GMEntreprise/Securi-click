@@ -408,7 +408,7 @@ const ResultSheet = memo(function ResultSheet({
           )}
 
           {/* Collector card */}
-          {result.guardian && (
+          {result.guardian ? (
             <Animated.View
               entering={FadeInDown.delay(100).duration(280)}
               style={{
@@ -419,7 +419,7 @@ const ResultSheet = memo(function ResultSheet({
                 padding: 16,
               }}
             >
-              <SectionHeader icon="collector" label="Collecteur" />
+              <SectionHeader icon="collector" label="QR Collecteur" />
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
               >
@@ -465,6 +465,58 @@ const ResultSheet = memo(function ResultSheet({
                 </View>
               </View>
             </Animated.View>
+          ) : (
+            <Animated.View
+              entering={FadeInDown.delay(100).duration(280)}
+              style={{
+                backgroundColor: t.card,
+                borderRadius: 20,
+                borderWidth: 1,
+                borderColor: t.cardBorder,
+                padding: 16,
+              }}
+            >
+              <SectionHeader icon="parent" label="QR Parent direct" />
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 12,
+                  backgroundColor: t.primaryBg,
+                  borderRadius: 14,
+                  padding: 14,
+                }}
+              >
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 12,
+                    backgroundColor: t.bg,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons
+                    name="qr-code-outline"
+                    size={20}
+                    color={t.primary}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={{ color: t.text, fontSize: 15, fontWeight: '700' }}
+                  >
+                    QR généré par le parent
+                  </Text>
+                  <Text
+                    style={{ color: t.textMuted, fontSize: 13, marginTop: 2 }}
+                  >
+                    Aucun collecteur assigné à ce scan
+                  </Text>
+                </View>
+              </View>
+            </Animated.View>
           )}
 
           {/* CTA */}
@@ -498,11 +550,28 @@ const SectionHeader = memo(function SectionHeader({
   icon,
   label,
 }: {
-  icon: 'child' | 'collector';
+  icon: 'child' | 'collector' | 'parent';
   label: string;
 }) {
   const t = useTheme();
-  const isCollector = icon === 'collector';
+  const cfg = {
+    child: {
+      bg: t.primaryBg,
+      iconName: 'person-outline' as const,
+      color: t.primary,
+    },
+    collector: {
+      bg: t.accentBg,
+      iconName: 'people-outline' as const,
+      color: t.accent,
+    },
+    parent: {
+      bg: t.primaryBg,
+      iconName: 'home-outline' as const,
+      color: t.primary,
+    },
+  };
+  const { bg, iconName, color } = cfg[icon];
   return (
     <View
       style={{
@@ -517,19 +586,12 @@ const SectionHeader = memo(function SectionHeader({
           width: 26,
           height: 26,
           borderRadius: 8,
-          backgroundColor: isCollector ? t.accentBg : t.primaryBg,
+          backgroundColor: bg,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <View
-          style={{
-            width: 10,
-            height: 10,
-            borderRadius: 5,
-            backgroundColor: isCollector ? t.accent : t.primary,
-          }}
-        />
+        <Ionicons name={iconName} size={14} color={color} />
       </View>
       <Text style={{ color: t.text, fontSize: 14, fontWeight: '700' }}>
         {label}
