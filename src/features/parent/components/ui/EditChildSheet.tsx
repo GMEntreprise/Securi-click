@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -16,7 +16,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
-import { useUpdateChild } from '../../hooks/useChildren';
+import { useUpdateChild, useChild } from '../../hooks/useChildren';
 import { useSession } from '@/features/auth/store/auth.store';
 import { useImagePicker } from '@/hooks';
 import type { Child } from '../../types';
@@ -133,40 +133,59 @@ export const EditChildSheet = memo(function EditChildSheet({
   const session = useSession();
   const userId = session?.user.id ?? '';
 
+  const { data: freshChild } = useChild(child.id);
+  const resolvedChild = freshChild ?? child;
+
   const updateChild = useUpdateChild();
   const { pickFromGallery, takePhoto, isUploading } = useImagePicker({
     bucket: 'children-images',
     userId,
   });
 
+  const schoolToSearchResult = useCallback(
+    (s: NonNullable<Child['school']>): SchoolSearchResult => ({
+      id: s.id,
+      name: s.name,
+      city: s.city,
+      type: s.type,
+      normalized_name: '',
+      address: '',
+      postal_code: '',
+      logo_url: null,
+      is_active: true,
+      verified: s.verified ?? false,
+      external_id: s.external_id ?? null,
+      confidence: 100,
+    }),
+    []
+  );
+
   const [form, setForm] = useState<FormState>({
-    firstName: child.first_name,
-    lastName: child.last_name,
-    className: child.class_name ?? '',
-    medicalNotes: child.medical_notes ?? '',
+    firstName: resolvedChild.first_name,
+    lastName: resolvedChild.last_name,
+    className: resolvedChild.class_name ?? '',
+    medicalNotes: resolvedChild.medical_notes ?? '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [photoUri, setPhotoUri] = useState<string | null>(child.photo_url);
+  const [photoUri, setPhotoUri] = useState<string | null>(
+    resolvedChild.photo_url
+  );
   const [selectedSchool, setSelectedSchool] =
     useState<SchoolSearchResult | null>(
-      child.school
-        ? {
-            id: child.school.id,
-            name: child.school.name,
-            city: child.school.city,
-            type: child.school.type,
-            normalized_name: '',
-            address: '',
-            postal_code: '',
-            logo_url: null,
-            is_active: true,
-            verified: child.school.verified ?? false,
-            external_id: child.school.external_id ?? null,
-            confidence: 100,
-          }
-        : null
+      resolvedChild.school ? schoolToSearchResult(resolvedChild.school) : null
     );
   const [schoolPickerVisible, setSchoolPickerVisible] = useState(false);
+
+  const userHasPickedSchool = useRef(false);
+
+  useEffect(() => {
+    if (userHasPickedSchool.current) return;
+    if (freshChild?.school) {
+      setSelectedSchool(schoolToSearchResult(freshChild.school));
+    } else if (freshChild && !freshChild.school) {
+      setSelectedSchool(null);
+    }
+  }, [freshChild, schoolToSearchResult]);
 
   const setField = useCallback(
     (field: keyof FormState) => (value: string) => {
@@ -207,6 +226,7 @@ export const EditChildSheet = memo(function EditChildSheet({
   }, [takePhoto, pickFromGallery]);
 
   const handleSchoolSelect = useCallback((school: SchoolSearchResult) => {
+    userHasPickedSchool.current = true;
     setSelectedSchool(school);
     setErrors(prev => ({ ...prev, school: undefined }));
     setSchoolPickerVisible(false);
