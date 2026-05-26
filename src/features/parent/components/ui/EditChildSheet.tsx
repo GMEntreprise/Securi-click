@@ -47,7 +47,7 @@ interface FormState {
   medicalNotes: string;
 }
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+type FormErrors = Partial<Record<keyof FormState | 'school', string>>;
 
 interface EditChildSheetProps {
   child: Child;
@@ -181,9 +181,10 @@ export const EditChildSheet = memo(function EditChildSheet({
     if (!form.firstName.trim()) next.firstName = 'Prénom requis';
     if (!form.lastName.trim()) next.lastName = 'Nom requis';
     if (!form.className.trim()) next.className = 'Classe requise';
+    if (!selectedSchool) next.school = 'Établissement requis';
     setErrors(next);
     return Object.keys(next).length === 0;
-  }, [form]);
+  }, [form, selectedSchool]);
 
   const handlePickPhoto = useCallback(() => {
     Alert.alert("Photo de l'enfant", 'Choisir une source', [
@@ -207,6 +208,7 @@ export const EditChildSheet = memo(function EditChildSheet({
 
   const handleSchoolSelect = useCallback((school: SchoolSearchResult) => {
     setSelectedSchool(school);
+    setErrors(prev => ({ ...prev, school: undefined }));
     setSchoolPickerVisible(false);
   }, []);
 
@@ -615,9 +617,11 @@ export const EditChildSheet = memo(function EditChildSheet({
                 backgroundColor: theme.card,
                 borderRadius: 22,
                 borderWidth: 1,
-                borderColor: selectedSchool
-                  ? 'rgba(16,185,129,0.3)'
-                  : theme.cardBorder,
+                borderColor: errors.school
+                  ? theme.red
+                  : selectedSchool
+                    ? 'rgba(16,185,129,0.3)'
+                    : theme.cardBorder,
                 padding: 16,
               }}
             >
@@ -649,15 +653,6 @@ export const EditChildSheet = memo(function EditChildSheet({
                   style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
                 >
                   Établissement
-                </Text>
-                <Text
-                  style={{
-                    color: theme.textMuted,
-                    fontSize: 12,
-                    marginLeft: 4,
-                  }}
-                >
-                  (optionnel)
                 </Text>
               </View>
 
@@ -761,7 +756,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                 />
               </TouchableOpacity>
 
-              {selectedSchool && (
+              {selectedSchool ? (
                 <TouchableOpacity
                   onPress={() => setSelectedSchool(null)}
                   style={{ marginTop: 10, alignSelf: 'flex-start' }}
@@ -776,7 +771,25 @@ export const EditChildSheet = memo(function EditChildSheet({
                     Retirer l'établissement
                   </Text>
                 </TouchableOpacity>
-              )}
+              ) : errors.school ? (
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    marginTop: 8,
+                  }}
+                >
+                  <Ionicons
+                    name="alert-circle-outline"
+                    size={13}
+                    color={theme.red}
+                  />
+                  <Text style={{ color: theme.red, fontSize: 12 }}>
+                    {errors.school}
+                  </Text>
+                </View>
+              ) : null}
             </Animated.View>
 
             {/* Notes médicales */}
