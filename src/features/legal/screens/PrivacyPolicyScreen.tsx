@@ -106,6 +106,12 @@ export const PrivacyPolicyScreen = memo(() => {
         </Body>
       </Section>
 
+      <Section title="Développeur de l'application">
+        <Body>
+          {`L'application mobile SecuriClick a été développée par Shavod.\nPour toute question technique relative à l'application, vous pouvez nous contacter via l'adresse ci-dessous.`}
+        </Body>
+      </Section>
+
       <Section title="Contact">
         <Body>
           {`SECURI'CLICK — SARL Securi'ClickT\n1 Rue Louis Jourdan, 83000 Toulon\nEmail : contact@securi-click.com`}
