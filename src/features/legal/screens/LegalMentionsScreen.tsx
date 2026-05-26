@@ -1,6 +1,6 @@
 import { useTheme } from '@/theme';
 import React, { memo } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Section = memo(
@@ -68,8 +68,29 @@ export const LegalMentionsScreen = memo(() => {
 
       <Section title="1. Présentation du site">
         <Body>
-          {`En vertu de l'article 6 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique, voici les informations relatives aux intervenants du site https://securi-click.com/ :\n\nResponsable de publication : SARL Securi'ClickT\nDéveloppeur de l'application : Shavod\nWebmaster : Gabriel BOUFFANET\nHébergeur : o2Switch — https://www.o2switch.fr/\nNom de domaine : OVH\n\nSECURI'CLICK\nSARL Securi'ClickT\n1 Rue Louis Jourdan\n83000 Toulon`}
+          {`En vertu de l'article 6 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique, voici les informations relatives aux intervenants du site https://securi-click.com/ :\n\nResponsable de publication : SARL Securi'ClickT\nHébergeur : o2Switch — https://www.o2switch.fr/\n\nSECURI'CLICK\nSARL Securi'ClickT\n1 Rue Louis Jourdan\n83000 Toulon`}
         </Body>
+      </Section>
+
+      <Section title="Développeur de l'application">
+        <View style={{ gap: 6 }}>
+          <Body>{`L'application mobile SecuriClick a été développée par Shavod.`}</Body>
+          <Pressable onPress={() => Linking.openURL('https://shavod.com')}>
+            {({ pressed }) => (
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: '#f97316',
+                  fontWeight: '600',
+                  opacity: pressed ? 0.6 : 1,
+                  textDecorationLine: 'underline',
+                }}
+              >
+                shavod.com
+              </Text>
+            )}
+          </Pressable>
+        </View>
       </Section>
 
       <Section title="2. Conditions générales d'utilisation">

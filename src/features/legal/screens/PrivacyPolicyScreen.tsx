@@ -1,6 +1,6 @@
 import { useTheme } from '@/theme';
 import React, { memo } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const Section = memo(
@@ -107,9 +107,24 @@ export const PrivacyPolicyScreen = memo(() => {
       </Section>
 
       <Section title="Développeur de l'application">
-        <Body>
-          {`L'application mobile SecuriClick a été développée par Shavod.\nPour toute question technique relative à l'application, vous pouvez nous contacter via l'adresse ci-dessous.`}
-        </Body>
+        <View style={{ gap: 6 }}>
+          <Body>{`L'application mobile SecuriClick a été développée par Shavod.`}</Body>
+          <Pressable onPress={() => Linking.openURL('https://shavod.com')}>
+            {({ pressed }) => (
+              <Text
+                style={{
+                  fontSize: 14,
+                  color: '#f97316',
+                  fontWeight: '600',
+                  opacity: pressed ? 0.6 : 1,
+                  textDecorationLine: 'underline',
+                }}
+              >
+                shavod.com
+              </Text>
+            )}
+          </Pressable>
+        </View>
       </Section>
 
       <Section title="Contact">
