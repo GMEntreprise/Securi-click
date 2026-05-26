@@ -71,16 +71,17 @@ export const schoolService = {
     return (data ?? []) as unknown as SchoolChild[];
   },
 
-  async getPickupValidations(
-    schoolId: string,
-    limit = 30
-  ): Promise<PickupValidation[]> {
+  async getPickupValidations(schoolId: string): Promise<PickupValidation[]> {
+    const since = new Date();
+    since.setDate(since.getDate() - 30);
+
     const { data, error } = await supabase
       .from('pickup_validations')
       .select(VALIDATION_SELECT)
       .eq('school_id', schoolId)
+      .gte('scanned_at', since.toISOString())
       .order('scanned_at', { ascending: false })
-      .limit(limit);
+      .limit(500);
     if (error) throw error;
     return (data ?? []) as unknown as PickupValidation[];
   },
@@ -120,7 +121,14 @@ export const schoolService = {
     if (enrolledData.error) throw enrolledData.error;
 
     const today = todayData.data ?? [];
-    const recentValidations = await this.getPickupValidations(schoolId, 10);
+    const { data: recentData } = await supabase
+      .from('pickup_validations')
+      .select(VALIDATION_SELECT)
+      .eq('school_id', schoolId)
+      .order('scanned_at', { ascending: false })
+      .limit(10);
+    const recentValidations = (recentData ??
+      []) as unknown as PickupValidation[];
 
     return {
       todayValidations: today.filter(r => r.status === 'validated').length,
