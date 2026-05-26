@@ -155,7 +155,7 @@ export default memo(function CollectorPinScreen() {
             >
               {/* Back natif — router.back() = back du stack Expo Router */}
               <TouchableOpacity
-                onPress={() => router.back()}
+                onPress={() => router.replace('/(auth)')}
                 hitSlop={14}
                 style={{
                   flexDirection: 'row',
