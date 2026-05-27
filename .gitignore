@@ -37,6 +37,7 @@ yarn-error.*
 
 # Firebase service account — private key, never commit
 google-service-account.json
+# google-services.json is intentionally tracked (public Android config, no secrets)
 # typescript
 *.tsbuildinfo
 

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "89365955349",
+    "project_id": "securi-click",
+    "storage_bucket": "securi-click.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:89365955349:android:4d9ada5eef039c06591f1c",
+        "android_client_info": {
+          "package_name": "com.shavod.securiclick"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDvR0YNNHi_aYzov6LQuJDgqdle1neDG7o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
