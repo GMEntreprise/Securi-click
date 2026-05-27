@@ -10,6 +10,7 @@ const config: ExpoConfig = {
 
   updates: {
     url: 'https://u.expo.dev/858bf27d-7dbe-4355-bb8c-13fc80bb2b24',
+    checkAutomatically: 'ON_LOAD',
   },
   runtimeVersion: {
     policy: 'appVersion',

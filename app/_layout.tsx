@@ -33,6 +33,7 @@ import {
 import { useUnreadCountQuery } from '@/features/notifications/hooks/useNotifications';
 import { NotificationCenterScreen } from '@/features/notifications/screens/NotificationCenterScreen';
 import { NetworkBanner } from '@/shared/ui/molecules/NetworkBanner';
+import { useOTAUpdate } from '@/hooks/useOTAUpdate';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -498,6 +499,8 @@ function NotificationCenterModal() {
 export default function RootLayout() {
   const initialize = useAuthStore(s => s.initialize);
   const initCollectorSession = useCollectorSessionStore(s => s.initialize);
+
+  useOTAUpdate();
 
   useEffect(() => {
     initCollectorSession();
