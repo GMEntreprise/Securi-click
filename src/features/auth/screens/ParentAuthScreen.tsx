@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLogin } from '../hooks/useLogin';
 import { useRegisterParent } from '../hooks/useRegister';
 import { useLastEmail } from '../hooks/useLastEmail';
+import { Toast } from '@/shared/ui/molecules/Toast';
 import { AuthBackButton, AuthTabToggle } from '../components/ui';
 import { LegalConsentSheet } from '../components/ui/LegalConsentSheet';
 import { LegalMentionsScreen } from '@/features/legal/screens/LegalMentionsScreen';
@@ -57,8 +58,25 @@ export const ParentAuthScreen: React.FC = memo(() => {
   const handleLegalAccept = useCallback(() => {
     if (!pendingData) return;
     setLegalSheetVisible(false);
-    registerMutation.mutate({ ...pendingData, accept_terms: true, accept_privacy: true });
-    setPendingData(null);
+    registerMutation.mutate(
+      { ...pendingData, accept_terms: true, accept_privacy: true },
+      {
+        onSuccess: () => {
+          setPendingData(null);
+          Toast.show(
+            'Email de confirmation envoyé ! Vérifiez votre boîte mail.',
+            { type: 'success', duration: 4000 }
+          );
+        },
+        onError: (e: any) => {
+          setPendingData(null);
+          Toast.show(
+            e?.message ?? 'Impossible de créer le compte. Réessayez.',
+            { type: 'error', duration: 5000 }
+          );
+        },
+      }
+    );
   }, [pendingData, registerMutation]);
 
   const handleForgotPassword = useCallback(() => {

@@ -26,7 +26,10 @@ import {
   addNotificationResponseListener,
   setBadgeCount,
 } from '@/features/notifications/services/push.service';
-import { useNotificationStore, useNotificationCenterOpen } from '@/features/notifications/stores/notification.store';
+import {
+  useNotificationStore,
+  useNotificationCenterOpen,
+} from '@/features/notifications/stores/notification.store';
 import { useUnreadCountQuery } from '@/features/notifications/hooks/useNotifications';
 import { NotificationCenterScreen } from '@/features/notifications/screens/NotificationCenterScreen';
 import { NetworkBanner } from '@/shared/ui/molecules/NetworkBanner';
@@ -60,7 +63,6 @@ function isAuthCallbackUrl(url: string | null): boolean {
 // True while DeepLinkHandler owns session setup — guards and sync must not interfere.
 let deepLinkProcessing = false;
 
-
 // ─── DeepLinkHandler ─────────────────────────────────────────────────────────
 // Handles Supabase PKCE magic links (cold-start and warm-start).
 // Two paths:
@@ -83,7 +85,8 @@ function DeepLinkHandler() {
       router.replace('/(auth)/callback' as any);
 
       try {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+        const { data, error } =
+          await supabase.auth.exchangeCodeForSession(code);
 
         if (error || !data.session) {
           Toast.show('Lien expiré ou déjà utilisé. Demandez un nouveau lien.', {
@@ -102,14 +105,15 @@ function DeepLinkHandler() {
         // ── Path A: collector invitation ───────────────────────────────────
         if (invitationToken) {
           // Upsert profile so mapSupabaseSessionToAuthSession resolves role=collector
-          await supabase
-            .from('user_profiles')
-            .upsert({
+          await supabase.from('user_profiles').upsert(
+            {
               user_id: authUser.id,
               first_name: (meta.first_name as string) || '',
               last_name: (meta.last_name as string) || '',
               role: 'collector',
-            }, { onConflict: 'user_id', ignoreDuplicates: true });
+            },
+            { onConflict: 'user_id', ignoreDuplicates: true }
+          );
 
           const session = await mapSupabaseSessionToAuthSession(data.session);
           loginAction(session);
@@ -133,8 +137,12 @@ function DeepLinkHandler() {
               id: String(existingProfile.id),
               first_name: String(existingProfile.first_name ?? ''),
               last_name: String(existingProfile.last_name ?? ''),
-              phone: existingProfile.phone ? String(existingProfile.phone) : undefined,
-              school_id: existingProfile.school_id ? String(existingProfile.school_id) : undefined,
+              phone: existingProfile.phone
+                ? String(existingProfile.phone)
+                : undefined,
+              school_id: existingProfile.school_id
+                ? String(existingProfile.school_id)
+                : undefined,
               role: existingProfile.role as any,
             }
           : null;
@@ -144,7 +152,11 @@ function DeepLinkHandler() {
           let schoolId: string | undefined;
 
           if (metaRole === 'school_admin') {
-            const { data: school } = await supabase
+            // Try to insert the school. If it already exists (admin_user_id or email
+            // unique constraint violation — e.g. user clicked the confirmation link
+            // twice), fall back to reading the existing row so the profile gets a
+            // valid school_id instead of being created orphaned.
+            const { data: inserted, error: insertErr } = await supabase
               .from('schools')
               .insert({
                 name: (meta.school_name as string) ?? '',
@@ -161,15 +173,32 @@ function DeepLinkHandler() {
               })
               .select('id')
               .single();
-            schoolId = school?.id ? String(school.id) : undefined;
+
+            if (inserted?.id) {
+              schoolId = String(inserted.id);
+            } else if (insertErr) {
+              // Duplicate — read the existing school for this admin
+              const { data: existing } = await supabase
+                .from('schools')
+                .select('id')
+                .eq('admin_user_id', authUser.id)
+                .maybeSingle();
+              schoolId = existing?.id ? String(existing.id) : undefined;
+            }
           }
 
           const { data: inserted } = await supabase
             .from('user_profiles')
             .insert({
               user_id: authUser.id,
-              first_name: (meta.manager_first_name as string) || (meta.first_name as string) || '',
-              last_name: (meta.manager_last_name as string) || (meta.last_name as string) || '',
+              first_name:
+                (meta.manager_first_name as string) ||
+                (meta.first_name as string) ||
+                '',
+              last_name:
+                (meta.manager_last_name as string) ||
+                (meta.last_name as string) ||
+                '',
               phone: (meta.phone as string) || null,
               role: metaRole,
               ...(schoolId ? { school_id: schoolId } : {}),
@@ -183,13 +212,18 @@ function DeepLinkHandler() {
               first_name: String(inserted.first_name ?? ''),
               last_name: String(inserted.last_name ?? ''),
               phone: inserted.phone ? String(inserted.phone) : undefined,
-              school_id: inserted.school_id ? String(inserted.school_id) : undefined,
+              school_id: inserted.school_id
+                ? String(inserted.school_id)
+                : undefined,
               role: inserted.role as any,
             };
           }
         }
 
-        const session = await mapSupabaseSessionToAuthSession(data.session, knownProfile);
+        const session = await mapSupabaseSessionToAuthSession(
+          data.session,
+          knownProfile
+        );
         loginAction(session);
         const role = session.user.role;
         deepLinkProcessing = false;
@@ -216,7 +250,9 @@ function DeepLinkHandler() {
   }, [processUrl]);
 
   useEffect(() => {
-    const subscription = Linking.addEventListener('url', ({ url }) => processUrl(url));
+    const subscription = Linking.addEventListener('url', ({ url }) =>
+      processUrl(url)
+    );
     return () => subscription.remove();
   }, [processUrl]);
 
@@ -230,10 +266,26 @@ function AuthStateSync() {
   const loginAction = useAuthStore(s => s.login);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, sess) => {
-      if (__DEV__) console.log('[AuthStateSync] event=', event, 'deepLink=', deepLinkProcessing, 'pwdLogin=', passwordLoginInProgress);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, sess) => {
+      if (__DEV__)
+        console.log(
+          '[AuthStateSync] event=',
+          event,
+          'deepLink=',
+          deepLinkProcessing,
+          'pwdLogin=',
+          passwordLoginInProgress
+        );
       if (event === 'INITIAL_SESSION') return;
-      if (event === 'SIGNED_IN' && (deepLinkProcessing || passwordLoginInProgress || collectorPinLoginInProgress)) return;
+      if (
+        event === 'SIGNED_IN' &&
+        (deepLinkProcessing ||
+          passwordLoginInProgress ||
+          collectorPinLoginInProgress)
+      )
+        return;
       if (event === 'SIGNED_OUT') {
         // Only clear session on an explicit user-triggered logout.
         // Supabase fires SIGNED_OUT spuriously on 401s from background requests
@@ -246,7 +298,8 @@ function AuthStateSync() {
       if (!sess) return;
       if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
         const session = await mapSupabaseSessionToAuthSession(sess);
-        if (__DEV__) console.log('[AuthStateSync] loginAction role=', session.user.role);
+        if (__DEV__)
+          console.log('[AuthStateSync] loginAction role=', session.user.role);
         loginAction(session);
       }
     });
@@ -278,12 +331,28 @@ function NavigationGuard() {
   }
 
   useEffect(() => {
-    if (__DEV__) console.log('[Guard] effect | isRestoring=', isRestoring, 'pinRestoring=', pinRestoring, 'deepLink=', deepLinkProcessing, 'auth=', isAuthenticated, 'seg=', segments[0], segments[1]);
+    if (__DEV__)
+      console.log(
+        '[Guard] effect | isRestoring=',
+        isRestoring,
+        'pinRestoring=',
+        pinRestoring,
+        'deepLink=',
+        deepLinkProcessing,
+        'auth=',
+        isAuthenticated,
+        'seg=',
+        segments[0],
+        segments[1]
+      );
 
     if (isRestoring || pinRestoring || deepLinkProcessing) return;
 
     const seg = segments[0] as string | undefined;
-    if (!seg) { if (__DEV__) console.log('[Guard] no seg, skip'); return; }
+    if (!seg) {
+      if (__DEV__) console.log('[Guard] no seg, skip');
+      return;
+    }
 
     const inAuth = seg === '(auth)';
     const sub1 = segments[1] as string | undefined;
@@ -303,25 +372,55 @@ function NavigationGuard() {
         target = '/(collector-tabs)/home';
       }
     } else if (role === 'school_admin' || role === 'staff') {
-      if (inAuth || seg === '(app)' || seg === '(parent-tabs)' || seg === '(collector-tabs)') {
+      if (
+        inAuth ||
+        seg === '(app)' ||
+        seg === '(parent-tabs)' ||
+        seg === '(collector-tabs)'
+      ) {
         target = '/(school-tabs)/home';
       }
     } else {
       // parent / default
-      if (inAuth || seg === '(app)' || seg === '(collector-tabs)' || seg === '(school-tabs)') {
+      if (
+        inAuth ||
+        seg === '(app)' ||
+        seg === '(collector-tabs)' ||
+        seg === '(school-tabs)'
+      ) {
         target = '/(parent-tabs)';
       }
     }
 
-    if (__DEV__) console.log('[Guard] role=', role, 'target=', target, 'lastRedirect=', lastRedirectRef.current, 'seg=', seg);
+    if (__DEV__)
+      console.log(
+        '[Guard] role=',
+        role,
+        'target=',
+        target,
+        'lastRedirect=',
+        lastRedirectRef.current,
+        'seg=',
+        seg
+      );
 
     if (!target) return;
-    if (target === lastRedirectRef.current) { if (__DEV__) console.log('[Guard] skipped — same as lastRedirect'); return; }
+    if (target === lastRedirectRef.current) {
+      if (__DEV__) console.log('[Guard] skipped — same as lastRedirect');
+      return;
+    }
 
     if (__DEV__) console.log('[Guard] → router.replace', target);
     lastRedirectRef.current = target;
     router.replace(target as any);
-  }, [isAuthenticated, isRestoring, pinRestoring, pinVerified, segments, router]);
+  }, [
+    isAuthenticated,
+    isRestoring,
+    pinRestoring,
+    pinVerified,
+    segments,
+    router,
+  ]);
 
   return null;
 }
@@ -339,9 +438,15 @@ function NotificationBootstrap() {
     let tokenRegistered = false;
 
     registerPushToken()
-      .then(() => { tokenRegistered = true; })
+      .then(() => {
+        tokenRegistered = true;
+      })
       .catch(err => {
-        if (__DEV__) console.error('[NotificationBootstrap] push token registration failed', err);
+        if (__DEV__)
+          console.error(
+            '[NotificationBootstrap] push token registration failed',
+            err
+          );
       });
 
     const foregroundSub = addForegroundNotificationListener(() => {
@@ -349,7 +454,10 @@ function NotificationBootstrap() {
     });
 
     const responseSub = addNotificationResponseListener(response => {
-      const data = response.notification.request.content.data as Record<string, unknown>;
+      const data = response.notification.request.content.data as Record<
+        string,
+        unknown
+      >;
       const route = (data?.route as string) ?? null;
       if (route) router.push(route as any);
     });

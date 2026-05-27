@@ -520,7 +520,7 @@ export const SchoolAuthScreen: React.FC = memo(() => {
     if (!pendingData) return;
     setLegalSheetVisible(false);
     registerMutation.mutate(
-      { ...pendingData, accept_terms: true, accept_privacy: true } as any,
+      { ...pendingData, accept_terms: true, accept_privacy: true },
       {
         onSuccess: () => {
           setRegisterEmail(pendingData.email);

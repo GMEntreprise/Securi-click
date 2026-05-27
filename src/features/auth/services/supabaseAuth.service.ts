@@ -39,10 +39,23 @@ async function signInWithPassword(
 }
 
 async function registerParent(data: RegisterParentData): Promise<void> {
-  // Profile INSERT is deferred to DeepLinkHandler after email confirmation.
-  // All fields are stored in user_metadata so they survive the PKCE exchange.
+  const normalizedEmail = data.email.trim().toLowerCase();
+
+  // Check if an account already exists with this email via a SECURITY DEFINER RPC
+  // that queries auth.users server-side. Supabase signUp is silent on duplicate
+  // emails to prevent enumeration — we must pre-check ourselves.
+  const { data: emailTaken } = await supabase.rpc('check_email_exists', {
+    p_email: normalizedEmail,
+  });
+
+  if (emailTaken) {
+    throw new Error(
+      'Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.'
+    );
+  }
+
   const { error } = await supabase.auth.signUp({
-    email: data.email,
+    email: normalizedEmail,
     password: data.password,
     options: {
       emailRedirectTo: 'securiclick://auth/callback',
@@ -55,14 +68,38 @@ async function registerParent(data: RegisterParentData): Promise<void> {
     },
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    const msg = error.message.toLowerCase();
+    if (
+      msg.includes('already registered') ||
+      msg.includes('already been registered')
+    ) {
+      throw new Error(
+        'Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.'
+      );
+    }
+    throw new Error('Impossible de créer le compte. Réessayez.');
+  }
 }
 
 async function registerSchool(data: RegisterSchoolData): Promise<void> {
-  // All school data is stored in user_metadata so DeepLinkHandler can create
-  // the school + profile rows after the user confirms their email.
+  const normalizedEmail = data.email.trim().toLowerCase();
+
+  // Check if any account already exists with this email (school or parent).
+  // Supabase signUp is silent on duplicate emails to prevent enumeration —
+  // we must pre-check via a SECURITY DEFINER RPC that queries auth.users.
+  const { data: emailTaken } = await supabase.rpc('check_email_exists', {
+    p_email: normalizedEmail,
+  });
+
+  if (emailTaken) {
+    throw new Error(
+      'Un compte existe déjà avec cet email. Connectez-vous ou utilisez un autre email.'
+    );
+  }
+
   const { error } = await supabase.auth.signUp({
-    email: data.email,
+    email: normalizedEmail,
     password: data.password,
     options: {
       emailRedirectTo: 'securiclick://auth/callback',
@@ -81,7 +118,18 @@ async function registerSchool(data: RegisterSchoolData): Promise<void> {
     },
   });
 
-  if (error) throw new Error(error.message);
+  if (error) {
+    const msg = error.message.toLowerCase();
+    if (
+      msg.includes('already registered') ||
+      msg.includes('already been registered')
+    ) {
+      throw new Error(
+        'Un compte existe déjà avec cet email. Connectez-vous ou utilisez un autre email.'
+      );
+    }
+    throw new Error('Impossible de créer le compte. Réessayez.');
+  }
 }
 
 async function inviteCollector(email: string): Promise<void> {
