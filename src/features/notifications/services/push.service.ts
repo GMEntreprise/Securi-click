@@ -48,8 +48,15 @@ export async function registerPushToken(): Promise<string | null> {
       });
     }
 
-    const token = await Notifications.getExpoPushTokenAsync();
-    const platform = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'web';
+    const token = await Notifications.getExpoPushTokenAsync({
+      projectId: '858bf27d-7dbe-4355-bb8c-13fc80bb2b24',
+    });
+    const platform =
+      Platform.OS === 'ios'
+        ? 'ios'
+        : Platform.OS === 'android'
+          ? 'android'
+          : 'web';
 
     await upsertPushToken(token.data, platform);
     return token.data;
