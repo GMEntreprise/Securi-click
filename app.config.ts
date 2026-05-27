@@ -8,6 +8,13 @@ const config: ExpoConfig = {
   scheme: 'securiclick',
   userInterfaceStyle: 'automatic',
 
+  updates: {
+    url: 'https://u.expo.dev/858bf27d-7dbe-4355-bb8c-13fc80bb2b24',
+  },
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+
   icon: './assets/icons/adaptive-icon.png',
 
   ios: {
@@ -73,6 +80,7 @@ const config: ExpoConfig = {
 
   plugins: [
     'expo-router',
+    'expo-updates',
     [
       'expo-splash-screen',
       {
