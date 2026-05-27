@@ -30,7 +30,7 @@ interface Props {
   initialQuery?: string;
 }
 
-const PREFILL_THRESHOLD = 70;
+const PREFILL_THRESHOLD = 60;
 
 const SuggestionCard = memo(function SuggestionCard({
   school,
