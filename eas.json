@@ -39,9 +39,7 @@
         "track": "internal"
       },
       "ios": {
-        "appleId": "shavod.support@gmail.com",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "appleId": "shavod.support@gmail.com"
       }
     }
   }
