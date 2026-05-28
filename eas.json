@@ -42,7 +42,9 @@
         "releaseStatus": "draft"
       },
       "ios": {
-        "appleId": "shavod.support@gmail.com"
+        "appleId": "shavod.web@gmail.com",
+        "appleTeamId": "N9M36K8YNL",
+        "ascAppId": "6774208284"
       }
     }
   }

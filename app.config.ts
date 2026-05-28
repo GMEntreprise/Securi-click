@@ -20,6 +20,7 @@ const config: ExpoConfig = {
 
   ios: {
     bundleIdentifier: 'com.shavod.Securiclick',
+    googleServicesFile: './GoogleService-Info.plist',
     icon: {
       light: './assets/icons/ios-light.png',
       dark: './assets/icons/ios-dark.png',
@@ -38,6 +39,7 @@ const config: ExpoConfig = {
         "SecuriClick a besoin d'accéder à votre microphone pour enregistrer des notes vocales lors des récupérations.",
       NSContactsUsageDescription:
         "SecuriClick a besoin d'accéder à vos contacts pour ajouter les personnes autorisées à récupérer les enfants.",
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
 
