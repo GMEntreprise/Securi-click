@@ -18,6 +18,7 @@ interface NotificationRecord {
   metadata: Record<string, unknown>;
   delivery_state: string;
   expires_at: string | null;
+  idempotency_key: string | null;
 }
 
 interface PushToken {
@@ -121,6 +122,20 @@ Deno.serve(async req => {
   const admin = createClient(supabaseUrl, serviceRoleKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  // ── Idempotency guard: re-read from DB to catch concurrent webhook replays ─
+  const { data: freshNotif } = await admin
+    .from('notifications')
+    .select('delivery_state')
+    .eq('id', notification.id)
+    .single();
+
+  if (freshNotif?.delivery_state === 'delivered') {
+    console.log(
+      `[send-push] notification ${notification.id} already delivered, skipping replay`
+    );
+    return new Response('already delivered', { status: 200 });
+  }
 
   // ── 1. Fetch active push tokens for this user ────────────────────────────
   const { data: tokens, error: tokensError } = await admin
