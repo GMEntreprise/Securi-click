@@ -2,12 +2,12 @@ import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -564,10 +564,8 @@ export default function SchoolProfileScreen() {
         </Animated.View>
       </ScrollView>
 
-      <Modal
+      <SheetModal
         visible={showEditSheet}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setShowEditSheet(false)}
       >
         {school ? (
@@ -578,7 +576,7 @@ export default function SchoolProfileScreen() {
         ) : (
           <View style={{ flex: 1, backgroundColor: theme.bg }} />
         )}
-      </Modal>
+      </SheetModal>
     </>
   );
 }

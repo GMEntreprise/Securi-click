@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useRef } from 'react';
 import {
   ActivityIndicator,
-  Modal,
   ScrollView,
   Text,
   TextInput,
@@ -14,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { useSchoolSearch } from '@/features/school/hooks/useSchoolSearch';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import type { SchoolSearchResult } from '@/features/school/services/schoolSearch.service';
 
 interface Props {
@@ -240,12 +240,7 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
   }, [clear, onClose]);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleClose}
-    >
+    <SheetModal visible={visible} onRequestClose={handleClose}>
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         {/* Handle */}
         <View
@@ -520,6 +515,6 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
           ))}
         </ScrollView>
       </View>
-    </Modal>
+    </SheetModal>
   );
 });

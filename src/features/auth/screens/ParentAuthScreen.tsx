@@ -6,10 +6,10 @@ import {
   Dimensions,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
 } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLogin } from '../hooks/useLogin';
@@ -163,23 +163,19 @@ export const ParentAuthScreen: React.FC = memo(() => {
         role="parent"
       />
 
-      <Modal
+      <SheetModal
         visible={legalModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setLegalModalVisible(false)}
       >
         <LegalMentionsScreen />
-      </Modal>
+      </SheetModal>
 
-      <Modal
+      <SheetModal
         visible={privacyModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setPrivacyModalVisible(false)}
       >
         <PrivacyPolicyScreen />
-      </Modal>
+      </SheetModal>
     </KeyboardAvoidingView>
   );
 });

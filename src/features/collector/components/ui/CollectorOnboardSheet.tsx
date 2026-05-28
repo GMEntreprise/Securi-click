@@ -1,11 +1,6 @@
 import React, { memo, useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Modal,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
@@ -160,12 +155,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
   }, [onDismiss]);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleDismiss}
-    >
+    <SheetModal visible={visible} onRequestClose={handleDismiss}>
       <View
         style={{
           flex: 1,
@@ -496,6 +486,6 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
           </Animated.View>
         )}
       </View>
-    </Modal>
+    </SheetModal>
   );
 });

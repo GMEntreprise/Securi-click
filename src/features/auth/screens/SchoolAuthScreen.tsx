@@ -6,13 +6,13 @@ import {
   Dimensions,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useForm } from 'react-hook-form';
@@ -691,23 +691,19 @@ export const SchoolAuthScreen: React.FC = memo(() => {
         role="school"
       />
 
-      <Modal
+      <SheetModal
         visible={legalModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setLegalModalVisible(false)}
       >
         <LegalMentionsScreen />
-      </Modal>
+      </SheetModal>
 
-      <Modal
+      <SheetModal
         visible={privacyModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setPrivacyModalVisible(false)}
       >
         <PrivacyPolicyScreen />
-      </Modal>
+      </SheetModal>
     </KeyboardAvoidingView>
   );
 });

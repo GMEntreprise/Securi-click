@@ -295,7 +295,12 @@ const CurvedBottomTabsCore: React.FC<CurvedBottomTabsProps> =
       }
 
       return (
-        <View style={[styles.wrapper, Platform.OS === 'android' && { bottom: insets.bottom }]}>
+        <View
+          style={[
+            styles.wrapper,
+            Platform.OS === 'android' && { bottom: insets.bottom },
+          ]}
+        >
           <View style={styles.backgroundContainer}>
             <BackgroundCurve
               position={curvePosition}
@@ -391,7 +396,12 @@ const createStyles = <T extends StyleConfig>({
       alignItems: 'center',
       justifyContent: 'center',
       flex: 1,
-      paddingBottom: Platform.OS === 'ios' ? VIEWPORT_HEIGHT * 0.98 : 0,
+      paddingBottom:
+        Platform.OS === 'ios'
+          ? VIEWPORT_HEIGHT * 0.98
+          : Platform.OS === 'android'
+            ? 4
+            : 0,
     },
     tabLabel: {
       fontSize: textSize,

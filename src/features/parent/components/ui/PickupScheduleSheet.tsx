@@ -1,12 +1,12 @@
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
   ActivityIndicator,
 } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -328,12 +328,7 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
   ]);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
+    <SheetModal visible={visible} onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: t.bg }}>
         {/* Handle */}
         <View
@@ -713,6 +708,6 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </SheetModal>
   );
 });

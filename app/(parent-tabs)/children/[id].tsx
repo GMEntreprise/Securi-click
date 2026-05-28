@@ -6,9 +6,9 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Modal,
   Switch,
 } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useTheme } from '@/theme';
@@ -513,17 +513,15 @@ export default function ChildDetails() {
         </View>
       </ScrollView>
 
-      <Modal
+      <SheetModal
         visible={editSheetVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setEditSheetVisible(false)}
       >
         <EditChildSheet
           child={child}
           onClose={() => setEditSheetVisible(false)}
         />
-      </Modal>
+      </SheetModal>
     </View>
   );
 }

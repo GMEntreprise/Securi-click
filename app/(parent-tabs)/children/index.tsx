@@ -5,11 +5,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
-  Modal,
   FlatList,
   Switch,
   Alert,
 } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import { useTheme } from '@/theme';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import Animated, {
@@ -21,7 +21,10 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
-import { useChildren, useDeleteChild } from '@/features/parent/hooks/useChildren';
+import {
+  useChildren,
+  useDeleteChild,
+} from '@/features/parent/hooks/useChildren';
 import {
   useGuardians,
   useToggleGuardian,
@@ -47,7 +50,9 @@ const ChildSheetCard = React.memo(function ChildSheetCard({
 }) {
   const theme = useTheme();
   const scale = useSharedValue(1);
-  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
   return (
     <Animated.View
@@ -82,17 +87,24 @@ const ChildSheetCard = React.memo(function ChildSheetCard({
           ]}
         >
           <Avatar
-            image={{ uri: item.photo_url ?? '', name: `${item.first_name} ${item.last_name}` }}
+            image={{
+              uri: item.photo_url ?? '',
+              name: `${item.first_name} ${item.last_name}`,
+            }}
             size={48}
             showBorder={false}
             backgroundColor={theme.primaryBg}
             textColor={theme.primary}
           />
           <View style={{ flex: 1 }}>
-            <Text style={{ color: theme.text, fontSize: 16, fontWeight: '700' }}>
+            <Text
+              style={{ color: theme.text, fontSize: 16, fontWeight: '700' }}
+            >
               {item.first_name} {item.last_name}
             </Text>
-            <Text style={{ color: theme.textMuted, fontSize: 13, marginTop: 2 }}>
+            <Text
+              style={{ color: theme.textMuted, fontSize: 13, marginTop: 2 }}
+            >
               {item.class_name ?? '—'}
               {item.school ? ` · ${item.school.name}` : ''}
             </Text>
@@ -130,16 +142,20 @@ function ChildrenPickerSheet({
   );
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
+    <SheetModal visible={visible} onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         {/* Handle */}
-        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
-          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: theme.separator }} />
+        <View
+          style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
+        >
+          <View
+            style={{
+              width: 36,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: theme.separator,
+            }}
+          />
         </View>
 
         {/* Header */}
@@ -155,10 +171,26 @@ function ChildrenPickerSheet({
           }}
         >
           <View>
-            <Text style={{ color: theme.textMuted, fontSize: 11, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase' }}>
+            <Text
+              style={{
+                color: theme.textMuted,
+                fontSize: 11,
+                fontWeight: '700',
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+              }}
+            >
               Mes enfants
             </Text>
-            <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800', letterSpacing: -0.5, marginTop: 2 }}>
+            <Text
+              style={{
+                color: theme.text,
+                fontSize: 20,
+                fontWeight: '800',
+                letterSpacing: -0.5,
+                marginTop: 2,
+              }}
+            >
               {children.length} enfant{children.length > 1 ? 's' : ''}
             </Text>
           </View>
@@ -173,7 +205,11 @@ function ChildrenPickerSheet({
               justifyContent: 'center',
             }}
           >
-            <MaterialCommunityIcons name="close" size={18} color={theme.textSecondary} />
+            <MaterialCommunityIcons
+              name="close"
+              size={18}
+              color={theme.textSecondary}
+            />
           </TouchableOpacity>
         </View>
 
@@ -181,7 +217,10 @@ function ChildrenPickerSheet({
           data={children}
           renderItem={renderItem}
           keyExtractor={item => item.id}
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 24,
+          }}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={
             <TouchableOpacity
@@ -199,15 +238,21 @@ function ChildrenPickerSheet({
                 marginTop: 4,
               }}
             >
-              <MaterialCommunityIcons name="account-plus" size={18} color={theme.accent} />
-              <Text style={{ color: theme.accent, fontWeight: '700', fontSize: 14 }}>
+              <MaterialCommunityIcons
+                name="account-plus"
+                size={18}
+                color={theme.accent}
+              />
+              <Text
+                style={{ color: theme.accent, fontWeight: '700', fontSize: 14 }}
+              >
                 Ajouter un enfant
               </Text>
             </TouchableOpacity>
           }
         />
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 
@@ -226,15 +271,19 @@ function AddFirstChildSheet({
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
+    <SheetModal visible={visible} onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
-        <View style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}>
-          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: theme.separator }} />
+        <View
+          style={{ alignItems: 'center', paddingTop: 12, paddingBottom: 4 }}
+        >
+          <View
+            style={{
+              width: 36,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: theme.separator,
+            }}
+          />
         </View>
 
         <View
@@ -248,7 +297,9 @@ function AddFirstChildSheet({
             borderBottomColor: theme.cardBorder,
           }}
         >
-          <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>Mes enfants</Text>
+          <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
+            Mes enfants
+          </Text>
           <TouchableOpacity
             onPress={onClose}
             style={{
@@ -260,7 +311,11 @@ function AddFirstChildSheet({
               justifyContent: 'center',
             }}
           >
-            <MaterialCommunityIcons name="close" size={18} color={theme.textSecondary} />
+            <MaterialCommunityIcons
+              name="close"
+              size={18}
+              color={theme.textSecondary}
+            />
           </TouchableOpacity>
         </View>
 
@@ -284,13 +339,34 @@ function AddFirstChildSheet({
               marginBottom: 20,
             }}
           >
-            <MaterialCommunityIcons name="account-child" size={36} color={theme.primary} />
+            <MaterialCommunityIcons
+              name="account-child"
+              size={36}
+              color={theme.primary}
+            />
           </View>
-          <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800', textAlign: 'center', marginBottom: 10 }}>
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 18,
+              fontWeight: '800',
+              textAlign: 'center',
+              marginBottom: 10,
+            }}
+          >
             Aucun enfant
           </Text>
-          <Text style={{ color: theme.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 21, marginBottom: 28 }}>
-            Ajoutez votre premier enfant pour commencer à gérer ses autorisations de récupération.
+          <Text
+            style={{
+              color: theme.textMuted,
+              fontSize: 14,
+              textAlign: 'center',
+              lineHeight: 21,
+              marginBottom: 28,
+            }}
+          >
+            Ajoutez votre premier enfant pour commencer à gérer ses
+            autorisations de récupération.
           </Text>
           <TouchableOpacity
             onPress={onAdd}
@@ -304,14 +380,18 @@ function AddFirstChildSheet({
               gap: 8,
             }}
           >
-            <MaterialCommunityIcons name="account-plus" size={18} color="#fff" />
+            <MaterialCommunityIcons
+              name="account-plus"
+              size={18}
+              color="#fff"
+            />
             <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
               Ajouter un enfant
             </Text>
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 
@@ -343,7 +423,8 @@ const GuardianCard = React.memo(function GuardianCard({
             type: nextActive ? 'success' : 'warning',
             duration: 2000,
           }),
-        onError: () => Toast.show("Impossible de modifier l'accès", { type: 'error' }),
+        onError: () =>
+          Toast.show("Impossible de modifier l'accès", { type: 'error' }),
       }
     );
   }, [item.id, item.is_active, toggleGuardian]);
@@ -415,7 +496,11 @@ const GuardianCard = React.memo(function GuardianCard({
             justifyContent: 'center',
           }}
         >
-          <MaterialCommunityIcons name="pencil-outline" size={15} color={theme.textSecondary} />
+          <MaterialCommunityIcons
+            name="pencil-outline"
+            size={15}
+            color={theme.textSecondary}
+          />
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleDelete}
@@ -428,7 +513,11 @@ const GuardianCard = React.memo(function GuardianCard({
             justifyContent: 'center',
           }}
         >
-          <MaterialCommunityIcons name="trash-can-outline" size={15} color={theme.red} />
+          <MaterialCommunityIcons
+            name="trash-can-outline"
+            size={15}
+            color={theme.red}
+          />
         </TouchableOpacity>
       </View>
     </Animated.View>
@@ -453,7 +542,10 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
   const theme = useTheme();
   const { data: guardians, isLoading } = useGuardians(child.id);
   const count = guardians?.length ?? 0;
-  const activeCount = useMemo(() => (guardians ?? []).filter(g => g.is_active).length, [guardians]);
+  const activeCount = useMemo(
+    () => (guardians ?? []).filter(g => g.is_active).length,
+    [guardians]
+  );
 
   return (
     <Animated.View
@@ -482,7 +574,10 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
         }}
       >
         <Avatar
-          image={{ uri: child.photo_url ?? '', name: `${child.first_name} ${child.last_name}` }}
+          image={{
+            uri: child.photo_url ?? '',
+            name: `${child.first_name} ${child.last_name}`,
+          }}
           size={40}
           showBorder={false}
           backgroundColor={theme.primaryBg}
@@ -507,7 +602,13 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
                 paddingVertical: 3,
               }}
             >
-              <Text style={{ color: activeCount > 0 ? theme.green : theme.textMuted, fontSize: 11, fontWeight: '700' }}>
+              <Text
+                style={{
+                  color: activeCount > 0 ? theme.green : theme.textMuted,
+                  fontSize: 11,
+                  fontWeight: '700',
+                }}
+              >
                 {activeCount} actif{activeCount > 1 ? 's' : ''}
               </Text>
             </View>
@@ -527,8 +628,14 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
               paddingVertical: 5,
             }}
           >
-            <MaterialCommunityIcons name="account-plus" size={13} color="#fff" />
-            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>Ajouter</Text>
+            <MaterialCommunityIcons
+              name="account-plus"
+              size={13}
+              color="#fff"
+            />
+            <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
+              Ajouter
+            </Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -539,9 +646,26 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
           <ActivityIndicator color={theme.accent} size="small" />
         </View>
       ) : count === 0 ? (
-        <View style={{ paddingVertical: 16, paddingHorizontal: 14, alignItems: 'center', gap: 6 }}>
-          <MaterialCommunityIcons name="shield-off-outline" size={24} color={theme.textMuted} />
-          <Text style={{ color: theme.textMuted, fontSize: 13, textAlign: 'center' }}>
+        <View
+          style={{
+            paddingVertical: 16,
+            paddingHorizontal: 14,
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <MaterialCommunityIcons
+            name="shield-off-outline"
+            size={24}
+            color={theme.textMuted}
+          />
+          <Text
+            style={{
+              color: theme.textMuted,
+              fontSize: 13,
+              textAlign: 'center',
+            }}
+          >
             Aucune personne autorisée
           </Text>
           <TouchableOpacity
@@ -550,7 +674,9 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
               onAddGuardian(child.id);
             }}
           >
-            <Text style={{ color: theme.accent, fontSize: 13, fontWeight: '600' }}>
+            <Text
+              style={{ color: theme.accent, fontSize: 13, fontWeight: '600' }}
+            >
               Autoriser quelqu'un
             </Text>
           </TouchableOpacity>
@@ -565,7 +691,13 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
               onEdit={onEditGuardian}
             />
             {i < count - 1 && (
-              <View style={{ height: 1, backgroundColor: theme.separator, marginLeft: 70 }} />
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: theme.separator,
+                  marginLeft: 70,
+                }}
+              />
             )}
           </React.Fragment>
         ))
@@ -588,7 +720,10 @@ export default function CollectorsScreen() {
   const [childrenSheetVisible, setChildrenSheetVisible] = useState(false);
   const [editingChildId, setEditingChildId] = useState<string | null>(null);
   const editingChild = useMemo(
-    () => (editingChildId ? (children ?? []).find(c => c.id === editingChildId) ?? null : null),
+    () =>
+      editingChildId
+        ? ((children ?? []).find(c => c.id === editingChildId) ?? null)
+        : null,
     [editingChildId, children]
   );
 
@@ -629,7 +764,7 @@ export default function CollectorsScreen() {
       deleteChild.mutate(childId, {
         onSuccess: () => {
           setEditingChildId(null);
-          Toast.show(`${child?.first_name ?? 'L\'enfant'} a été supprimé(e)`, {
+          Toast.show(`${child?.first_name ?? "L'enfant"} a été supprimé(e)`, {
             type: 'success',
             duration: 3000,
           });
@@ -673,7 +808,13 @@ export default function CollectorsScreen() {
           paddingHorizontal: 20,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+          }}
+        >
           <View>
             <Text
               style={{
@@ -706,7 +847,8 @@ export default function CollectorsScreen() {
               flexDirection: 'row',
               alignItems: 'center',
               gap: 6,
-              backgroundColor: childrenCount === 0 ? theme.accent : theme.primaryBg,
+              backgroundColor:
+                childrenCount === 0 ? theme.accent : theme.primaryBg,
               borderRadius: 14,
               paddingVertical: 10,
               paddingHorizontal: 14,
@@ -724,7 +866,9 @@ export default function CollectorsScreen() {
                 fontSize: 13,
               }}
             >
-              {childrenCount === 0 ? 'Ajouter un enfant' : `${childrenCount} enfant${childrenCount > 1 ? 's' : ''}`}
+              {childrenCount === 0
+                ? 'Ajouter un enfant'
+                : `${childrenCount} enfant${childrenCount > 1 ? 's' : ''}`}
             </Text>
           </TouchableOpacity>
         </View>
@@ -732,12 +876,21 @@ export default function CollectorsScreen() {
 
       {/* Content */}
       {isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View
+          style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+        >
           <ActivityIndicator color={theme.accent} size="large" />
         </View>
       ) : childrenCount === 0 ? (
         /* Empty state — no children */
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 32,
+          }}
+        >
           <View
             style={{
               width: 80,
@@ -749,13 +902,34 @@ export default function CollectorsScreen() {
               marginBottom: 20,
             }}
           >
-            <MaterialCommunityIcons name="shield-account-outline" size={40} color={theme.primary} />
+            <MaterialCommunityIcons
+              name="shield-account-outline"
+              size={40}
+              color={theme.primary}
+            />
           </View>
-          <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800', textAlign: 'center', marginBottom: 10 }}>
+          <Text
+            style={{
+              color: theme.text,
+              fontSize: 18,
+              fontWeight: '800',
+              textAlign: 'center',
+              marginBottom: 10,
+            }}
+          >
             Aucun enfant enregistré
           </Text>
-          <Text style={{ color: theme.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 21, marginBottom: 28 }}>
-            Ajoutez votre premier enfant pour commencer à gérer ses collecteurs et autorisations.
+          <Text
+            style={{
+              color: theme.textMuted,
+              fontSize: 14,
+              textAlign: 'center',
+              lineHeight: 21,
+              marginBottom: 28,
+            }}
+          >
+            Ajoutez votre premier enfant pour commencer à gérer ses collecteurs
+            et autorisations.
           </Text>
           <TouchableOpacity
             onPress={() => nav.goToParentChildAdd()}
@@ -769,14 +943,23 @@ export default function CollectorsScreen() {
               gap: 8,
             }}
           >
-            <MaterialCommunityIcons name="account-plus" size={18} color="#fff" />
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>Ajouter un enfant</Text>
+            <MaterialCommunityIcons
+              name="account-plus"
+              size={18}
+              color="#fff"
+            />
+            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
+              Ajouter un enfant
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (
         /* List of children + their guardians */
         <ScrollView
-          contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 100 }}
+          contentContainerStyle={{
+            padding: 16,
+            paddingBottom: insets.bottom + 100,
+          }}
           showsVerticalScrollIndicator={false}
         >
           {(children ?? []).map((child, i) => (
@@ -810,10 +993,8 @@ export default function CollectorsScreen() {
       )}
 
       {/* Edit child modal */}
-      <Modal
+      <SheetModal
         visible={editingChild !== null}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setEditingChildId(null)}
       >
         {editingChild ? (
@@ -824,7 +1005,7 @@ export default function CollectorsScreen() {
             onDelete={handleDeleteChild}
           />
         ) : null}
-      </Modal>
+      </SheetModal>
     </View>
   );
 }

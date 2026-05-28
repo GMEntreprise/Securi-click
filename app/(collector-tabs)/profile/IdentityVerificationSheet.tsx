@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  Modal,
   TouchableOpacity,
   ScrollView,
   Image,
@@ -15,6 +14,7 @@ import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import {
   useUploadIdentity,
   useMyGuardians,
@@ -145,12 +145,7 @@ export default function IdentityVerificationSheet({
   } as const;
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={onClose}
-    >
+    <SheetModal visible={visible} onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         {/* Handle */}
         <View
@@ -376,7 +371,7 @@ export default function IdentityVerificationSheet({
           </TouchableOpacity>
         </ScrollView>
       </View>
-    </Modal>
+    </SheetModal>
   );
 }
 

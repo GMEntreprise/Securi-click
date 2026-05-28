@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
-import { View, Text, Modal, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -108,12 +109,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
   };
 
   return (
-    <Modal
-      visible={!!guardian}
-      animationType="slide"
-      presentationStyle="pageSheet"
-      onRequestClose={handleClose}
-    >
+    <SheetModal visible={!!guardian} onRequestClose={handleClose}>
       <View style={{ flex: 1, backgroundColor: theme.bg }}>
         {/* Handle */}
         <View
@@ -719,6 +715,6 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
           )}
         </ScrollView>
       </View>
-    </Modal>
+    </SheetModal>
   );
 });

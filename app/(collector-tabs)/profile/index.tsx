@@ -6,8 +6,8 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
-  Modal,
 } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -762,10 +762,8 @@ export default function CollectorProfileScreen() {
         </View>
       </ScrollView>
 
-      <Modal
+      <SheetModal
         visible={showEditSheet}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setShowEditSheet(false)}
       >
         {profile ? (
@@ -776,7 +774,7 @@ export default function CollectorProfileScreen() {
         ) : (
           <View style={{ flex: 1, backgroundColor: theme.bg }} />
         )}
-      </Modal>
+      </SheetModal>
 
       <IdentityVerificationSheet
         visible={showIdentitySheet}

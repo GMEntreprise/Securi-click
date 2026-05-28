@@ -19,13 +19,13 @@ import { useAppNavigation } from '@/navigation/useAppNavigation';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
-  Modal,
   ScrollView,
   Switch,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -582,10 +582,8 @@ export default function ProfileScreen() {
         </View>
       </ScrollView>
 
-      <Modal
+      <SheetModal
         visible={editSheetVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
         onRequestClose={() => setEditSheetVisible(false)}
       >
         {profile ? (
@@ -596,7 +594,7 @@ export default function ProfileScreen() {
         ) : (
           <View style={{ flex: 1, backgroundColor: theme.bg }} />
         )}
-      </Modal>
+      </SheetModal>
 
       <AvatarPickerSheet
         visible={avatarPickerVisible}

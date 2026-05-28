@@ -1,12 +1,12 @@
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Modal,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import { FlashList, type ListRenderItemInfo } from '@shopify/flash-list';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -217,19 +217,14 @@ export default function SchoolHistoryScreen() {
         )}
       </View>
 
-      <Modal
-        visible={!!selected}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSelected(null)}
-      >
+      <SheetModal visible={!!selected} onRequestClose={() => setSelected(null)}>
         {selected && (
           <ValidationDetailSheet
             item={selected}
             onClose={() => setSelected(null)}
           />
         )}
-      </Modal>
+      </SheetModal>
     </>
   );
 }

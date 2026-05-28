@@ -34,6 +34,7 @@ import { useUnreadCountQuery } from '@/features/notifications/hooks/useNotificat
 import { NotificationCenterScreen } from '@/features/notifications/screens/NotificationCenterScreen';
 import { NetworkBanner } from '@/shared/ui/molecules/NetworkBanner';
 import { useOTAUpdate } from '@/hooks/useOTAUpdate';
+import { StatusBar } from 'expo-status-bar';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -515,6 +516,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar style="auto" translucent />
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme={ThemeMode.Light}>
           <ToastProviderWithViewport>
