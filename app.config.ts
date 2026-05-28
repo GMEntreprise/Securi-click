@@ -20,7 +20,8 @@ const config: ExpoConfig = {
 
   ios: {
     bundleIdentifier: 'com.shavod.Securiclick',
-    googleServicesFile: './GoogleService-Info.plist',
+    googleServicesFile:
+      process.env.GOOGLE_SERVICES_PLIST ?? './GoogleService-Info.plist',
     icon: {
       light: './assets/icons/ios-light.png',
       dark: './assets/icons/ios-dark.png',
