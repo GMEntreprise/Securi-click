@@ -411,7 +411,15 @@ export default function AddGuardianScreen() {
           p_email: data.email.trim(),
         });
 
-        if (rpcError) throw new Error(rpcError.message);
+        if (rpcError) {
+          if (
+            rpcError.message.includes('duplicate_guardian_email') ||
+            rpcError.code === '23505'
+          ) {
+            throw new Error('Ce collecteur est déjà associé à cet enfant.');
+          }
+          throw new Error(rpcError.message);
+        }
 
         try {
           await authService.inviteCollector(data.email.trim());

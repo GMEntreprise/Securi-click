@@ -180,15 +180,6 @@ export const parentService = {
   ): Promise<Guardian> {
     // Path A — collector has already accepted: direct INSERT with collector_user_id
     if (payload.collector_user_id) {
-      const { data: existing } = await supabase
-        .from('guardians')
-        .select('id')
-        .eq('child_id', childId)
-        .eq('collector_user_id', payload.collector_user_id)
-        .maybeSingle();
-      if (existing)
-        throw new Error('Ce collecteur est déjà autorisé pour cet enfant.');
-
       const { data, error } = await supabase
         .from('guardians')
         .insert({
@@ -207,22 +198,19 @@ export const parentService = {
           'id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash'
         )
         .single();
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505') {
+          throw new Error('Ce collecteur est déjà autorisé pour cet enfant.');
+        }
+        throw error;
+      }
       return data as Guardian;
     }
 
-    // Path B — collector created but not yet accepted: re-use existing PIN via RPC
-    if (!payload.access_code_hash || !payload.email) {
+    // Path B — pending invitation: call invite_guardian RPC
+    if (!payload.email) {
       throw new Error("Impossible d'identifier ce collecteur.");
     }
-    const { data: existing } = await supabase
-      .from('guardians')
-      .select('id')
-      .eq('child_id', childId)
-      .eq('email', payload.email)
-      .maybeSingle();
-    if (existing)
-      throw new Error('Ce collecteur est déjà associé à cet enfant.');
 
     const { error: rpcError } = await supabase.rpc('invite_guardian', {
       p_child_id: childId,
@@ -230,10 +218,18 @@ export const parentService = {
       p_last_name: payload.last_name,
       p_phone: payload.phone,
       p_relationship: payload.relationship,
-      p_access_code_hash: payload.access_code_hash,
+      p_access_code_hash: payload.access_code_hash ?? null,
       p_email: payload.email,
     });
-    if (rpcError) throw new Error(rpcError.message);
+    if (rpcError) {
+      if (
+        rpcError.message.includes('duplicate_guardian_email') ||
+        rpcError.code === '23505'
+      ) {
+        throw new Error('Ce collecteur est déjà associé à cet enfant.');
+      }
+      throw new Error(rpcError.message);
+    }
 
     const { data, error } = await supabase
       .from('guardians')
@@ -241,7 +237,7 @@ export const parentService = {
         'id, parent_id, child_id, first_name, last_name, phone, email, relationship, photo_url, priority, is_active, created_at, updated_at, collector_user_id, access_code_hash'
       )
       .eq('child_id', childId)
-      .eq('email', payload.email)
+      .eq('email', payload.email.toLowerCase().trim())
       .order('created_at', { ascending: false })
       .limit(1)
       .single();
