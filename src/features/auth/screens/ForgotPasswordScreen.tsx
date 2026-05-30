@@ -19,9 +19,11 @@ import { AuthInputField, AuthPrimaryButton } from '../components/ui';
 import { useForgotPassword } from '../hooks/useForgotPassword';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useTheme } from '@/theme';
+import { useTranslation } from 'react-i18next';
 
 export const ForgotPasswordScreen: React.FC = memo(() => {
   const t = useTheme();
+  const { t: i18n } = useTranslation('auth');
   const insets = useSafeAreaInsets();
   const nav = useAppNavigation();
   const [emailSent, setEmailSent] = useState(false);
@@ -103,7 +105,7 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                   letterSpacing: -0.5,
                 }}
               >
-                Vérifiez votre email
+                {i18n('forgot_password_check_email')}
               </Text>
 
               <Text
@@ -115,13 +117,13 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                   paddingHorizontal: 8,
                 }}
               >
-                Un lien de réinitialisation a été envoyé à{'\n'}
+                {i18n('forgot_password_sent_body')}
+                {'\n'}
                 <Text style={{ fontWeight: '700', color: t.text }}>
                   {getValues('email')}
                 </Text>
                 {'\n\n'}
-                Cliquez sur le lien dans l'email pour créer votre nouveau mot de
-                passe.
+                {i18n('forgot_password_sent_body2')}
               </Text>
 
               <Pressable
@@ -136,7 +138,7 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                     textDecorationLine: 'underline',
                   }}
                 >
-                  Retour à la connexion
+                  {i18n('forgot_password_back')}
                 </Text>
               </Pressable>
             </View>
@@ -152,7 +154,7 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                 marginBottom: 8,
               }}
             >
-              Mot de passe oublié ?
+              {i18n('forgot_password_title')}
             </Text>
 
             <Text
@@ -163,8 +165,7 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                 marginBottom: 32,
               }}
             >
-              Saisissez votre email et nous vous enverrons un lien pour
-              réinitialiser votre mot de passe.
+              {i18n('forgot_password_desc_long')}
             </Text>
 
             {mutation.error && (
@@ -181,8 +182,8 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
               >
                 <Text style={{ color: t.red, fontSize: 13, fontWeight: '600' }}>
                   {mutation.error.message.includes('rate limit')
-                    ? 'Trop de tentatives. Attendez quelques minutes.'
-                    : 'Une erreur est survenue. Vérifiez votre email et réessayez.'}
+                    ? i18n('forgot_password_error_rate')
+                    : i18n('forgot_password_error_generic')}
                 </Text>
               </View>
             )}
@@ -190,8 +191,8 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
             <AuthInputField
               control={control}
               name="email"
-              label="Email"
-              placeholder="jean.dupont@exemple.fr"
+              label={i18n('email')}
+              placeholder={i18n('email_placeholder')}
               icon={
                 <Ionicons name="mail-outline" size={18} color={t.textMuted} />
               }
@@ -208,7 +209,7 @@ export const ForgotPasswordScreen: React.FC = memo(() => {
                 variant="accent"
                 icon={<Ionicons name="send-outline" size={18} color="#fff" />}
               >
-                Envoyer le lien
+                {i18n('forgot_password_send')}
               </AuthPrimaryButton>
             </View>
           </Animated.View>

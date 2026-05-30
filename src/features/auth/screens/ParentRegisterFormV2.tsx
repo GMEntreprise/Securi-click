@@ -14,6 +14,7 @@ import {
 } from '../components/ui';
 import type { RegisterParentData } from '../types';
 import { useTheme } from '@/theme';
+import { useTranslation } from 'react-i18next';
 
 const step1Schema = z.object({
   first_name: z.string().min(2, 'Prénom requis'),
@@ -59,6 +60,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
     onOpenPrivacy,
   }) => {
     const t = useTheme();
+    const { t: i18n } = useTranslation('auth');
     const {
       control,
       handleSubmit,
@@ -103,7 +105,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
             marginBottom: 6,
           }}
         >
-          Créer votre compte{'\n'}Parent
+          {i18n('parent_register_title_long')}
         </Text>
         <Text
           style={{
@@ -113,7 +115,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
             lineHeight: 20,
           }}
         >
-          Sécurisez l'espace numérique de votre famille en quelques instants.
+          {i18n('parent_register_desc')}
         </Text>
 
         {error && (
@@ -139,7 +141,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
             <AuthInputField
               control={control}
               name="first_name"
-              label="Prénom"
+              label={i18n('first_name')}
               placeholder="Jean"
               error={errors.first_name?.message}
               autoComplete="given-name"
@@ -149,7 +151,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
             <AuthInputField
               control={control}
               name="last_name"
-              label="Nom"
+              label={i18n('last_name')}
               placeholder="Dupont"
               error={errors.last_name?.message}
               autoComplete="family-name"
@@ -160,8 +162,8 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
         <AuthInputField
           control={control}
           name="email"
-          label="Email"
-          placeholder="jean.dupont@exemple.fr"
+          label={i18n('email')}
+          placeholder={i18n('email_placeholder')}
           icon={<Ionicons name="mail-outline" size={18} color={t.textMuted} />}
           error={errors.email?.message}
           keyboardType="email-address"
@@ -172,8 +174,8 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
         <AuthInputField
           control={control}
           name="phone"
-          label="Téléphone mobile"
-          placeholder="06 12 34 56 78"
+          label={i18n('phone')}
+          placeholder={i18n('phone_placeholder')}
           icon={<Ionicons name="call-outline" size={18} color={t.textMuted} />}
           error={errors.phone?.message}
           keyboardType="phone-pad"
@@ -182,7 +184,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
         <AuthPasswordField
           control={control}
           name="password"
-          label="Mot de passe"
+          label={i18n('password')}
           error={errors.password?.message}
         />
 
@@ -200,14 +202,14 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
             <Text
               style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
             >
-              J'accepte les{' '}
+              {i18n('terms_accept_pre')}{' '}
               <Text
                 style={{ color: t.accent, fontWeight: '700' }}
                 onPress={onOpenLegal}
               >
-                Conditions Générales d'Utilisation
-              </Text>{' '}
-              de Securi'Click.
+                {i18n('terms_accept_link')}
+              </Text>
+              {i18n('terms_accept_post')}
             </Text>
           }
         />
@@ -220,14 +222,14 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
             <Text
               style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
             >
-              Je reconnais avoir pris connaissance de la{' '}
+              {i18n('privacy_accept_pre')}{' '}
               <Text
                 style={{ color: t.accent, fontWeight: '700' }}
                 onPress={onOpenPrivacy}
               >
-                Politique de Confidentialité
+                {i18n('privacy_accept_link')}
               </Text>
-              .
+              {i18n('privacy_accept_post')}
             </Text>
           }
         />
@@ -239,7 +241,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
             variant="accent"
             icon={<Ionicons name="chevron-forward" size={18} color="#fff" />}
           >
-            Suivant
+            {i18n('next')}
           </AuthPrimaryButton>
         </View>
 
@@ -262,8 +264,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
               lineHeight: 18,
             }}
           >
-            "Rejoignez plus de 10 000 parents qui font confiance à Securi'Click
-            pour protéger leurs enfants."
+            {i18n('parent_register_social_proof')}
           </Text>
         </View>
       </View>

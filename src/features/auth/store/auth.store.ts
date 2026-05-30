@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { authService } from '../services/supabaseAuth.service';
 import type { AuthSession, AuthState } from '../types';
+import { useComplianceStore } from '@/stores/compliance.store';
 
 interface AuthActions {
   initialize: () => Promise<void>;
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState & AuthActions>(set => ({
     set({ isLoading: true });
     try {
       await authService.signOut();
+      useComplianceStore.getState().reset();
       set({ session: null, isLoading: false });
     } catch (error) {
       set({ isLoading: false });

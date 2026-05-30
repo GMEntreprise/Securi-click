@@ -5,6 +5,7 @@ import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
 import { useTheme } from '@/theme';
+import { ComplianceGate } from '@/features/auth/components/ui';
 
 const ICON_SIZE = 24;
 
@@ -34,68 +35,71 @@ export default function SchoolTabsLayout() {
   );
 
   return (
-    <Tabs screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: 'Accueil',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="home-outline"
-              size={ICON_SIZE}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="students"
-        options={{
-          title: 'Élèves',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="account-group"
-              size={ICON_SIZE}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="scanner"
-        options={{
-          title: 'Scanner',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="line-scan"
-              size={ICON_SIZE}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: 'Historique',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons
-              name="history"
-              size={ICON_SIZE}
-              color={color}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profil',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="person-outline" size={ICON_SIZE} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+    <>
+      <ComplianceGate />
+      <Tabs screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
+        <Tabs.Screen
+          name="home"
+          options={{
+            title: 'Accueil',
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="home-outline"
+                size={ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="students"
+          options={{
+            title: 'Élèves',
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="account-group"
+                size={ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="scanner"
+          options={{
+            title: 'Scanner',
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="line-scan"
+                size={ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="history"
+          options={{
+            title: 'Historique',
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="history"
+                size={ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profil',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="person-outline" size={ICON_SIZE} color={color} />
+            ),
+          }}
+        />
+      </Tabs>
+    </>
   );
 }

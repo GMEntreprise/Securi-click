@@ -35,6 +35,7 @@ import { NotificationCenterScreen } from '@/features/notifications/screens/Notif
 import { NetworkBanner } from '@/shared/ui/molecules/NetworkBanner';
 import { useOTAUpdate } from '@/hooks/useOTAUpdate';
 import { useLanguageStore } from '@/stores/language.store';
+import { useComplianceStore } from '@/stores/compliance.store';
 import { StatusBar } from 'expo-status-bar';
 
 const queryClient = new QueryClient({
@@ -294,6 +295,7 @@ function AuthStateSync() {
         // Supabase fires SIGNED_OUT spuriously on 401s from background requests
         // (e.g. a Realtime channel reconnect with an expired token) — ignore those.
         if (explicitLogoutInProgress) {
+          useComplianceStore.getState().reset();
           useAuthStore.setState({ session: null });
         }
         return;

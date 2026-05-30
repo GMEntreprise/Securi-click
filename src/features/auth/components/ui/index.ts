@@ -9,3 +9,5 @@ export { PasswordStrengthBar } from './PasswordStrengthBar';
 export { AuthCheckbox } from './AuthCheckbox';
 export { AuthPickerField } from './AuthPickerField';
 export { LegalConsentSheet } from './LegalConsentSheet';
+export { ComplianceGate } from './ComplianceGate';
+export { WelcomeComplianceSheet } from './WelcomeComplianceSheet';

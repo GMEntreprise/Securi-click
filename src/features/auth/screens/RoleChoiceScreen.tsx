@@ -1,12 +1,10 @@
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useTheme } from '@/theme';
 import * as Haptics from 'expo-haptics';
-import * as SecureStore from 'expo-secure-store';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome6, MaterialCommunityIcons } from '@expo/vector-icons';
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { WelcomeComplianceSheet } from '../components/ui/WelcomeComplianceSheet';
 import { useLanguageStore } from '@/stores/language.store';
 import {
   Dimensions,
@@ -173,8 +171,6 @@ const RoleCard: React.FC<RoleCardProps> = memo(
 
 RoleCard.displayName = 'RoleCard';
 
-const COMPLIANCE_SEEN_KEY = 'welcome-compliance-seen-v1';
-
 export const RoleChoiceScreen: React.FC = memo(() => {
   const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
@@ -183,20 +179,8 @@ export const RoleChoiceScreen: React.FC = memo(() => {
   const { t: i18nCommon } = useTranslation('common');
   const language = useLanguageStore(s => s.language);
   const [selectedId, setSelectedId] = useState<RoleItem['id'] | null>(null);
-  const [complianceVisible, setComplianceVisible] = useState(false);
 
   const roles = useMemo(() => buildRoles(i18n), [language]);
-
-  useEffect(() => {
-    SecureStore.getItemAsync(COMPLIANCE_SEEN_KEY).then(val => {
-      if (!val) setComplianceVisible(true);
-    });
-  }, []);
-
-  const handleComplianceContinue = useCallback(() => {
-    SecureStore.setItemAsync(COMPLIANCE_SEEN_KEY, '1');
-    setComplianceVisible(false);
-  }, []);
 
   const selectedRoute = useMemo(
     () => roles.find(r => r.id === selectedId)?.route,
@@ -216,12 +200,6 @@ export const RoleChoiceScreen: React.FC = memo(() => {
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
-      <WelcomeComplianceSheet
-        visible={complianceVisible}
-        onContinue={handleComplianceContinue}
-        onOpenPrivacy={() => nav.goToParentPrivacyPolicy()}
-        onOpenLegal={() => nav.goToParentLegalMentions()}
-      />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}

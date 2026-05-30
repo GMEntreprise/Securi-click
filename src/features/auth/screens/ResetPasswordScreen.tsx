@@ -20,9 +20,11 @@ import { useResetPassword } from '../hooks/useResetPassword';
 import { useAuthStore } from '../store/auth.store';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useTheme } from '@/theme';
+import { useTranslation } from 'react-i18next';
 
 export const ResetPasswordScreen: React.FC = memo(() => {
   const t = useTheme();
+  const { t: i18n } = useTranslation('auth');
   const insets = useSafeAreaInsets();
   const nav = useAppNavigation();
   const [success, setSuccess] = useState(false);
@@ -104,7 +106,7 @@ export const ResetPasswordScreen: React.FC = memo(() => {
                   letterSpacing: -0.5,
                 }}
               >
-                Mot de passe mis à jour
+                {i18n('reset_password_updated_title')}
               </Text>
 
               <Text
@@ -115,12 +117,12 @@ export const ResetPasswordScreen: React.FC = memo(() => {
                   lineHeight: 22,
                 }}
               >
-                Votre mot de passe a été modifié avec succès.
+                {i18n('reset_password_updated_body')}
               </Text>
 
               <View style={{ marginTop: 8, width: '100%' }}>
                 <AuthPrimaryButton onPress={goToDashboard} variant="accent">
-                  Accéder à mon espace
+                  {i18n('reset_password_go_dashboard')}
                 </AuthPrimaryButton>
               </View>
             </View>
@@ -150,7 +152,7 @@ export const ResetPasswordScreen: React.FC = memo(() => {
                 marginBottom: 8,
               }}
             >
-              Nouveau mot de passe
+              {i18n('reset_password_title')}
             </Text>
 
             <Text
@@ -161,7 +163,7 @@ export const ResetPasswordScreen: React.FC = memo(() => {
                 marginBottom: 32,
               }}
             >
-              Choisissez un mot de passe sécurisé d'au moins 8 caractères.
+              {i18n('reset_password_desc_long')}
             </Text>
 
             {mutation.error && (
@@ -179,10 +181,10 @@ export const ResetPasswordScreen: React.FC = memo(() => {
                 <Text style={{ color: t.red, fontSize: 13, fontWeight: '600' }}>
                   {mutation.error.message.includes('expired') ||
                   mutation.error.message.includes('invalid')
-                    ? 'Ce lien a expiré. Demandez un nouveau lien de réinitialisation.'
+                    ? i18n('reset_error_expired')
                     : mutation.error.message.includes('same')
-                      ? "Ce mot de passe est identique à l'ancien. Choisissez-en un nouveau."
-                      : 'Une erreur est survenue. Réessayez.'}
+                      ? i18n('reset_error_same')
+                      : i18n('reset_error_generic')}
                 </Text>
               </View>
             )}
@@ -190,15 +192,15 @@ export const ResetPasswordScreen: React.FC = memo(() => {
             <AuthPasswordField
               control={control}
               name="password"
-              label="Nouveau mot de passe"
-              placeholder="8 caractères minimum"
+              label={i18n('reset_password_new_label')}
+              placeholder={i18n('reset_password_placeholder')}
               error={errors.password?.message}
             />
 
             <AuthPasswordField
               control={control}
               name="confirm_password"
-              label="Confirmer le mot de passe"
+              label={i18n('password_confirm')}
               error={errors.confirm_password?.message}
             />
 
@@ -208,7 +210,7 @@ export const ResetPasswordScreen: React.FC = memo(() => {
                 isLoading={mutation.isPending}
                 variant="accent"
               >
-                Enregistrer le mot de passe
+                {i18n('reset_password_save')}
               </AuthPrimaryButton>
             </View>
 
@@ -218,9 +220,9 @@ export const ResetPasswordScreen: React.FC = memo(() => {
               hitSlop={8}
             >
               <Text style={{ fontSize: 13, color: t.textSecondary }}>
-                Lien expiré ?{' '}
+                {i18n('reset_password_link_expired_q')}{' '}
                 <Text style={{ color: t.accent, fontWeight: '700' }}>
-                  Demander un nouveau lien
+                  {i18n('reset_password_request_new')}
                 </Text>
               </Text>
             </Pressable>

@@ -24,6 +24,7 @@ import { ParentLoginForm } from './ParentLoginForm';
 import { ParentRegisterFormV2 } from './ParentRegisterFormV2';
 import { useTheme } from '@/theme';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
+import { useTranslation } from 'react-i18next';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.34;
@@ -33,6 +34,7 @@ export const ParentAuthScreen: React.FC = memo(() => {
   const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const t = useTheme();
+  const { t: i18n } = useTranslation('auth');
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
   const [pendingData, setPendingData] = useState<any>(null);
   const [legalSheetVisible, setLegalSheetVisible] = useState(false);
@@ -63,17 +65,17 @@ export const ParentAuthScreen: React.FC = memo(() => {
       {
         onSuccess: () => {
           setPendingData(null);
-          Toast.show(
-            'Email de confirmation envoyé ! Vérifiez votre boîte mail.',
-            { type: 'success', duration: 4000 }
-          );
+          Toast.show(i18n('register_email_sent'), {
+            type: 'success',
+            duration: 4000,
+          });
         },
         onError: (e: any) => {
           setPendingData(null);
-          Toast.show(
-            e?.message ?? 'Impossible de créer le compte. Réessayez.',
-            { type: 'error', duration: 5000 }
-          );
+          Toast.show(e?.message ?? i18n('register_error'), {
+            type: 'error',
+            duration: 5000,
+          });
         },
       }
     );
@@ -123,8 +125,8 @@ export const ParentAuthScreen: React.FC = memo(() => {
 
         <Animated.View entering={FadeInDown.duration(400)}>
           <AuthTabToggle
-            leftLabel="Se connecter"
-            rightLabel="Créer un compte"
+            leftLabel={i18n('login')}
+            rightLabel={i18n('register')}
             activeIndex={activeTab}
             onToggle={handleTabToggle}
           />

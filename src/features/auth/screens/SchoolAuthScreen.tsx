@@ -43,6 +43,7 @@ import { PrivacyPolicyScreen } from '@/features/legal/screens/PrivacyPolicyScree
 import { useTheme } from '@/theme';
 import { SchoolNameSmartField } from '@/features/school/components/ui/SchoolNameSmartField';
 import type { SchoolPrefillData } from '@/features/school/components/ui/SchoolNameSmartField';
+import { useTranslation } from 'react-i18next';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.3;
@@ -74,6 +75,7 @@ const SchoolLoginForm: React.FC<{
 }> = memo(
   ({ onSubmit, isLoading, error, defaultEmail = '', onForgotPassword }) => {
     const t = useTheme();
+    const { t: i18n } = useTranslation('auth');
     const {
       control,
       handleSubmit,
@@ -94,7 +96,7 @@ const SchoolLoginForm: React.FC<{
             marginBottom: 6,
           }}
         >
-          Espace Professionnel
+          {i18n('school_login_pro')}
         </Text>
         <Text
           style={{
@@ -104,7 +106,7 @@ const SchoolLoginForm: React.FC<{
             lineHeight: 20,
           }}
         >
-          Gérez la sécurité de votre établissement en toute simplicité.
+          {i18n('school_login_desc_short')}
         </Text>
 
         {error && (
@@ -128,8 +130,8 @@ const SchoolLoginForm: React.FC<{
         <AuthInputField
           control={control}
           name="email"
-          label="Email"
-          placeholder="direction@etablissement.fr"
+          label={i18n('email')}
+          placeholder={i18n('email_placeholder')}
           icon={<Ionicons name="mail-outline" size={18} color={t.textMuted} />}
           error={errors.email?.message}
           keyboardType="email-address"
@@ -138,14 +140,14 @@ const SchoolLoginForm: React.FC<{
         <AuthPasswordField
           control={control}
           name="password"
-          label="Mot de passe"
+          label={i18n('password')}
           error={errors.password?.message}
           rightLabel={
             <Pressable onPress={onForgotPassword} hitSlop={8}>
               <Text
                 style={{ fontSize: 12, fontWeight: '700', color: t.primary }}
               >
-                Oublié ?
+                {i18n('forgot_q')}
               </Text>
             </Pressable>
           }
@@ -158,7 +160,7 @@ const SchoolLoginForm: React.FC<{
             variant="primary"
             icon={<Ionicons name="shield-checkmark" size={18} color="#fff" />}
           >
-            Accéder à mon espace
+            {i18n('school_login_cta')}
           </AuthPrimaryButton>
         </View>
       </View>
@@ -184,6 +186,7 @@ const SchoolRegisterForm: React.FC<{
     onOpenPrivacy,
   }) => {
     const t = useTheme();
+    const { t: i18n } = useTranslation('auth');
     const {
       control,
       handleSubmit,
@@ -236,7 +239,7 @@ const SchoolRegisterForm: React.FC<{
             marginBottom: 6,
           }}
         >
-          Inscrire mon établissement
+          {i18n('school_register_title_long')}
         </Text>
         <Text
           style={{
@@ -246,7 +249,7 @@ const SchoolRegisterForm: React.FC<{
             lineHeight: 20,
           }}
         >
-          Gérez la sécurité de votre établissement en toute simplicité.
+          {i18n('school_login_desc_short')}
         </Text>
 
         {error && (
@@ -281,7 +284,7 @@ const SchoolRegisterForm: React.FC<{
         <AuthPickerField
           control={control}
           name="school_type"
-          label="Type d'établissement"
+          label={i18n('school_type')}
           options={SCHOOL_TYPES}
           icon={
             <Ionicons name="school-outline" size={18} color={t.textMuted} />
@@ -295,7 +298,7 @@ const SchoolRegisterForm: React.FC<{
             <AuthInputField
               control={control}
               name="city"
-              label="Ville"
+              label={i18n('school_city')}
               placeholder="Paris"
               icon={
                 <Ionicons
@@ -311,7 +314,7 @@ const SchoolRegisterForm: React.FC<{
             <AuthInputField
               control={control}
               name="postal_code"
-              label="Code postal"
+              label={i18n('school_postal_code')}
               placeholder="75001"
               error={errors.postal_code?.message}
               keyboardType="numeric"
@@ -323,7 +326,7 @@ const SchoolRegisterForm: React.FC<{
         <AuthInputField
           control={control}
           name="address"
-          label="Adresse"
+          label={i18n('school_address')}
           placeholder="12 rue de la Paix"
           icon={
             <Ionicons name="location-outline" size={18} color={t.textMuted} />
@@ -360,8 +363,7 @@ const SchoolRegisterForm: React.FC<{
               lineHeight: 17,
             }}
           >
-            Renseignez l'adresse officielle de votre structure pour la
-            certification.
+            {i18n('school_address_hint')}
           </Text>
         </View>
 
@@ -370,7 +372,7 @@ const SchoolRegisterForm: React.FC<{
             <AuthInputField
               control={control}
               name="manager_first_name"
-              label="Prénom"
+              label={i18n('school_director_first_name')}
               placeholder=""
               icon={
                 <Ionicons name="person-outline" size={18} color={t.textMuted} />
@@ -382,7 +384,7 @@ const SchoolRegisterForm: React.FC<{
             <AuthInputField
               control={control}
               name="manager_last_name"
-              label="Nom"
+              label={i18n('school_director_last_name')}
               placeholder=""
               error={errors.manager_last_name?.message}
             />
@@ -392,7 +394,7 @@ const SchoolRegisterForm: React.FC<{
         <AuthPickerField
           control={control}
           name="manager_function"
-          label="Fonction"
+          label={i18n('school_director_role')}
           options={MANAGER_FUNCTIONS}
           icon={
             <Ionicons name="briefcase-outline" size={18} color={t.textMuted} />
@@ -403,8 +405,8 @@ const SchoolRegisterForm: React.FC<{
         <AuthInputField
           control={control}
           name="email"
-          label="Email"
-          placeholder="direction@etablissement.fr"
+          label={i18n('email')}
+          placeholder={i18n('email_placeholder')}
           icon={<Ionicons name="mail-outline" size={18} color={t.textMuted} />}
           error={errors.email?.message}
           keyboardType="email-address"
@@ -413,8 +415,8 @@ const SchoolRegisterForm: React.FC<{
         <AuthInputField
           control={control}
           name="phone"
-          label="Téléphone"
-          placeholder="01 23 45 67 89"
+          label={i18n('phone')}
+          placeholder={i18n('phone_placeholder')}
           icon={<Ionicons name="call-outline" size={18} color={t.textMuted} />}
           error={errors.phone?.message}
           keyboardType="phone-pad"
@@ -422,13 +424,13 @@ const SchoolRegisterForm: React.FC<{
         <AuthPasswordField
           control={control}
           name="password"
-          label="Mot de passe"
+          label={i18n('password')}
           error={errors.password?.message}
         />
         <AuthPasswordField
           control={control}
           name="confirm_password"
-          label="Confirmer le mot de passe"
+          label={i18n('password_confirm')}
           error={errors.confirm_password?.message}
         />
 
@@ -440,14 +442,14 @@ const SchoolRegisterForm: React.FC<{
             <Text
               style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
             >
-              J'accepte les{' '}
+              {i18n('terms_accept_pre')}{' '}
               <Text
                 style={{ color: t.primary, fontWeight: '700' }}
                 onPress={onOpenLegal}
               >
-                Conditions Générales d'Utilisation
-              </Text>{' '}
-              professionnelles.
+                {i18n('terms_accept_link')}
+              </Text>
+              {i18n('terms_accept_post')}
             </Text>
           }
         />
@@ -459,14 +461,14 @@ const SchoolRegisterForm: React.FC<{
             <Text
               style={{ fontSize: 13, color: t.textSecondary, lineHeight: 18 }}
             >
-              J'accepte la{' '}
+              {i18n('privacy_accept_pre')}{' '}
               <Text
                 style={{ color: t.primary, fontWeight: '700' }}
                 onPress={onOpenPrivacy}
               >
-                Politique de confidentialité
+                {i18n('privacy_accept_link')}
               </Text>
-              .
+              {i18n('privacy_accept_post')}
             </Text>
           }
         />
@@ -478,7 +480,7 @@ const SchoolRegisterForm: React.FC<{
             variant="primary"
             icon={<Ionicons name="shield-checkmark" size={18} color="#fff" />}
           >
-            Sécurisez votre établissement
+            {i18n('school_register_cta')}
           </AuthPrimaryButton>
         </View>
       </View>
@@ -491,6 +493,7 @@ export const SchoolAuthScreen: React.FC = memo(() => {
   const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const t = useTheme();
+  const { t: i18n } = useTranslation('auth');
   const [activeTab, setActiveTab] = useState<0 | 1>(0);
   const [registerEmail, setRegisterEmail] = useState<string | null>(null);
   const [pendingData, setPendingData] = useState<RegisterValues | null>(null);
@@ -525,23 +528,17 @@ export const SchoolAuthScreen: React.FC = memo(() => {
         onSuccess: () => {
           setRegisterEmail(pendingData.email);
           setPendingData(null);
-          Toast.show(
-            'Email de confirmation envoyé ! Vérifiez votre boîte mail.',
-            {
-              type: 'success',
-              duration: 4000,
-            }
-          );
+          Toast.show(i18n('register_email_sent'), {
+            type: 'success',
+            duration: 4000,
+          });
         },
         onError: (e: any) => {
           setPendingData(null);
-          Toast.show(
-            e?.message ?? 'Impossible de créer le compte. Réessayez.',
-            {
-              type: 'error',
-              duration: 5000,
-            }
-          );
+          Toast.show(e?.message ?? i18n('register_error'), {
+            type: 'error',
+            duration: 5000,
+          });
         },
       }
     );
@@ -609,7 +606,7 @@ export const SchoolAuthScreen: React.FC = memo(() => {
                 letterSpacing: -0.5,
               }}
             >
-              Confirmez votre email
+              {i18n('school_confirm_title')}
             </Text>
             <Text
               style={{
@@ -620,7 +617,7 @@ export const SchoolAuthScreen: React.FC = memo(() => {
                 marginBottom: 8,
               }}
             >
-              Un lien de confirmation a été envoyé à
+              {i18n('school_confirm_sent_to')}
             </Text>
             <Text
               style={{
@@ -641,16 +638,15 @@ export const SchoolAuthScreen: React.FC = memo(() => {
                 lineHeight: 20,
               }}
             >
-              Cliquez sur le lien dans l'email pour activer votre espace et
-              accéder à votre tableau de bord.
+              {i18n('school_confirm_body')}
             </Text>
           </Animated.View>
         ) : (
           <>
             <Animated.View entering={FadeInDown.duration(400)}>
               <AuthTabToggle
-                leftLabel="Connexion"
-                rightLabel="Créer établissement"
+                leftLabel={i18n('school_tab_login')}
+                rightLabel={i18n('school_tab_register')}
                 activeIndex={activeTab}
                 onToggle={handleTabToggle}
               />

@@ -6,6 +6,7 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
 import { useTheme } from '@/theme';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
+import { ComplianceGate } from '@/features/auth/components/ui';
 
 const ICON_SIZE = 24;
 
@@ -36,60 +37,76 @@ export default function ParentTabsLayout() {
   );
 
   return (
-    <Tabs
-      screenOptions={{ headerShown: false }}
-      tabBar={renderTabBar}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Accueil',
-          headerRight: () => <NotificationBell />,
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="home-outline" size={ICON_SIZE} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="children"
-        options={{
-          title: 'Collecteurs',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="shield-account-outline" size={ICON_SIZE} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="qr"
-        options={{
-          title: 'QR Code',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="qrcode" size={ICON_SIZE} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: 'Historique',
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="history" size={ICON_SIZE} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profil',
-          tabBarIcon: ({ color }) => (
-            <Ionicons name="person-outline" size={ICON_SIZE} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="authorized-persons"
-        options={{ href: null, tabBarItemStyle: { display: 'none' } }}
-      />
-    </Tabs>
+    <>
+      <ComplianceGate />
+      <Tabs screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Accueil',
+            headerRight: () => <NotificationBell />,
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="home-outline"
+                size={ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="children"
+          options={{
+            title: 'Collecteurs',
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="shield-account-outline"
+                size={ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="qr"
+          options={{
+            title: 'QR Code',
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="qrcode"
+                size={ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="history"
+          options={{
+            title: 'Historique',
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons
+                name="history"
+                size={ICON_SIZE}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: 'Profil',
+            tabBarIcon: ({ color }) => (
+              <Ionicons name="person-outline" size={ICON_SIZE} color={color} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="authorized-persons"
+          options={{ href: null, tabBarItemStyle: { display: 'none' } }}
+        />
+      </Tabs>
+    </>
   );
 }

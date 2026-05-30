@@ -13,6 +13,7 @@ import {
   AuthPrimaryButton,
 } from '../components/ui';
 import { useTheme } from '@/theme';
+import { useTranslation } from 'react-i18next';
 
 interface ParentLoginFormProps {
   onSubmit: (data: LoginValues) => void;
@@ -25,6 +26,7 @@ interface ParentLoginFormProps {
 export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
   ({ onSubmit, isLoading, error, onForgotPassword, defaultEmail = '' }) => {
     const t = useTheme();
+    const { t: i18n } = useTranslation('auth');
     const {
       control,
       handleSubmit,
@@ -50,7 +52,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
             marginBottom: 6,
           }}
         >
-          Bon retour parmi nous
+          {i18n('parent_login_welcome')}
         </Text>
         <Text
           style={{
@@ -60,7 +62,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
             lineHeight: 20,
           }}
         >
-          Connectez-vous pour gérer la sécurité de vos enfants.
+          {i18n('parent_login_desc')}
         </Text>
 
         {error && (
@@ -84,8 +86,8 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
         <AuthInputField
           control={control}
           name="email"
-          label="Email"
-          placeholder="jean.dupont@exemple.fr"
+          label={i18n('email')}
+          placeholder={i18n('email_placeholder')}
           icon={<Ionicons name="mail-outline" size={18} color={t.textMuted} />}
           error={errors.email?.message}
           keyboardType="email-address"
@@ -96,14 +98,14 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
         <AuthPasswordField
           control={control}
           name="password"
-          label="Mot de passe"
+          label={i18n('password')}
           error={errors.password?.message}
           rightLabel={
             <Pressable onPress={onForgotPassword} hitSlop={8}>
               <Text
                 style={{ fontSize: 12, fontWeight: '700', color: t.accent }}
               >
-                Oublié ?
+                {i18n('forgot_q')}
               </Text>
             </Pressable>
           }
@@ -119,7 +121,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
         >
           <Ionicons name="checkmark-circle" size={16} color={t.green} />
           <Text style={{ fontSize: 13, color: t.green, fontWeight: '600' }}>
-            Protégez vos enfants en 2 min
+            {i18n('parent_login_pitch')}
           </Text>
         </View>
 
@@ -129,7 +131,7 @@ export const ParentLoginForm: React.FC<ParentLoginFormProps> = memo(
           variant="accent"
           icon={<Ionicons name="arrow-forward" size={18} color="#fff" />}
         >
-          Se connecter
+          {i18n('login')}
         </AuthPrimaryButton>
       </View>
     );
