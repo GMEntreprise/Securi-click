@@ -25,6 +25,7 @@ import type { PickupLog } from '@/features/parent/types';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { QueryError } from '@/shared/ui/base/query-error';
 import { useChildrenSheetStore } from '@/features/parent/stores/childrenSheet.store';
+import { useTranslation } from 'react-i18next';
 
 interface QuickAction {
   id: string;
@@ -107,19 +108,24 @@ const ActivityRow = React.memo(function ActivityRow({
   isLast: boolean;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const isSuccess = item.status === 'completed';
   const isDenied = item.status === 'denied';
 
   const color = isSuccess ? theme.green : isDenied ? theme.red : theme.amber;
   const bg = isSuccess ? theme.greenBg : isDenied ? theme.redBg : theme.amberBg;
-  const label = isSuccess ? 'OK' : isDenied ? 'Refus' : 'Annulé';
+  const label = isSuccess
+    ? i18n('activity_ok')
+    : isDenied
+      ? i18n('activity_denied')
+      : i18n('activity_cancelled');
 
   const childName = item.child
     ? `${item.child.first_name} ${item.child.last_name}`
     : '—';
   const guardianName = item.guardian
     ? `${item.guardian.first_name} ${item.guardian.last_name}`
-    : 'Inconnu';
+    : i18n('activity_unknown');
   const time = new Date(item.pickup_time).toLocaleTimeString('fr-FR', {
     hour: '2-digit',
     minute: '2-digit',
@@ -149,11 +155,23 @@ const ActivityRow = React.memo(function ActivityRow({
         }}
       >
         {isSuccess ? (
-          <MaterialCommunityIcons name="check-circle-outline" size={20} color={color} />
+          <MaterialCommunityIcons
+            name="check-circle-outline"
+            size={20}
+            color={color}
+          />
         ) : isDenied ? (
-          <MaterialCommunityIcons name="alert-circle-outline" size={20} color={color} />
+          <MaterialCommunityIcons
+            name="alert-circle-outline"
+            size={20}
+            color={color}
+          />
         ) : (
-          <MaterialCommunityIcons name="clock-outline" size={20} color={color} />
+          <MaterialCommunityIcons
+            name="clock-outline"
+            size={20}
+            color={color}
+          />
         )}
       </View>
       <View style={{ flex: 1 }}>
@@ -184,18 +202,35 @@ export default function ParentDashboard() {
   const theme = useTheme();
   const session = useSession();
   const nav = useAppNavigation();
+  const { t: i18n } = useTranslation('parent');
 
   const firstName =
     session?.user.profile?.first_name ??
     session?.user.email?.split('@')[0] ??
     'Parent';
 
-  const { data: children, isError: childrenError, refetch: refetchChildren } = useChildren();
-  const { data: recentLogs, isLoading: logsLoading, isError: logsError, refetch: refetchLogs } = useRecentPickupLogs(5);
+  const {
+    data: children,
+    isError: childrenError,
+    refetch: refetchChildren,
+  } = useChildren();
+  const {
+    data: recentLogs,
+    isLoading: logsLoading,
+    isError: logsError,
+    refetch: refetchLogs,
+  } = useRecentPickupLogs(5);
   const requestChildrenSheetOpen = useChildrenSheetStore(s => s.requestOpen);
 
   if (childrenError || logsError) {
-    return <QueryError onRetry={() => { refetchChildren(); refetchLogs(); }} />;
+    return (
+      <QueryError
+        onRetry={() => {
+          refetchChildren();
+          refetchLogs();
+        }}
+      />
+    );
   }
 
   const childrenCount = children?.length ?? 0;
@@ -207,15 +242,27 @@ export default function ParentDashboard() {
     () => [
       {
         id: 'qr',
-        icon: <MaterialCommunityIcons name="qrcode" size={24} color={theme.accent} />,
-        label: 'QR Code',
+        icon: (
+          <MaterialCommunityIcons
+            name="qrcode"
+            size={24}
+            color={theme.accent}
+          />
+        ),
+        label: i18n('qr_code'),
         accentBg: theme.accentBg,
         onPress: () => nav.goToParentQr(),
       },
       {
         id: 'children',
-        icon: <MaterialCommunityIcons name="account-group" size={24} color={theme.primary} />,
-        label: childrenCount === 0 ? 'Ajouter un enfant' : 'Mes enfants',
+        icon: (
+          <MaterialCommunityIcons
+            name="account-group"
+            size={24}
+            color={theme.primary}
+          />
+        ),
+        label: childrenCount === 0 ? i18n('add_child') : i18n('my_children'),
         accentBg: theme.primaryBg,
         onPress: () => {
           if (childrenCount === 0) {
@@ -228,47 +275,80 @@ export default function ParentDashboard() {
       },
       {
         id: 'add-guardian',
-        icon: <MaterialCommunityIcons name="account-plus" size={24} color={theme.green} />,
-        label: 'Autoriser',
+        icon: (
+          <MaterialCommunityIcons
+            name="account-plus"
+            size={24}
+            color={theme.green}
+          />
+        ),
+        label: i18n('dashboard_action_authorize'),
         accentBg: theme.greenBg,
         onPress: () => nav.goToParentChildren(),
       },
       {
         id: 'history',
-        icon: <MaterialCommunityIcons name="history" size={24} color={theme.textSecondary} />,
-        label: 'Historique',
+        icon: (
+          <MaterialCommunityIcons
+            name="history"
+            size={24}
+            color={theme.textSecondary}
+          />
+        ),
+        label: i18n('history_title'),
         accentBg: theme.iconBg,
         onPress: () => nav.goToParentHistory(),
       },
     ],
-    [theme, nav, childrenCount, requestChildrenSheetOpen]
+    [theme, nav, childrenCount, requestChildrenSheetOpen, i18n]
   );
 
   const stats = useMemo(
     () => [
       {
-        icon: <MaterialCommunityIcons name="shield-half-full" size={20} color={theme.accent} />,
-        label: childrenCount > 1 ? 'Enfants' : 'Enfant',
+        icon: (
+          <MaterialCommunityIcons
+            name="shield-half-full"
+            size={20}
+            color={theme.accent}
+          />
+        ),
+        label:
+          childrenCount > 1
+            ? i18n('dashboard_stat_children_other')
+            : i18n('dashboard_stat_children_one'),
         value: childrenCount,
         bg: theme.accentBg,
         color: theme.accent,
       },
       {
         icon: <Feather name="trending-up" size={20} color={theme.green} />,
-        label: completedCount > 1 ? 'Récupérations' : 'Récupération',
+        label:
+          completedCount > 1
+            ? i18n('dashboard_stat_pickups_other')
+            : i18n('dashboard_stat_pickups_one'),
         value: completedCount,
         bg: theme.greenBg,
         color: theme.green,
       },
       {
-        icon: <MaterialCommunityIcons name="file-document-outline" size={20} color={theme.primary} />,
-        label: (recentLogs?.length ?? 0) > 1 ? 'Récents' : 'Récent',
+        icon: (
+          <MaterialCommunityIcons
+            name="file-document-outline"
+            size={20}
+            color={theme.primary}
+          />
+        ),
+        label:
+          (recentLogs?.length ?? 0) > 1
+            ? i18n('dashboard_stat_recent_other')
+            : i18n('dashboard_stat_recent_one'),
         value: recentLogs?.length ?? 0,
         bg: theme.primaryBg,
         color: theme.primary,
       },
     ],
-    [theme, childrenCount, completedCount, recentLogs]
+    [theme, childrenCount, completedCount, recentLogs, i18n]
   );
 
   return (
@@ -283,7 +363,13 @@ export default function ParentDashboard() {
           entering={FadeInDown.duration(400)}
           style={{ marginBottom: 24 }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'flex-start',
+              justifyContent: 'space-between',
+            }}
+          >
             <View style={{ flex: 1 }}>
               <Text
                 style={{
@@ -295,7 +381,7 @@ export default function ParentDashboard() {
                   marginBottom: 4,
                 }}
               >
-                Tableau de bord
+                {i18n('dashboard')}
               </Text>
               <Text
                 style={{
@@ -305,12 +391,16 @@ export default function ParentDashboard() {
                   letterSpacing: -0.5,
                 }}
               >
-                Bonjour, {firstName}
+                {i18n('dashboard_greeting', { name: firstName })}
               </Text>
               <Text
-                style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}
+                style={{
+                  color: theme.textSecondary,
+                  fontSize: 14,
+                  marginTop: 4,
+                }}
               >
-                Voici l'état de sécurité de vos enfants
+                {i18n('dashboard_subtitle')}
               </Text>
             </View>
             <NotificationBell />
@@ -348,11 +438,26 @@ export default function ParentDashboard() {
               >
                 {stat.icon}
               </View>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4, marginTop: 2 }}>
-                <Text style={{ color: theme.text, fontSize: 22, fontWeight: '800' }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'baseline',
+                  gap: 4,
+                  marginTop: 2,
+                }}
+              >
+                <Text
+                  style={{ color: theme.text, fontSize: 22, fontWeight: '800' }}
+                >
                   {stat.value}
                 </Text>
-                <Text style={{ color: theme.textMuted, fontSize: 11, fontWeight: '600' }}>
+                <Text
+                  style={{
+                    color: theme.textMuted,
+                    fontSize: 11,
+                    fontWeight: '600',
+                  }}
+                >
                   {stat.label}
                 </Text>
               </View>
@@ -373,7 +478,7 @@ export default function ParentDashboard() {
               marginBottom: 14,
             }}
           >
-            Actions rapides
+            {i18n('dashboard_quick_actions')}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
             {quickActions.map(a => (
@@ -397,15 +502,13 @@ export default function ParentDashboard() {
             <Text
               style={{ color: theme.text, fontSize: 17, fontWeight: '700' }}
             >
-              Activité récente
+              {i18n('dashboard_recent_activity')}
             </Text>
-            <TouchableOpacity
-              onPress={() => nav.goToParentHistory()}
-            >
+            <TouchableOpacity onPress={() => nav.goToParentHistory()}>
               <Text
                 style={{ color: theme.accent, fontSize: 13, fontWeight: '600' }}
               >
-                Voir tout
+                {i18n('dashboard_see_all')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -428,9 +531,13 @@ export default function ParentDashboard() {
               <View
                 style={{ paddingVertical: 24, alignItems: 'center', gap: 8 }}
               >
-                <MaterialCommunityIcons name="clock-outline" size={30} color={theme.textMuted} />
+                <MaterialCommunityIcons
+                  name="clock-outline"
+                  size={30}
+                  color={theme.textMuted}
+                />
                 <Text style={{ color: theme.textMuted, fontSize: 14 }}>
-                  Aucune activité récente
+                  {i18n('dashboard_no_activity')}
                 </Text>
               </View>
             ) : (

@@ -17,21 +17,11 @@ import {
   useArchiveMonth,
   useRestoreMonth,
 } from '@/features/parent/hooks/useArchive';
+import { useTranslation } from 'react-i18next';
 
-const MONTHS_FR = [
-  'Janvier',
-  'Février',
-  'Mars',
-  'Avril',
-  'Mai',
-  'Juin',
-  'Juillet',
-  'Août',
-  'Septembre',
-  'Octobre',
-  'Novembre',
-  'Décembre',
-];
+function getMonthName(year: number, month: number): string {
+  return new Date(year, month - 1).toLocaleString(undefined, { month: 'long' });
+}
 
 interface MonthRowProps {
   year: number;
@@ -55,6 +45,7 @@ function MonthRow({
   index,
 }: MonthRowProps) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const isArchived = archivedCount > 0 && count === 0;
   const isPartial = archivedCount > 0 && count > 0;
 
@@ -99,16 +90,29 @@ function MonthRow({
             <Text
               style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
             >
-              {MONTHS_FR[month - 1]} {year}
+              {getMonthName(year, month)} {year}
             </Text>
             <Text
               style={{ color: theme.textMuted, fontSize: 12, marginTop: 2 }}
             >
               {isArchived
-                ? `${archivedCount} entrée${archivedCount > 1 ? 's' : ''} archivée${archivedCount > 1 ? 's' : ''}`
+                ? i18n(
+                    archivedCount > 1
+                      ? 'archive_entries_archived_other'
+                      : 'archive_entries_archived_one',
+                    { count: archivedCount }
+                  )
                 : isPartial
-                  ? `${count} active${count > 1 ? 's' : ''} · ${archivedCount} archivée${archivedCount > 1 ? 's' : ''}`
-                  : `${count} entrée${count > 1 ? 's' : ''}`}
+                  ? i18n('archive_entries_partial', {
+                      active: count,
+                      archived: archivedCount,
+                    })
+                  : i18n(
+                      count > 1
+                        ? 'archive_entries_total_other'
+                        : 'archive_entries_total_one',
+                      { count }
+                    )}
             </Text>
           </View>
 
@@ -131,7 +135,7 @@ function MonthRow({
               <Text
                 style={{ color: theme.accent, fontSize: 12, fontWeight: '700' }}
               >
-                Restaurer
+                {i18n('archive_btn_restore')}
               </Text>
             </TouchableOpacity>
           ) : count > 0 ? (
@@ -161,7 +165,7 @@ function MonthRow({
                   fontWeight: '700',
                 }}
               >
-                Archiver
+                {i18n('archive_btn_archive')}
               </Text>
             </TouchableOpacity>
           ) : null}
@@ -174,6 +178,7 @@ function MonthRow({
 export default function ArchiveScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const { data: monthlyCounts, isLoading } = useMonthlyCounts();
 
   const grouped = useMemo(() => {
@@ -203,12 +208,15 @@ export default function ArchiveScreen() {
 
   const handleArchive = (year: number, month: number) => {
     Alert.alert(
-      'Archiver ce mois',
-      `Archiver ${MONTHS_FR[month - 1]} ${year} ? Ces entrées ne seront plus visibles dans l'historique principal.`,
+      i18n('archive_archive_title'),
+      i18n('archive_archive_confirm', {
+        month: getMonthName(year, month),
+        year,
+      }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: i18n('guardian_add_relation_cancel'), style: 'cancel' },
         {
-          text: 'Archiver',
+          text: i18n('archive_btn_archive'),
           style: 'destructive',
           onPress: () => archiveMutation.mutate({ year, month }),
         },
@@ -245,7 +253,7 @@ export default function ArchiveScreen() {
                 fontWeight: '600',
               }}
             >
-              Aucune archive disponible.
+              {i18n('archive_no_archive')}
             </Text>
           </View>
         ) : (

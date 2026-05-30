@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
 import { Toast } from '@/shared/ui/molecules/Toast';
+import { useTranslation } from 'react-i18next';
 import {
   usePickupAuthorization,
   useUpsertPickupAuthorization,
@@ -27,15 +28,7 @@ interface Props {
   onClose: () => void;
 }
 
-const DAYS = [
-  { key: 'monday', label: 'Lun' },
-  { key: 'tuesday', label: 'Mar' },
-  { key: 'wednesday', label: 'Mer' },
-  { key: 'thursday', label: 'Jeu' },
-  { key: 'friday', label: 'Ven' },
-] as const;
-
-type DayKey = (typeof DAYS)[number]['key'];
+type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday';
 
 const HOUR_OPTIONS = Array.from({ length: 14 }, (_, i) => {
   const h = i + 7;
@@ -44,12 +37,6 @@ const HOUR_OPTIONS = Array.from({ length: 14 }, (_, i) => {
     value: `${String(h).padStart(2, '0')}:00`,
   };
 });
-
-const REMINDER_OPTIONS = [
-  { label: '15 min', value: 15 },
-  { label: '30 min', value: 30 },
-  { label: '1 heure', value: 60 },
-];
 
 const DEFAULT_WINDOWS: TimeWindow[] = [{ start: '16:00', end: '18:00' }];
 
@@ -133,6 +120,7 @@ const TimeWindowRow = memo(function TimeWindowRow({
   onDelete: (index: number) => void;
 }) {
   const t = useTheme();
+  const { t: i18n } = useTranslation('parent');
   return (
     <Animated.View
       entering={FadeInDown.delay(index * 40).duration(260)}
@@ -167,7 +155,7 @@ const TimeWindowRow = memo(function TimeWindowRow({
             <Ionicons name="time-outline" size={11} color={t.accent} />
           </View>
           <Text style={{ color: t.text, fontSize: 13, fontWeight: '700' }}>
-            Créneau {index + 1}
+            {i18n('schedule_window_label', { index: index + 1 })}
           </Text>
         </View>
         {canDelete && (
@@ -183,12 +171,12 @@ const TimeWindowRow = memo(function TimeWindowRow({
         )}
       </View>
       <HourPicker
-        label="Début"
+        label={i18n('schedule_hour_start')}
         value={win.start}
         onChange={v => onChange(index, 'start', v)}
       />
       <HourPicker
-        label="Fin"
+        label={i18n('schedule_hour_end')}
         value={win.end}
         onChange={v => onChange(index, 'end', v)}
       />
@@ -205,7 +193,28 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
   onClose,
 }: Props) {
   const t = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const insets = useSafeAreaInsets();
+
+  const DAYS = useMemo(
+    () => [
+      { key: 'monday' as DayKey, label: i18n('schedule_day_mon') },
+      { key: 'tuesday' as DayKey, label: i18n('schedule_day_tue') },
+      { key: 'wednesday' as DayKey, label: i18n('schedule_day_wed') },
+      { key: 'thursday' as DayKey, label: i18n('schedule_day_thu') },
+      { key: 'friday' as DayKey, label: i18n('schedule_day_fri') },
+    ],
+    [i18n]
+  );
+
+  const REMINDER_OPTIONS = useMemo(
+    () => [
+      { label: i18n('schedule_reminder_15'), value: 15 },
+      { label: i18n('schedule_reminder_30'), value: 30 },
+      { label: i18n('schedule_reminder_60'), value: 60 },
+    ],
+    [i18n]
+  );
 
   const { data: existing, isLoading } = usePickupAuthorization(
     childId,
@@ -288,7 +297,7 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
 
   const handleSave = useCallback(async () => {
     if (!hasAnyDay) {
-      Toast.show('Sélectionnez au moins un jour', {
+      Toast.show(i18n('schedule_days_warning'), {
         type: 'error',
         duration: 2500,
       });
@@ -304,13 +313,17 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
         reminder_before: reminder,
         is_active: isActive,
       });
-      if (!result.success) throw new Error(result.error ?? 'Erreur');
+      if (!result.success)
+        throw new Error(result.error ?? i18n('schedule_save_error'));
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show('Planning enregistré', { type: 'success', duration: 2500 });
+      Toast.show(i18n('schedule_save_success'), {
+        type: 'success',
+        duration: 2500,
+      });
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show("Impossible d'enregistrer le planning", {
+      Toast.show(i18n('schedule_save_error'), {
         type: 'error',
         duration: 3000,
       });
@@ -325,6 +338,7 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
     isActive,
     upsert,
     onClose,
+    i18n,
   ]);
 
   return (
@@ -366,7 +380,7 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                 marginBottom: 2,
               }}
             >
-              Planning de récupération
+              {i18n('schedule_title')}
             </Text>
             <Text
               style={{
@@ -449,7 +463,9 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                           color: active ? (val ? t.green : t.red) : t.textMuted,
                         }}
                       >
-                        {val ? 'Actif' : 'Désactivé'}
+                        {val
+                          ? i18n('schedule_active')
+                          : i18n('schedule_inactive')}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -489,7 +505,7 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                 <Text
                   style={{ color: t.text, fontSize: 15, fontWeight: '700' }}
                 >
-                  Jours autorisés
+                  {i18n('schedule_days_label')}
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -531,7 +547,7 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                     fontWeight: '600',
                   }}
                 >
-                  Sélectionnez au moins un jour
+                  {i18n('schedule_days_warning')}
                 </Text>
               )}
             </Animated.View>
@@ -567,7 +583,7 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                   <Text
                     style={{ color: t.text, fontSize: 15, fontWeight: '700' }}
                   >
-                    Horaires
+                    {i18n('schedule_hours_label')}
                   </Text>
                 </View>
                 {windows.length < 3 && (
@@ -591,7 +607,7 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                         fontWeight: '700',
                       }}
                     >
-                      Ajouter
+                      {i18n('schedule_add_window')}
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -640,7 +656,7 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
                 <Text
                   style={{ color: t.text, fontSize: 15, fontWeight: '700' }}
                 >
-                  Rappel avant le créneau
+                  {i18n('schedule_reminder_label')}
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -703,7 +719,9 @@ export const PickupScheduleSheet = memo(function PickupScheduleSheet({
             }}
           >
             <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>
-              {upsert.isPending ? 'Enregistrement…' : 'Enregistrer le planning'}
+              {upsert.isPending
+                ? i18n('schedule_cta_saving')
+                : i18n('schedule_cta_save')}
             </Text>
           </TouchableOpacity>
         </View>

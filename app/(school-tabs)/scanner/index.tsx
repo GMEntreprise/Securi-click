@@ -33,6 +33,7 @@ import type {
   QrScanResult,
   CollectorIdentityStatus,
 } from '@/features/school/types';
+import { useTranslation } from 'react-i18next';
 
 type ScanState = 'idle' | 'scanning' | 'result';
 
@@ -119,39 +120,40 @@ const IdentityBadge = memo(function IdentityBadge({
   status: CollectorIdentityStatus | undefined;
 }) {
   const t = useTheme();
+  const { t: i18n } = useTranslation('school');
 
   const cfg = {
     verified: {
       iconName: 'shield-checkmark' as const,
       color: t.green,
       bg: t.greenBg,
-      label: 'Identité vérifiée',
+      label: i18n('scanner_identity_verified'),
     },
     pending: {
       iconName: 'time-outline' as const,
       color: t.amber,
       bg: t.amberBg,
-      label: 'Vérification en attente',
+      label: i18n('scanner_identity_pending'),
     },
     refused: {
       iconName: 'shield-outline' as const,
       color: t.red,
       bg: t.redBg,
-      label: 'Identité refusée',
+      label: i18n('scanner_identity_refused'),
     },
     expired: {
       iconName: 'shield-outline' as const,
       color: t.red,
       bg: t.redBg,
-      label: 'Identité expirée',
+      label: i18n('scanner_identity_expired'),
     },
     none: {
       iconName: 'warning-outline' as const,
       color: t.amber,
       bg: t.amberBg,
-      label: 'Identité non vérifiée',
+      label: i18n('scanner_identity_none'),
     },
-  } as const;
+  };
 
   const key = (status ?? 'none') as keyof typeof cfg;
   const { iconName, color, bg, label } = cfg[key] ?? cfg.none;
@@ -185,6 +187,7 @@ const ResultSheet = memo(function ResultSheet({
   onReset: () => void;
 }) {
   const t = useTheme();
+  const { t: i18n } = useTranslation('school');
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(600);
   const opacity = useSharedValue(0);
@@ -311,7 +314,9 @@ const ResultSheet = memo(function ResultSheet({
               <Text
                 style={{ color: statusColor, fontSize: 20, fontWeight: '800' }}
               >
-                {isOk ? 'Accès autorisé' : 'Accès refusé'}
+                {isOk
+                  ? i18n('scanner_result_access_ok')
+                  : i18n('scanner_result_access_refused')}
               </Text>
               {!isOk && result.refusal_reason && (
                 <Text
@@ -363,7 +368,10 @@ const ResultSheet = memo(function ResultSheet({
                 padding: 16,
               }}
             >
-              <SectionHeader icon="child" label="Enfant" />
+              <SectionHeader
+                icon="child"
+                label={i18n('scanner_result_child')}
+              />
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
               >
@@ -419,7 +427,10 @@ const ResultSheet = memo(function ResultSheet({
                 padding: 16,
               }}
             >
-              <SectionHeader icon="collector" label="QR Collecteur" />
+              <SectionHeader
+                icon="collector"
+                label={i18n('scanner_result_collector')}
+              />
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
               >
@@ -476,7 +487,10 @@ const ResultSheet = memo(function ResultSheet({
                 padding: 16,
               }}
             >
-              <SectionHeader icon="parent" label="QR Parent direct" />
+              <SectionHeader
+                icon="parent"
+                label={i18n('scanner_result_parent_direct')}
+              />
               <View
                 style={{
                   flexDirection: 'row',
@@ -507,12 +521,12 @@ const ResultSheet = memo(function ResultSheet({
                   <Text
                     style={{ color: t.text, fontSize: 15, fontWeight: '700' }}
                   >
-                    QR généré par le parent
+                    {i18n('scanner_result_parent_generated')}
                   </Text>
                   <Text
                     style={{ color: t.textMuted, fontSize: 13, marginTop: 2 }}
                   >
-                    Aucun collecteur assigné à ce scan
+                    {i18n('scanner_result_no_collector')}
                   </Text>
                 </View>
               </View>
@@ -535,7 +549,7 @@ const ResultSheet = memo(function ResultSheet({
             >
               <Ionicons name="refresh-outline" size={18} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>
-                Scanner suivant
+                {i18n('scanner_result_next')}
               </Text>
             </TouchableOpacity>
           </Animated.View>
@@ -604,6 +618,7 @@ const SectionHeader = memo(function SectionHeader({
 export default function ScannerScreen() {
   const insets = useSafeAreaInsets();
   const t = useTheme();
+  const { t: i18n } = useTranslation('school');
   const session = useSession();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanState, setScanState] = useState<ScanState>('idle');
@@ -663,14 +678,14 @@ export default function ScannerScreen() {
         if (__DEV__) console.error('[Scanner] server error:', e?.message ?? e);
         setResult({
           success: false,
-          refusal_reason: 'Erreur serveur. Réessayez.',
+          refusal_reason: i18n('scanner_error_server'),
           scanned_at: new Date().toISOString(),
         });
         setScanState('result');
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     },
-    [schoolId, validateQr]
+    [schoolId, validateQr, i18n]
   );
 
   const handleReset = useCallback(() => {
@@ -719,7 +734,7 @@ export default function ScannerScreen() {
             textAlign: 'center',
           }}
         >
-          Caméra requise
+          {i18n('scanner_camera_required')}
         </Text>
         <Text
           style={{
@@ -729,8 +744,7 @@ export default function ScannerScreen() {
             lineHeight: 22,
           }}
         >
-          L'accès à la caméra est nécessaire pour scanner les QR codes de
-          récupération.
+          {i18n('scanner_camera_body')}
         </Text>
         <TouchableOpacity
           onPress={requestPermission}
@@ -742,7 +756,7 @@ export default function ScannerScreen() {
           }}
         >
           <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>
-            Autoriser la caméra
+            {i18n('scanner_camera_allow')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -811,7 +825,7 @@ export default function ScannerScreen() {
                   textShadowRadius: 4,
                 }}
               >
-                Pointez sur le QR Code
+                {i18n('scanner_point_qr')}
               </Text>
 
               <View style={{ position: 'relative', width: 240, height: 240 }}>
@@ -854,7 +868,7 @@ export default function ScannerScreen() {
                     <Text
                       style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}
                     >
-                      Validation…
+                      {i18n('scanner_validating')}
                     </Text>
                   </Animated.View>
                 )}
@@ -869,7 +883,7 @@ export default function ScannerScreen() {
                   paddingHorizontal: 40,
                 }}
               >
-                Le scan est automatique dès détection
+                {i18n('scanner_auto')}
               </Text>
             </>
           )}

@@ -28,6 +28,7 @@ import {
 import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 interface RowItem {
   icon: React.ReactNode;
@@ -126,6 +127,7 @@ export default function ProfileScreen() {
   const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const session = useSession();
   const { isDark, toggleTheme } = useThemeSwitcher();
 
@@ -157,7 +159,7 @@ export default function ProfileScreen() {
       try {
         await updateAvatar.mutateAsync(result.signedUrl);
       } catch {
-        Toast.show('Impossible de sauvegarder la photo. Réessayez.', {
+        Toast.show(i18n('profile_photo_error'), {
           type: 'error',
           duration: 3000,
         });
@@ -171,7 +173,7 @@ export default function ProfileScreen() {
     try {
       await updateAvatar.mutateAsync('');
     } catch {
-      Toast.show('Impossible de supprimer la photo. Réessayez.', {
+      Toast.show(i18n('profile_photo_remove_error'), {
         type: 'error',
         duration: 3000,
       });
@@ -197,10 +199,10 @@ export default function ProfileScreen() {
 
   const handleLogout = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert('Déconnexion', 'Voulez-vous vraiment vous déconnecter ?', [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(i18n('profile_logout_title'), i18n('profile_logout_confirm'), [
+      { text: i18n('guardian_add_relation_cancel'), style: 'cancel' },
       {
-        text: 'Déconnecter',
+        text: i18n('profile_logout_btn'),
         style: 'destructive',
         onPress: async () => {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -208,7 +210,7 @@ export default function ProfileScreen() {
         },
       },
     ]);
-  }, [nav]);
+  }, [nav, i18n]);
 
   const darkModeSwitch = useMemo(
     () => (
@@ -233,15 +235,15 @@ export default function ProfileScreen() {
   const sections = useMemo(
     () => [
       {
-        title: 'Compte',
+        title: i18n('profile_section_account'),
         items: [
           {
             icon: (
               <Ionicons name="person-outline" size={16} color={theme.primary} />
             ),
             iconBg: theme.primaryBg,
-            title: 'Informations personnelles',
-            subtitle: 'Nom, email, téléphone',
+            title: i18n('profile_personal_info'),
+            subtitle: i18n('profile_personal_info_subtitle'),
             onPress: () => setEditSheetVisible(true),
           },
           {
@@ -253,14 +255,14 @@ export default function ProfileScreen() {
               />
             ),
             iconBg: theme.accentBg,
-            title: 'Sécurité',
-            subtitle: 'Biométrie, verrouillage',
+            title: i18n('profile_security'),
+            subtitle: i18n('profile_security_subtitle'),
             onPress: () => nav.goToParentSecurity(),
           },
         ] as RowItem[],
       },
       {
-        title: 'Préférences',
+        title: i18n('profile_section_preferences'),
         items: [
           {
             icon: (
@@ -271,8 +273,10 @@ export default function ProfileScreen() {
               />
             ),
             iconBg: theme.iconBg,
-            title: 'Mode sombre',
-            subtitle: isDark ? 'Activé' : 'Désactivé',
+            title: i18n('profile_dark_mode'),
+            subtitle: isDark
+              ? i18n('profile_dark_mode_on')
+              : i18n('profile_dark_mode_off'),
             customRight: darkModeSwitch,
             onPress: () => {},
           },
@@ -285,8 +289,8 @@ export default function ProfileScreen() {
               />
             ),
             iconBg: theme.greenBg,
-            title: 'Notifications',
-            subtitle: 'Voir mes notifications',
+            title: i18n('profile_notifications'),
+            subtitle: i18n('profile_notifications_subtitle'),
             onPress: () => nav.goToParentNotifications(),
           },
           {
@@ -298,8 +302,10 @@ export default function ProfileScreen() {
               />
             ),
             iconBg: 'rgba(99,102,241,0.1)',
-            title: 'Authentification biométrique',
-            subtitle: biometricEnabled ? 'Activée' : 'Désactivée',
+            title: i18n('profile_biometric'),
+            subtitle: biometricEnabled
+              ? i18n('profile_biometric_on')
+              : i18n('profile_biometric_off'),
             toggle: true,
             value: biometricEnabled,
             disabled: biometricMutating,
@@ -309,7 +315,7 @@ export default function ProfileScreen() {
         ] as RowItem[],
       },
       {
-        title: 'Support',
+        title: i18n('profile_section_support'),
         items: [
           {
             icon: (
@@ -320,7 +326,7 @@ export default function ProfileScreen() {
               />
             ),
             iconBg: theme.amberBg,
-            title: 'Aide & FAQ',
+            title: i18n('profile_faq'),
             onPress: () => nav.goToParentFaq(),
           },
           {
@@ -332,7 +338,7 @@ export default function ProfileScreen() {
               />
             ),
             iconBg: theme.iconBg,
-            title: 'Mentions légales',
+            title: i18n('profile_legal'),
             onPress: () => nav.goToParentLegalMentions(),
           },
           {
@@ -344,7 +350,7 @@ export default function ProfileScreen() {
               />
             ),
             iconBg: theme.iconBg,
-            title: 'Politique de confidentialité',
+            title: i18n('profile_privacy'),
             onPress: () => nav.goToParentPrivacyPolicy(),
           },
         ] as RowItem[],
@@ -357,6 +363,7 @@ export default function ProfileScreen() {
       isDark,
       darkModeSwitch,
       nav,
+      i18n,
     ]
   );
 
@@ -476,7 +483,7 @@ export default function ProfileScreen() {
               <Text
                 style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
               >
-                Modifier le profil
+                {i18n('profile_edit')}
               </Text>
             </TouchableOpacity>
           </Animated.View>
@@ -537,7 +544,7 @@ export default function ProfileScreen() {
                 marginLeft: 4,
               }}
             >
-              Application
+              {i18n('profile_section_app')}
             </Text>
             <View
               style={{
@@ -575,7 +582,7 @@ export default function ProfileScreen() {
               <Text
                 style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}
               >
-                Se déconnecter
+                {i18n('profile_logout')}
               </Text>
             </TouchableOpacity>
           </Animated.View>

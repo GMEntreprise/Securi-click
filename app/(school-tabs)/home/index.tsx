@@ -23,19 +23,34 @@ import {
 import { useStudents } from '@/features/school/hooks/useStudents';
 import { pickupAuthorizationService } from '@/features/parent/services/pickupAuthorization.service';
 import { useQuery } from '@tanstack/react-query';
-import { isTodayAuthorized, formatTimeWindows } from '@/features/collector/hooks/usePickupSchedule';
+import {
+  isTodayAuthorized,
+  formatTimeWindows,
+} from '@/features/collector/hooks/usePickupSchedule';
 import { Avatar } from '@/shared/ui/base/avatar';
 import type { PickupValidation } from '@/features/school/types';
+import { useTranslation } from 'react-i18next';
 
 export default function SchoolHomeScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
   const theme = useTheme();
+  const { t: i18n } = useTranslation('school');
   const nav = useAppNavigation();
 
-  const { data: school, isLoading: schoolLoading, isError: schoolError, refetch: refetchSchool } = useMySchool();
+  const {
+    data: school,
+    isLoading: schoolLoading,
+    isError: schoolError,
+    refetch: refetchSchool,
+  } = useMySchool();
   const schoolId = school?.id ?? '';
-  const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useDashboardStats(schoolId);
+  const {
+    data: stats,
+    isLoading: statsLoading,
+    isError: statsError,
+    refetch: refetchStats,
+  } = useDashboardStats(schoolId);
   const { data: students } = useStudents(schoolId);
 
   const { data: todayAuths } = useQuery({
@@ -46,16 +61,21 @@ export default function SchoolHomeScreen() {
       const auths = await Promise.all(
         childIds.map(id => pickupAuthorizationService.getForChild(id))
       );
-      return auths
-        .flat()
-        .filter(a => a.is_active && isTodayAuthorized(a));
+      return auths.flat().filter(a => a.is_active && isTodayAuthorized(a));
     },
     enabled: !!schoolId && !!students && students.length > 0,
     staleTime: 2 * 60 * 1000,
   });
 
   if (schoolError || statsError) {
-    return <QueryError onRetry={() => { refetchSchool(); refetchStats(); }} />;
+    return (
+      <QueryError
+        onRetry={() => {
+          refetchSchool();
+          refetchStats();
+        }}
+      />
+    );
   }
 
   const isLoading = schoolLoading || (!!schoolId && statsLoading && !stats);
@@ -90,7 +110,13 @@ export default function SchoolHomeScreen() {
         entering={FadeInDown.duration(350)}
         style={{ marginBottom: 28 }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+          }}
+        >
           <View style={{ flex: 1 }}>
             <Text
               style={{
@@ -100,7 +126,7 @@ export default function SchoolHomeScreen() {
                 marginBottom: 2,
               }}
             >
-              Bonjour,
+              {i18n('home_greeting')}
             </Text>
             <Text
               style={{
@@ -110,14 +136,19 @@ export default function SchoolHomeScreen() {
                 letterSpacing: -0.5,
               }}
             >
-              {school?.name ?? 'Établissement'}
+              {school?.name ?? i18n('school_name')}
             </Text>
             <Text
               style={{ color: theme.textSecondary, fontSize: 14, marginTop: 4 }}
             >
               {stats
-                ? `${stats.todayValidations} récupération${stats.todayValidations > 1 ? 's' : ''} aujourd'hui`
-                : 'Chargement…'}
+                ? i18n(
+                    stats.todayValidations > 1
+                      ? 'home_today_other'
+                      : 'home_today_one',
+                    { count: stats.todayValidations }
+                  )
+                : i18n('home_loading')}
             </Text>
           </View>
           <NotificationBell />
@@ -130,22 +161,40 @@ export default function SchoolHomeScreen() {
         style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}
       >
         <StatCard
-          icon={<MaterialCommunityIcons name="check-circle-outline" size={22} color={theme.green} />}
-          label="Validées"
+          icon={
+            <MaterialCommunityIcons
+              name="check-circle-outline"
+              size={22}
+              color={theme.green}
+            />
+          }
+          label={i18n('home_stat_validated')}
           value={stats?.todayValidations ?? 0}
           bg={theme.greenBg}
           color={theme.green}
         />
         <StatCard
-          icon={<MaterialCommunityIcons name="close-circle-outline" size={22} color={theme.red} />}
-          label="Refusées"
+          icon={
+            <MaterialCommunityIcons
+              name="close-circle-outline"
+              size={22}
+              color={theme.red}
+            />
+          }
+          label={i18n('home_stat_refused')}
           value={stats?.todayRefusals ?? 0}
           bg={theme.redBg}
           color={theme.red}
         />
         <StatCard
-          icon={<MaterialCommunityIcons name="account-group" size={22} color={theme.primary} />}
-          label="Élèves"
+          icon={
+            <MaterialCommunityIcons
+              name="account-group"
+              size={22}
+              color={theme.primary}
+            />
+          }
+          label={i18n('home_stat_students')}
           value={stats?.enrolledCount ?? 0}
           bg={theme.primaryBg}
           color={theme.primary}
@@ -158,18 +207,60 @@ export default function SchoolHomeScreen() {
           entering={FadeInDown.delay(90).duration(350)}
           style={{ marginBottom: 20 }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: theme.accentBg, alignItems: 'center', justifyContent: 'center' }}>
-              <MaterialCommunityIcons name="calendar-today" size={16} color={theme.accent} />
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+              marginBottom: 10,
+            }}
+          >
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 9,
+                backgroundColor: theme.accentBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MaterialCommunityIcons
+                name="calendar-today"
+                size={16}
+                color={theme.accent}
+              />
             </View>
-            <Text style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}>
-              Attendus aujourd'hui
+            <Text
+              style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
+            >
+              {i18n('home_expected_today')}
             </Text>
-            <View style={{ marginLeft: 'auto', backgroundColor: theme.accentBg, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 }}>
-              <Text style={{ color: theme.accent, fontSize: 12, fontWeight: '700' }}>{todayAuths.length}</Text>
+            <View
+              style={{
+                marginLeft: 'auto',
+                backgroundColor: theme.accentBg,
+                borderRadius: 10,
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+              }}
+            >
+              <Text
+                style={{ color: theme.accent, fontSize: 12, fontWeight: '700' }}
+              >
+                {todayAuths.length}
+              </Text>
             </View>
           </View>
-          <View style={{ backgroundColor: theme.card, borderRadius: 18, borderWidth: 1, borderColor: theme.cardBorder, overflow: 'hidden' }}>
+          <View
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              overflow: 'hidden',
+            }}
+          >
             {todayAuths.map((auth, idx) => {
               const student = students?.find(s => s.id === auth.child_id);
               const times = formatTimeWindows(auth);
@@ -187,23 +278,56 @@ export default function SchoolHomeScreen() {
                   }}
                 >
                   <Avatar
-                    image={{ uri: student?.photo_url ?? '', name: `${student?.first_name ?? ''} ${student?.last_name ?? ''}`.trim() }}
+                    image={{
+                      uri: student?.photo_url ?? '',
+                      name: `${student?.first_name ?? ''} ${student?.last_name ?? ''}`.trim(),
+                    }}
                     size={40}
                     showBorder={false}
                     backgroundColor={theme.primaryBg}
                     textColor={theme.primary}
                   />
                   <View style={{ flex: 1 }}>
-                    <Text style={{ color: theme.text, fontSize: 14, fontWeight: '700' }}>
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: 14,
+                        fontWeight: '700',
+                      }}
+                    >
                       {student?.first_name} {student?.last_name}
                     </Text>
-                    <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+                    <Text
+                      style={{
+                        color: theme.textMuted,
+                        fontSize: 12,
+                        marginTop: 1,
+                      }}
+                    >
                       {student?.class_name ?? '—'}
                     </Text>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-                    <MaterialCommunityIcons name="clock-outline" size={13} color={theme.accent} />
-                    <Text style={{ color: theme.accent, fontSize: 12, fontWeight: '700' }}>{times}</Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 5,
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name="clock-outline"
+                      size={13}
+                      color={theme.accent}
+                    />
+                    <Text
+                      style={{
+                        color: theme.accent,
+                        fontSize: 12,
+                        fontWeight: '700',
+                      }}
+                    >
+                      {times}
+                    </Text>
                   </View>
                 </View>
               );
@@ -234,7 +358,7 @@ export default function SchoolHomeScreen() {
         >
           <MaterialCommunityIcons name="line-scan" size={24} color="#fff" />
           <Text style={{ color: '#fff', fontSize: 17, fontWeight: '800' }}>
-            Scanner un QR Code
+            {i18n('home_scan_cta')}
           </Text>
         </TouchableOpacity>
       </Animated.View>
@@ -250,7 +374,7 @@ export default function SchoolHomeScreen() {
           }}
         >
           <Text style={{ color: theme.text, fontSize: 17, fontWeight: '700' }}>
-            Activité récente
+            {i18n('home_recent_activity')}
           </Text>
           <TouchableOpacity
             onPress={() => nav.goToSchoolHistory()}
@@ -259,7 +383,7 @@ export default function SchoolHomeScreen() {
             <Text
               style={{ color: theme.accent, fontSize: 13, fontWeight: '600' }}
             >
-              Tout voir
+              {i18n('home_see_all')}
             </Text>
             <Feather name="chevron-right" size={14} color={theme.accent} />
           </TouchableOpacity>
@@ -276,7 +400,11 @@ export default function SchoolHomeScreen() {
               alignItems: 'center',
             }}
           >
-            <MaterialCommunityIcons name="clock-outline" size={30} color={theme.textMuted} />
+            <MaterialCommunityIcons
+              name="clock-outline"
+              size={30}
+              color={theme.textMuted}
+            />
             <Text
               style={{
                 color: theme.textMuted,
@@ -285,7 +413,7 @@ export default function SchoolHomeScreen() {
                 textAlign: 'center',
               }}
             >
-              Aucune activité aujourd'hui
+              {i18n('home_no_activity')}
             </Text>
           </View>
         ) : (
@@ -369,6 +497,7 @@ const ValidationRow = memo(function ValidationRow({
   isLast: boolean;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('school');
   const isOk = item.status === 'validated';
   const color = isOk ? theme.green : theme.red;
   const time = new Date(item.scanned_at).toLocaleTimeString('fr-FR', {
@@ -405,7 +534,7 @@ const ValidationRow = memo(function ValidationRow({
         <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
           {item.guardian
             ? `${item.guardian.first_name} ${item.guardian.last_name}`
-            : 'Parent direct'}
+            : i18n('home_validation_direct_parent')}
         </Text>
       </View>
       <View style={{ alignItems: 'flex-end', gap: 3 }}>
@@ -418,7 +547,9 @@ const ValidationRow = memo(function ValidationRow({
           }}
         >
           <Text style={{ color, fontSize: 11, fontWeight: '700' }}>
-            {isOk ? 'Validé' : 'Refusé'}
+            {isOk
+              ? i18n('home_validation_validated')
+              : i18n('home_validation_refused')}
           </Text>
         </View>
         <Text style={{ color: theme.textMuted, fontSize: 11 }}>{time}</Text>

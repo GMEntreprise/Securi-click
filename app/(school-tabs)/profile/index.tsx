@@ -25,11 +25,13 @@ import { useSession } from '@/features/auth/store/auth.store';
 import { useImagePicker } from '@/hooks';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { EditSchoolSheet } from '@/features/school/components/ui/EditSchoolSheet';
+import { useTranslation } from 'react-i18next';
 
 export default function SchoolProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const nav = useAppNavigation();
+  const { t: i18n } = useTranslation('school');
   const unreadCount = useUnreadCount();
   const session = useSession();
   const userId = session?.user.id ?? '';
@@ -66,15 +68,15 @@ export default function SchoolProfileScreen() {
   }, [school?.id, updateLogo]);
 
   const handleLogout = useCallback(() => {
-    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(i18n('profile_logout_title'), i18n('profile_logout_confirm'), [
+      { text: i18n('profile_logout_cancel'), style: 'cancel' },
       {
-        text: 'Déconnecter',
+        text: i18n('profile_logout_btn'),
         style: 'destructive',
         onPress: () => nav.logout(),
       },
     ]);
-  }, [nav]);
+  }, [nav, i18n]);
 
   if (isLoading) {
     return (
@@ -191,7 +193,7 @@ export default function SchoolProfileScreen() {
             <Text
               style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
             >
-              Modifier l'établissement
+              {i18n('profile_edit_school')}
             </Text>
           </TouchableOpacity>
         </Animated.View>
@@ -212,22 +214,22 @@ export default function SchoolProfileScreen() {
           >
             <InfoRow
               iconName="business-outline"
-              label="Responsable"
+              label={i18n('profile_info_manager')}
               value={`${school?.manager_first_name ?? ''} ${school?.manager_last_name ?? ''}`.trim()}
             />
             <InfoRow
               iconName="mail-outline"
-              label="Email"
+              label={i18n('profile_info_email')}
               value={school?.email ?? '—'}
             />
             <InfoRow
               iconName="call-outline"
-              label="Téléphone"
+              label={i18n('profile_info_phone')}
               value={school?.phone ?? '—'}
             />
             <InfoRow
               iconName="location-outline"
-              label="Adresse"
+              label={i18n('profile_info_address')}
               value={
                 school
                   ? `${school.address}, ${school.postal_code} ${school.city}`
@@ -276,14 +278,19 @@ export default function SchoolProfileScreen() {
               <Text
                 style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
               >
-                Notifications
+                {i18n('profile_notifications_label')}
               </Text>
               <Text
                 style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
               >
                 {unreadCount > 0
-                  ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}`
-                  : '0 notification'}
+                  ? i18n(
+                      unreadCount > 1
+                        ? 'profile_notifications_unread_other'
+                        : 'profile_notifications_unread_one',
+                      { count: unreadCount }
+                    )
+                  : i18n('profile_notifications_none')}
               </Text>
             </View>
             {unreadCount > 0 && (
@@ -351,12 +358,12 @@ export default function SchoolProfileScreen() {
               <Text
                 style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
               >
-                Sécurité
+                {i18n('profile_security_label')}
               </Text>
               <Text
                 style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
               >
-                Biométrie, verrouillage
+                {i18n('profile_security_subtitle')}
               </Text>
             </View>
             <Ionicons
@@ -416,7 +423,7 @@ export default function SchoolProfileScreen() {
                   fontSize: 15,
                 }}
               >
-                Aide & FAQ
+                {i18n('profile_faq')}
               </Text>
               <Ionicons
                 name="chevron-forward"
@@ -459,7 +466,7 @@ export default function SchoolProfileScreen() {
                   fontSize: 15,
                 }}
               >
-                Mentions légales
+                {i18n('profile_legal')}
               </Text>
               <Ionicons
                 name="chevron-forward"
@@ -500,7 +507,7 @@ export default function SchoolProfileScreen() {
                   fontSize: 15,
                 }}
               >
-                Politique de confidentialité
+                {i18n('profile_privacy')}
               </Text>
               <Ionicons
                 name="chevron-forward"
@@ -527,7 +534,7 @@ export default function SchoolProfileScreen() {
               marginLeft: 4,
             }}
           >
-            Application
+            {i18n('profile_app_section')}
           </Text>
           <View
             style={{
@@ -558,7 +565,7 @@ export default function SchoolProfileScreen() {
           >
             <Ionicons name="log-out-outline" size={18} color={theme.red} />
             <Text style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}>
-              Se déconnecter
+              {i18n('profile_logout')}
             </Text>
           </TouchableOpacity>
         </Animated.View>

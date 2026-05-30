@@ -19,6 +19,7 @@ import { Avatar } from '@/shared/ui/base/avatar';
 import { QueryError } from '@/shared/ui/base/query-error';
 import { useDebounce } from '@/hooks/useDebounce';
 import type { SchoolChild } from '@/features/school/types';
+import { useTranslation } from 'react-i18next';
 
 export default function StudentsScreen() {
   const insets = useSafeAreaInsets();
@@ -26,6 +27,7 @@ export default function StudentsScreen() {
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search, 250);
+  const { t: i18n } = useTranslation('school');
 
   const { data: school } = useMySchool();
   const schoolId = school?.id ?? '';
@@ -101,7 +103,7 @@ export default function StudentsScreen() {
               letterSpacing: -0.5,
             }}
           >
-            Élèves
+            {i18n('students_title')}
           </Text>
           <Text style={{ color: theme.textMuted, fontSize: 14 }}>
             {filtered.length} / {students?.length ?? 0}
@@ -126,7 +128,7 @@ export default function StudentsScreen() {
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Rechercher un élève…"
+            placeholder={i18n('students_search_placeholder')}
             placeholderTextColor={theme.placeholder}
             style={{ flex: 1, fontSize: 15, color: theme.text }}
           />
@@ -135,7 +137,7 @@ export default function StudentsScreen() {
               <Text
                 style={{ color: theme.accent, fontSize: 13, fontWeight: '600' }}
               >
-                Effacer
+                {i18n('students_search_clear')}
               </Text>
             </TouchableOpacity>
           )}
@@ -148,15 +150,15 @@ export default function StudentsScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingRight: 4 }}
           >
-            {['Tous', ...classes].map(item => {
+            {[null, ...classes].map(item => {
               const isActive =
-                item === 'Tous' ? !classFilter : classFilter === item;
+                item === null ? !classFilter : classFilter === item;
               return (
                 <TouchableOpacity
-                  key={item}
+                  key={item ?? '__all__'}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setClassFilter(item === 'Tous' ? null : item);
+                    setClassFilter(item);
                   }}
                   style={{
                     paddingHorizontal: 14,
@@ -175,7 +177,7 @@ export default function StudentsScreen() {
                       fontWeight: '700',
                     }}
                   >
-                    {item}
+                    {item === null ? i18n('students_filter_all') : item}
                   </Text>
                 </TouchableOpacity>
               );
@@ -204,7 +206,7 @@ export default function StudentsScreen() {
                 textAlign: 'center',
               }}
             >
-              Aucun résultat
+              {i18n('students_no_results')}
             </Text>
             <Text
               style={{
@@ -214,7 +216,7 @@ export default function StudentsScreen() {
                 textAlign: 'center',
               }}
             >
-              Essayez un autre nom ou classe.
+              {i18n('students_no_results_hint')}
             </Text>
           </View>
         ) : (
@@ -234,6 +236,7 @@ export default function StudentsScreen() {
 
 const StudentsEmptyState = memo(function StudentsEmptyState() {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('school');
   return (
     <Animated.View
       entering={FadeInDown.duration(400)}
@@ -269,7 +272,7 @@ const StudentsEmptyState = memo(function StudentsEmptyState() {
             letterSpacing: -0.3,
           }}
         >
-          Aucun élève inscrit
+          {i18n('students_empty_title')}
         </Text>
         <Text
           style={{
@@ -279,8 +282,7 @@ const StudentsEmptyState = memo(function StudentsEmptyState() {
             lineHeight: 20,
           }}
         >
-          Les élèves rattachés à votre établissement par les parents
-          apparaîtront ici.
+          {i18n('students_empty_body')}
         </Text>
       </View>
 
@@ -296,15 +298,9 @@ const StudentsEmptyState = memo(function StudentsEmptyState() {
         }}
       >
         {[
-          { step: '1', label: "Un parent crée son compte Securi'Click." },
-          {
-            step: '2',
-            label: 'Il ajoute son enfant et le rattache à votre établissement.',
-          },
-          {
-            step: '3',
-            label: "L'élève apparaît automatiquement dans cette liste.",
-          },
+          { step: '1', label: i18n('students_empty_step1') },
+          { step: '2', label: i18n('students_empty_step2') },
+          { step: '3', label: i18n('students_empty_step3') },
         ].map(({ step, label }) => (
           <View
             key={step}

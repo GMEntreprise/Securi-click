@@ -17,6 +17,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
+import { useTranslation } from 'react-i18next';
 
 const TRIVIAL_PINS = new Set([
   '000000',
@@ -72,6 +73,7 @@ function PinAccessSectionInner<T extends FieldValues>({
   hideToggle = false,
 }: PinAccessSectionProps<T>) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const [visible, setVisible] = useState(false);
   const [copied, setCopied] = useState(false);
   const autoHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -146,10 +148,10 @@ function PinAccessSectionInner<T extends FieldValues>({
         </View>
         <View style={{ flex: 1 }}>
           <Text style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}>
-            Code de connexion sécurisé
+            {i18n('pin_title')}
           </Text>
           <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
-            {'6 chiffres — obligatoire, partagez-le en privé'}
+            {i18n('pin_subtitle')}
           </Text>
         </View>
         {!hideToggle && (
@@ -211,8 +213,7 @@ function PinAccessSectionInner<T extends FieldValues>({
                 lineHeight: 16,
               }}
             >
-              Recommandé : 6 chiffres aléatoires. N'utilisez pas une date de
-              naissance.
+              {i18n('pin_tip')}
             </Text>
           </View>
 
@@ -345,7 +346,7 @@ function PinAccessSectionInner<T extends FieldValues>({
                           color: theme.textSecondary,
                         }}
                       >
-                        Générer
+                        {i18n('pin_generate')}
                       </Text>
                     </TouchableOpacity>
 
@@ -375,7 +376,7 @@ function PinAccessSectionInner<T extends FieldValues>({
                           color: copied ? theme.green : theme.textSecondary,
                         }}
                       >
-                        {copied ? 'Copié ✓' : 'Copier'}
+                        {copied ? i18n('pin_copied') : i18n('pin_copy')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -389,7 +390,7 @@ function PinAccessSectionInner<T extends FieldValues>({
                         fontWeight: '600',
                       }}
                     >
-                      Code visible — masquage automatique dans 8 secondes
+                      {i18n('pin_visible_hint')}
                     </Text>
                   ) : null}
                 </View>

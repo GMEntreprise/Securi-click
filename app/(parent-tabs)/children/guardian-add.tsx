@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -34,31 +34,16 @@ import {
   useLinkCollector,
 } from '@/features/parent/hooks/useGuardians';
 import type { Guardian } from '@/features/parent/types';
+import { useTranslation } from 'react-i18next';
 
-const PRESET_RELATIONSHIPS = [
-  'Grand-père',
-  'Grand-mère',
-  'Oncle',
-  'Tante',
-  'Frère',
-  'Sœur',
-  'Cousin(e)',
-  'Nourrice',
-  'Voisin',
-  "Parent d'élève",
-  'Autre',
-];
-
-const schema = z.object({
-  first_name: z.string().min(2, 'Minimum 2 caractères'),
-  last_name: z.string().min(2, 'Minimum 2 caractères'),
-  phone: z.string().optional().or(z.literal('')),
-  relationship: z.string().min(1, 'Sélectionnez une relation'),
-  email: z.string().email('Email invalide'),
-  access_code: z.string().regex(/^\d{6}$/, '6 chiffres requis'),
-});
-
-type FormData = z.infer<typeof schema>;
+type FormData = {
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  relationship: string;
+  email: string;
+  access_code: string;
+};
 
 // ── Existing collector card ───────────────────────────────────────────────────
 
@@ -72,6 +57,7 @@ function ExistingCollectorCard({
   onPress: (item: Guardian) => void;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   return (
     <TouchableOpacity
       onPress={() => {
@@ -121,7 +107,7 @@ function ExistingCollectorCard({
               <Text
                 style={{ color: theme.amber, fontSize: 10, fontWeight: '700' }}
               >
-                En attente
+                {i18n('guardian_add_waiting')}
               </Text>
             </View>
           )}
@@ -154,15 +140,33 @@ function RelationshipPicker({
   error?: string;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const [customModalVisible, setCustomModalVisible] = useState(false);
   const [customInput, setCustomInput] = useState('');
   const customInputRef = useRef<TextInput>(null);
+
+  const PRESET_RELATIONSHIPS = useMemo(
+    () => [
+      i18n('guardian_rel_grandfather'),
+      i18n('guardian_rel_grandmother'),
+      i18n('guardian_rel_uncle'),
+      i18n('guardian_rel_aunt'),
+      i18n('guardian_rel_brother'),
+      i18n('guardian_rel_sister'),
+      i18n('guardian_rel_cousin'),
+      i18n('guardian_rel_nanny'),
+      i18n('guardian_rel_neighbor'),
+      i18n('guardian_rel_other_parent'),
+      i18n('guardian_rel_other'),
+    ],
+    [i18n]
+  );
 
   const isCustom = selected !== '' && !PRESET_RELATIONSHIPS.includes(selected);
 
   const handlePress = useCallback(
     (rel: string) => {
-      if (rel === 'Autre') {
+      if (rel === i18n('guardian_rel_other')) {
         setCustomInput('');
         setCustomModalVisible(true);
         return;
@@ -193,13 +197,14 @@ function RelationshipPicker({
           marginBottom: 10,
         }}
       >
-        Relation
+        {i18n('guardian_add_relation_label')}
       </Text>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {PRESET_RELATIONSHIPS.map(r => {
+          const otherKey = i18n('guardian_rel_other');
           const active =
-            r === 'Autre' ? isCustom || selected === 'Autre' : selected === r;
-          const label = r === 'Autre' && isCustom ? selected : r;
+            r === otherKey ? isCustom || selected === otherKey : selected === r;
+          const label = r === otherKey && isCustom ? selected : r;
           return (
             <TouchableOpacity
               key={r}
@@ -263,13 +268,13 @@ function RelationshipPicker({
             <Text
               style={{ fontSize: 16, fontWeight: '700', color: theme.text }}
             >
-              Autre relation
+              {i18n('guardian_add_relation_other')}
             </Text>
             <TextInput
               ref={customInputRef}
               value={customInput}
               onChangeText={setCustomInput}
-              placeholder="Ex. Baby-sitter, Tuteur légal…"
+              placeholder={i18n('guardian_add_relation_placeholder')}
               placeholderTextColor={theme.placeholder}
               returnKeyType="done"
               onSubmitEditing={handleCustomConfirm}
@@ -302,7 +307,7 @@ function RelationshipPicker({
                     fontSize: 14,
                   }}
                 >
-                  Annuler
+                  {i18n('guardian_add_relation_cancel')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -320,7 +325,7 @@ function RelationshipPicker({
                 <Text
                   style={{ fontWeight: '700', color: '#fff', fontSize: 14 }}
                 >
-                  Confirmer
+                  {i18n('guardian_add_relation_confirm')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -337,8 +342,24 @@ export default function AddGuardianScreen() {
   const router = useRouter();
   const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const session = useSession();
   const { childId } = useLocalSearchParams<{ childId: string }>();
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        first_name: z.string().min(2, i18n('guardian_add_error_min')),
+        last_name: z.string().min(2, i18n('guardian_add_error_min')),
+        phone: z.string().optional().or(z.literal('')),
+        relationship: z.string().min(1, i18n('guardian_add_error_relation')),
+        email: z.string().email(i18n('guardian_add_error_email')),
+        access_code: z
+          .string()
+          .regex(/^\d{6}$/, i18n('guardian_add_error_pin')),
+      }),
+    [i18n]
+  );
 
   const [mode, setMode] = useState<'new' | 'existing'>('new');
   const [selectedCollector, setSelectedCollector] = useState<Guardian | null>(
@@ -416,7 +437,7 @@ export default function AddGuardianScreen() {
             rpcError.message.includes('duplicate_guardian_email') ||
             rpcError.code === '23505'
           ) {
-            throw new Error('Ce collecteur est déjà associé à cet enfant.');
+            throw new Error(i18n('guardian_add_duplicate_error'));
           }
           throw new Error(rpcError.message);
         }
@@ -424,17 +445,23 @@ export default function AddGuardianScreen() {
         try {
           await authService.inviteCollector(data.email.trim());
         } catch {
-          // Rate limit hit — invitation enregistrée, email renvoyé plus tard
+          // Rate limit hit — invitation registered, email will be resent later
         }
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Toast.show(`${data.first_name} ${data.last_name} a été ajouté(e)`, {
-          type: 'success',
-          duration: 3000,
-        });
+        Toast.show(
+          i18n('guardian_add_success', {
+            name: `${data.first_name} ${data.last_name}`,
+          }),
+          {
+            type: 'success',
+            duration: 3000,
+          }
+        );
         router.back();
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Une erreur est survenue.';
+        const msg =
+          e instanceof Error ? e.message : i18n('guardian_add_generic_error');
         setError(msg);
         Toast.show(msg, { type: 'error', duration: 4000 });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -442,7 +469,7 @@ export default function AddGuardianScreen() {
         setIsSubmitting(false);
       }
     },
-    [childId, session, router]
+    [childId, session, router, i18n]
   );
 
   // ── Link existing collector ───────────────────────────────────────────────
@@ -450,7 +477,7 @@ export default function AddGuardianScreen() {
   const handleLinkExisting = useCallback(async () => {
     if (!selectedCollector) return;
     if (!linkRelationship) {
-      Toast.show('Veuillez sélectionner une relation', { type: 'error' });
+      Toast.show(i18n('guardian_add_select_relation'), { type: 'error' });
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -470,19 +497,22 @@ export default function AddGuardianScreen() {
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Toast.show(
-        `${selectedCollector.first_name} peut désormais récupérer cet enfant`,
+        i18n('guardian_add_link_success', {
+          name: selectedCollector.first_name,
+        }),
         { type: 'success', duration: 3000 }
       );
       router.back();
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Une erreur est survenue.';
+      const msg =
+        e instanceof Error ? e.message : i18n('guardian_add_generic_error');
       setError(msg);
       Toast.show(msg, { type: 'error', duration: 4000 });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     } finally {
       setIsSubmitting(false);
     }
-  }, [selectedCollector, linkRelationship, linkCollector, router]);
+  }, [selectedCollector, linkRelationship, linkCollector, router, i18n]);
 
   return (
     <KeyboardAvoidingView
@@ -527,7 +557,7 @@ export default function AddGuardianScreen() {
               color: mode === 'new' ? theme.text : theme.textMuted,
             }}
           >
-            Nouveau collecteur
+            {i18n('guardian_add_mode_new')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -555,7 +585,7 @@ export default function AddGuardianScreen() {
               color: mode === 'existing' ? theme.text : theme.textMuted,
             }}
           >
-            Collecteur existant
+            {i18n('guardian_add_mode_existing')}
           </Text>
           {availableCollectors.length > 0 && (
             <View
@@ -593,7 +623,7 @@ export default function AddGuardianScreen() {
             <AuthInputField
               control={control}
               name="first_name"
-              label="Prénom"
+              label={i18n('edit_child_first_name_label')}
               icon={
                 <Ionicons
                   name="person-outline"
@@ -601,13 +631,13 @@ export default function AddGuardianScreen() {
                   color={theme.textMuted}
                 />
               }
-              placeholder="Ex. Jean"
+              placeholder={i18n('guardian_add_first_name_placeholder')}
               error={errors.first_name?.message}
             />
             <AuthInputField
               control={control}
               name="last_name"
-              label="Nom"
+              label={i18n('edit_child_last_name_label')}
               icon={
                 <Ionicons
                   name="person-outline"
@@ -615,13 +645,13 @@ export default function AddGuardianScreen() {
                   color={theme.textMuted}
                 />
               }
-              placeholder="Ex. Dupont"
+              placeholder={i18n('guardian_add_last_name_placeholder')}
               error={errors.last_name?.message}
             />
             <AuthInputField
               control={control}
               name="email"
-              label="Email"
+              label={i18n('guardian_add_email_label')}
               icon={
                 <Ionicons
                   name="mail-outline"
@@ -629,7 +659,7 @@ export default function AddGuardianScreen() {
                   color={theme.textMuted}
                 />
               }
-              placeholder="collecteur@email.com"
+              placeholder={i18n('guardian_add_email_placeholder')}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -638,7 +668,7 @@ export default function AddGuardianScreen() {
             <AuthInputField
               control={control}
               name="phone"
-              label="Téléphone (optionnel)"
+              label={i18n('guardian_add_phone_label')}
               icon={
                 <Ionicons
                   name="call-outline"
@@ -646,7 +676,7 @@ export default function AddGuardianScreen() {
                   color={theme.textMuted}
                 />
               }
-              placeholder="+33 6 00 00 00 00"
+              placeholder={i18n('guardian_add_phone_placeholder')}
               keyboardType="phone-pad"
               error={errors.phone?.message}
             />
@@ -728,7 +758,7 @@ export default function AddGuardianScreen() {
                   textAlign: 'center',
                 }}
               >
-                Aucun collecteur existant
+                {i18n('guardian_add_no_existing_title')}
               </Text>
               <Text
                 style={{
@@ -738,8 +768,7 @@ export default function AddGuardianScreen() {
                   lineHeight: 19,
                 }}
               >
-                Créez d'abord un collecteur avec l'onglet "Nouveau collecteur",
-                puis vous pourrez l'attribuer à d'autres enfants.
+                {i18n('guardian_add_no_existing_body')}
               </Text>
               <TouchableOpacity
                 onPress={() => setMode('new')}
@@ -753,7 +782,7 @@ export default function AddGuardianScreen() {
                 <Text
                   style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}
                 >
-                  Créer un collecteur
+                  {i18n('guardian_add_create_collector')}
                 </Text>
               </TouchableOpacity>
             </Animated.View>
@@ -785,8 +814,7 @@ export default function AddGuardianScreen() {
                     lineHeight: 18,
                   }}
                 >
-                  Ce collecteur gardera son code PIN existant. Sélectionnez-le
-                  et choisissez sa relation avec cet enfant.
+                  {i18n('guardian_add_info_banner')}
                 </Text>
               </View>
 
@@ -860,8 +888,8 @@ export default function AddGuardianScreen() {
               <Ionicons name="checkmark" size={18} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
                 {mode === 'new'
-                  ? "Créer l'autorisation"
-                  : 'Attribuer ce collecteur'}
+                  ? i18n('guardian_add_cta_new')
+                  : i18n('guardian_add_cta_existing')}
               </Text>
             </>
           )}

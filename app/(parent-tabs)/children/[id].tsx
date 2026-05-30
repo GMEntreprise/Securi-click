@@ -26,6 +26,7 @@ import {
 import type { Guardian } from '@/features/parent/types';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { EditChildSheet } from '@/features/parent/components/ui/EditChildSheet';
+import { useTranslation } from 'react-i18next';
 
 const AuthorizationCard = React.memo(function AuthorizationCard({
   item,
@@ -41,6 +42,7 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
   onEdit: (id: string) => void;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const expiryColor = item.is_active ? theme.green : theme.red;
   const expiryBg = item.is_active ? theme.greenBg : theme.redBg;
 
@@ -161,7 +163,9 @@ const AuthorizationCard = React.memo(function AuthorizationCard({
                     fontWeight: '700',
                   }}
                 >
-                  {item.is_active ? 'Actif' : 'Désactivé'}
+                  {item.is_active
+                    ? i18n('child_detail_badge_active')
+                    : i18n('child_detail_badge_inactive')}
                 </Text>
               </View>
             </View>
@@ -177,6 +181,7 @@ export default function ChildDetails() {
   const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
 
   const navigation = useNavigation();
   const childId = id ?? '';
@@ -204,30 +209,33 @@ export default function ChildDetails() {
         { guardianId, isActive: nextActive },
         {
           onSuccess: () => {
-            Toast.show(nextActive ? 'Accès activé' : 'Accès désactivé', {
-              type: nextActive ? 'success' : 'warning',
-              duration: 2500,
-            });
+            Toast.show(
+              nextActive ? i18n('access_enabled') : i18n('access_disabled'),
+              {
+                type: nextActive ? 'success' : 'warning',
+                duration: 2500,
+              }
+            );
           },
           onError: () => {
-            Toast.show("Impossible de modifier l'accès", { type: 'error' });
+            Toast.show(i18n('access_toggle_error'), { type: 'error' });
           },
         }
       );
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     },
-    [togglePerson]
+    [togglePerson, i18n]
   );
 
   const handleDelete = useCallback(
     (guardianId: string, name: string) => {
       Alert.alert(
-        "Supprimer l'autorisation",
-        `Retirer l'accès à ${name} ? Cette personne ne pourra plus récupérer l'enfant.`,
+        i18n('child_detail_delete_auth_title'),
+        i18n('child_detail_delete_auth_confirm', { name }),
         [
-          { text: 'Annuler', style: 'cancel' },
+          { text: i18n('guardian_add_relation_cancel'), style: 'cancel' },
           {
-            text: 'Supprimer',
+            text: i18n('edit_child_delete_title'),
             style: 'destructive',
             onPress: () => {
               deletePerson.mutate(guardianId);
@@ -239,7 +247,7 @@ export default function ChildDetails() {
         ]
       );
     },
-    [deletePerson]
+    [deletePerson, i18n]
   );
 
   const handleEditGuardian = useCallback(
@@ -259,24 +267,26 @@ export default function ChildDetails() {
     if (!child) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
     Alert.alert(
-      "Supprimer l'enfant",
-      `Voulez-vous vraiment supprimer ${child.first_name} ${child.last_name} ? Toutes les autorisations associées seront également supprimées. Cette action est irréversible.`,
+      i18n('child_detail_delete_title'),
+      i18n('child_detail_delete_confirm', {
+        name: `${child.first_name} ${child.last_name}`,
+      }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: i18n('guardian_add_relation_cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: i18n('edit_child_delete_title'),
           style: 'destructive',
           onPress: () => {
             deleteChild.mutate(childId, {
               onSuccess: () => {
-                Toast.show(`${child.first_name} a été supprimé(e)`, {
+                Toast.show(i18n('child_deleted', { name: child.first_name }), {
                   type: 'success',
                   duration: 3000,
                 });
                 navigation.goBack();
               },
               onError: () => {
-                Toast.show("Impossible de supprimer l'enfant", {
+                Toast.show(i18n('child_delete_error'), {
                   type: 'error',
                 });
                 Haptics.notificationAsync(
@@ -288,7 +298,7 @@ export default function ChildDetails() {
         },
       ]
     );
-  }, [child, childId, deleteChild, navigation]);
+  }, [child, childId, deleteChild, navigation, i18n]);
 
   const activeCount = useMemo(
     () => (authorizations ?? []).filter(a => a.is_active).length,
@@ -320,7 +330,9 @@ export default function ChildDetails() {
           justifyContent: 'center',
         }}
       >
-        <Text style={{ color: theme.textMuted }}>Enfant introuvable.</Text>
+        <Text style={{ color: theme.textMuted }}>
+          {i18n('child_detail_not_found')}
+        </Text>
       </View>
     );
   }
@@ -391,8 +403,12 @@ export default function ChildDetails() {
               <Text
                 style={{ color: theme.green, fontSize: 12, fontWeight: '700' }}
               >
-                {activeCount} autorisation{activeCount > 1 ? 's' : ''} active
-                {activeCount > 1 ? 's' : ''}
+                {i18n(
+                  activeCount === 1
+                    ? 'child_detail_auth_count_one'
+                    : 'child_detail_auth_count_other',
+                  { count: activeCount }
+                )}
               </Text>
             </View>
           </View>
@@ -420,7 +436,7 @@ export default function ChildDetails() {
               <Text
                 style={{ color: theme.text, fontWeight: '600', fontSize: 13 }}
               >
-                Modifier
+                {i18n('child_detail_edit')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -453,7 +469,7 @@ export default function ChildDetails() {
             <Text
               style={{ color: theme.text, fontSize: 17, fontWeight: '700' }}
             >
-              Personnes autorisées
+              {i18n('child_detail_authorized_persons')}
             </Text>
             <TouchableOpacity
               onPress={handleAddPerson}
@@ -469,7 +485,7 @@ export default function ChildDetails() {
             >
               <Ionicons name="person-add-outline" size={14} color="#fff" />
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 12 }}>
-                Ajouter
+                {i18n('child_detail_add')}
               </Text>
             </TouchableOpacity>
           </Animated.View>
@@ -494,8 +510,7 @@ export default function ChildDetails() {
                   textAlign: 'center',
                 }}
               >
-                Aucune personne autorisée.{'\n'}Ajoutez quelqu'un pour permettre
-                la récupération.
+                {i18n('child_detail_empty_auth')}
               </Text>
             </View>
           ) : (

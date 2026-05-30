@@ -22,6 +22,7 @@ import { useAddChild } from '@/features/parent/hooks/useChildren';
 import { useImagePicker } from '@/hooks';
 import { SchoolPickerSheet } from '@/features/parent/components/ui/SchoolPickerSheet';
 import type { SchoolSearchResult } from '@/features/school/services/schoolSearch.service';
+import { useTranslation } from 'react-i18next';
 
 interface FormData {
   firstName: string;
@@ -115,6 +116,7 @@ export default function AddChild() {
   const theme = useTheme();
   const session = useSession();
   const userId = session?.user.id ?? '';
+  const { t: i18n } = useTranslation('parent');
 
   const addChild = useAddChild();
   const { pickFromGallery, takePhoto, isUploading } = useImagePicker({
@@ -144,39 +146,45 @@ export default function AddChild() {
 
   const validate = useCallback((): boolean => {
     const next: FormErrors = {};
-    if (!form.firstName.trim()) next.firstName = 'Prénom requis';
-    if (!form.lastName.trim()) next.lastName = 'Nom requis';
-    if (!form.className.trim()) next.className = 'Classe requise';
-    if (!selectedSchool) next.school = 'Établissement requis';
+    if (!form.firstName.trim())
+      next.firstName = i18n('add_child_error_first_name');
+    if (!form.lastName.trim())
+      next.lastName = i18n('add_child_error_last_name');
+    if (!form.className.trim()) next.className = i18n('add_child_error_class');
+    if (!selectedSchool) next.school = i18n('add_child_error_school');
     setErrors(next);
     return Object.keys(next).length === 0;
-  }, [form, selectedSchool]);
+  }, [form, selectedSchool, i18n]);
 
   const handlePickPhoto = useCallback(() => {
-    Alert.alert("Photo de l'enfant", 'Choisir une source', [
-      {
-        text: 'Caméra',
-        onPress: async () => {
-          const result = await takePhoto();
-          if (result) {
-            setPhotoUri(result.signedUrl);
-            setPhotoUrl(result.signedUrl);
-          }
+    Alert.alert(
+      i18n('add_child_photo_picker_title'),
+      i18n('add_child_photo_picker_subtitle'),
+      [
+        {
+          text: i18n('add_child_camera'),
+          onPress: async () => {
+            const result = await takePhoto();
+            if (result) {
+              setPhotoUri(result.signedUrl);
+              setPhotoUrl(result.signedUrl);
+            }
+          },
         },
-      },
-      {
-        text: 'Galerie',
-        onPress: async () => {
-          const result = await pickFromGallery();
-          if (result) {
-            setPhotoUri(result.signedUrl);
-            setPhotoUrl(result.signedUrl);
-          }
+        {
+          text: i18n('add_child_gallery'),
+          onPress: async () => {
+            const result = await pickFromGallery();
+            if (result) {
+              setPhotoUri(result.signedUrl);
+              setPhotoUrl(result.signedUrl);
+            }
+          },
         },
-      },
-      { text: 'Annuler', style: 'cancel' },
-    ]);
-  }, [takePhoto, pickFromGallery]);
+        { text: i18n('guardian_add_relation_cancel'), style: 'cancel' },
+      ]
+    );
+  }, [takePhoto, pickFromGallery, i18n]);
 
   const handleSchoolSelect = useCallback((school: SchoolSearchResult) => {
     setSelectedSchool(school);
@@ -248,7 +256,7 @@ export default function AddChild() {
                   marginBottom: 12,
                 }}
               >
-                Photo
+                {i18n('add_child_photo_label')}
               </Text>
 
               {photoUri ? (
@@ -293,7 +301,9 @@ export default function AddChild() {
                           fontWeight: '600',
                         }}
                       >
-                        {photoUri ? 'Changer' : 'Caméra / Galerie'}
+                        {photoUri
+                          ? i18n('add_child_photo_change')
+                          : i18n('add_child_photo_btn')}
                       </Text>
                     </>
                   )}
@@ -339,22 +349,22 @@ export default function AddChild() {
                 <Text
                   style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
                 >
-                  Identité
+                  {i18n('add_child_identity')}
                 </Text>
               </View>
               <InputField
-                label="Prénom"
+                label={i18n('edit_child_first_name')}
                 value={form.firstName}
                 onChangeText={setField('firstName')}
-                placeholder="Prénom de l'enfant"
+                placeholder={i18n('edit_child_first_name_placeholder')}
                 autoCapitalize="words"
                 error={errors.firstName}
               />
               <InputField
-                label="Nom"
+                label={i18n('edit_child_last_name')}
                 value={form.lastName}
                 onChangeText={setField('lastName')}
-                placeholder="Nom de famille"
+                placeholder={i18n('edit_child_last_name_placeholder')}
                 autoCapitalize="words"
                 error={errors.lastName}
               />
@@ -398,7 +408,7 @@ export default function AddChild() {
                 <Text
                   style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
                 >
-                  Scolarité
+                  {i18n('add_child_schooling')}
                 </Text>
               </View>
               <Text
@@ -409,7 +419,7 @@ export default function AddChild() {
                   marginBottom: 8,
                 }}
               >
-                Classe
+                {i18n('add_child_class_label')}
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {GRADES.map(g => {
@@ -506,7 +516,7 @@ export default function AddChild() {
                 <Text
                   style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
                 >
-                  Établissement
+                  {i18n('add_child_school_section')}
                 </Text>
               </View>
 
@@ -589,7 +599,7 @@ export default function AddChild() {
                           fontWeight: '600',
                         }}
                       >
-                        Rechercher l'école
+                        {i18n('add_child_school_search')}
                       </Text>
                       <Text
                         style={{
@@ -598,7 +608,7 @@ export default function AddChild() {
                           marginTop: 2,
                         }}
                       >
-                        L'établissement verra votre enfant automatiquement
+                        {i18n('add_child_school_auto_enroll')}
                       </Text>
                     </>
                   )}
@@ -622,7 +632,7 @@ export default function AddChild() {
                       fontWeight: '600',
                     }}
                   >
-                    Retirer l'établissement
+                    {i18n('add_child_school_remove')}
                   </Text>
                 </TouchableOpacity>
               ) : errors.school ? (
@@ -670,7 +680,7 @@ export default function AddChild() {
                     <Text
                       style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
                     >
-                      Enregistrer l'enfant
+                      {i18n('add_child_save')}
                     </Text>
                   </>
                 )}
@@ -684,7 +694,7 @@ export default function AddChild() {
                     marginTop: 8,
                   }}
                 >
-                  Une erreur est survenue. Réessayez.
+                  {i18n('add_child_save_error')}
                 </Text>
               ) : null}
             </Animated.View>

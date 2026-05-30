@@ -25,6 +25,7 @@ import { FiltersBar } from '@/components/history/FiltersBar';
 import { HistoryDetailsBottomSheet } from '@/components/bottom-sheets/HistoryDetailsBottomSheet';
 import { HistoryEntry } from '@/features/parent/services/history.service';
 import { QueryError } from '@/shared/ui/base/query-error';
+import { useTranslation } from 'react-i18next';
 
 const EMPTY_FILTERS: HistoryFilters = {
   status: null,
@@ -80,6 +81,7 @@ export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const nav = useAppNavigation();
+  const { t: i18n } = useTranslation('parent');
 
   const [filters, setFilters] = useState<HistoryFilters>(EMPTY_FILTERS);
   const [search, setSearch] = useState('');
@@ -185,7 +187,7 @@ export default function HistoryScreen() {
                 marginBottom: 2,
               }}
             >
-              Activité
+              {i18n('history_activity_label')}
             </Text>
             <Text
               style={{
@@ -195,7 +197,7 @@ export default function HistoryScreen() {
                 letterSpacing: -0.5,
               }}
             >
-              Historique
+              {i18n('history_title')}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
@@ -288,7 +290,7 @@ export default function HistoryScreen() {
                     textAlign: 'center',
                   }}
                 >
-                  Aucune activité pour cette période.
+                  {i18n('history_empty')}
                 </Text>
               </>
             )}

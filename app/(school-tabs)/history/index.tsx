@@ -21,6 +21,7 @@ import type {
   CollectorIdentityStatus,
   ValidationStatus,
 } from '@/features/school/types';
+import { useTranslation } from 'react-i18next';
 
 type FilterKey = 'all' | ValidationStatus;
 
@@ -49,6 +50,7 @@ function groupByDay(items: PickupValidation[]): GroupedItem[] {
 export default function SchoolHistoryScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t: i18n } = useTranslation('school');
   const [selected, setSelected] = useState<PickupValidation | null>(null);
   const [filter, setFilter] = useState<FilterKey>('all');
 
@@ -141,10 +143,13 @@ export default function SchoolHistoryScreen() {
               letterSpacing: -0.5,
             }}
           >
-            Historique
+            {i18n('history_title')}
           </Text>
           <Text style={{ color: theme.textMuted, fontSize: 14, marginTop: 4 }}>
-            {filtered.length} enregistrement{filtered.length > 1 ? 's' : ''}
+            {i18n(
+              filtered.length > 1 ? 'history_count_other' : 'history_count_one',
+              { count: filtered.length }
+            )}
           </Text>
         </Animated.View>
 
@@ -160,20 +165,20 @@ export default function SchoolHistoryScreen() {
           }}
         >
           <FilterChip
-            label="Tous"
+            label={i18n('history_filter_all')}
             count={counts.all}
             active={filter === 'all'}
             onPress={() => setFilter('all')}
           />
           <FilterChip
-            label="Validés"
+            label={i18n('history_filter_validated')}
             count={counts.validated}
             active={filter === 'validated'}
             onPress={() => setFilter('validated')}
             activeColor="green"
           />
           <FilterChip
-            label="Refusés"
+            label={i18n('history_filter_refused')}
             count={counts.refused}
             active={filter === 'refused'}
             onPress={() => setFilter('refused')}
@@ -200,10 +205,10 @@ export default function SchoolHistoryScreen() {
               }}
             >
               {filter === 'all'
-                ? 'Aucune validation enregistrée'
+                ? i18n('history_empty_all')
                 : filter === 'validated'
-                  ? 'Aucune validation réussie'
-                  : 'Aucun refus enregistré'}
+                  ? i18n('history_empty_validated')
+                  : i18n('history_empty_refused')}
             </Text>
           </View>
         ) : (
@@ -309,6 +314,7 @@ const HistoryRow = memo(function HistoryRow({
   onPress: () => void;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('school');
   const isOk = item.status === 'validated';
   const color = isOk ? theme.green : theme.red;
   const bg = isOk ? theme.greenBg : theme.redBg;
@@ -368,8 +374,8 @@ const HistoryRow = memo(function HistoryRow({
             />
             <Text style={{ color: theme.textMuted, fontSize: 12 }}>
               {item.child?.parent
-                ? `${item.child.parent.first_name} ${item.child.parent.last_name} · Parent`
-                : 'QR Parent'}
+                ? `${item.child.parent.first_name} ${item.child.parent.last_name} · ${i18n('history_row_parent')}`
+                : i18n('history_row_qr_parent')}
             </Text>
           </View>
         )}
@@ -384,7 +390,7 @@ const HistoryRow = memo(function HistoryRow({
           }}
         >
           <Text style={{ color, fontSize: 11, fontWeight: '700' }}>
-            {isOk ? 'Validé' : 'Refusé'}
+            {isOk ? i18n('history_row_validated') : i18n('history_row_refused')}
           </Text>
         </View>
         <Text style={{ color: theme.textMuted, fontSize: 11 }}>{time}</Text>
@@ -400,37 +406,38 @@ const IdentityBadgeInline = memo(function IdentityBadgeInline({
   status: CollectorIdentityStatus | undefined;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('school');
 
   const cfg = {
     verified: {
       iconName: 'shield-checkmark' as const,
       color: theme.green,
       bg: theme.greenBg,
-      label: 'Identité vérifiée',
+      label: i18n('history_identity_verified'),
     },
     pending: {
       iconName: 'time-outline' as const,
       color: theme.amber,
       bg: theme.amberBg,
-      label: 'Vérification en attente',
+      label: i18n('history_identity_pending'),
     },
     refused: {
       iconName: 'shield-outline' as const,
       color: theme.red,
       bg: theme.redBg,
-      label: 'Identité refusée',
+      label: i18n('history_identity_refused'),
     },
     expired: {
       iconName: 'shield-outline' as const,
       color: theme.red,
       bg: theme.redBg,
-      label: 'Identité expirée',
+      label: i18n('history_identity_expired'),
     },
     none: {
       iconName: 'warning-outline' as const,
       color: theme.amber,
       bg: theme.amberBg,
-      label: 'Identité non vérifiée',
+      label: i18n('history_identity_none'),
     },
   };
 
@@ -465,6 +472,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
   onClose: () => void;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('school');
   const insets = useSafeAreaInsets();
   const isOk = item.status === 'validated';
   const color = isOk ? theme.green : theme.red;
@@ -503,7 +511,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
         }}
       >
         <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
-          Détail
+          {i18n('history_detail_title')}
         </Text>
         <TouchableOpacity
           onPress={onClose}
@@ -543,7 +551,9 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
             )}
             <View style={{ flex: 1 }}>
               <Text style={{ color, fontSize: 16, fontWeight: '800' }}>
-                {isOk ? 'Validation réussie' : 'Accès refusé'}
+                {isOk
+                  ? i18n('history_detail_validated')
+                  : i18n('history_detail_refused')}
               </Text>
               {!isOk && item.refusal_reason && (
                 <Text
@@ -560,7 +570,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
             icon={
               <Ionicons name="time-outline" size={16} color={theme.textMuted} />
             }
-            label="Date et heure"
+            label={i18n('history_detail_datetime')}
             value={dateStr}
           />
 
@@ -583,7 +593,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
                     color={theme.primary}
                   />
                 }
-                label="Enfant"
+                label={i18n('history_detail_child')}
                 bg={theme.primaryBg}
               />
               <View
@@ -652,7 +662,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
                     color={theme.accent}
                   />
                 }
-                label="Collecteur"
+                label={i18n('history_detail_collector')}
                 bg={theme.accentBg}
               />
               <View
@@ -726,7 +736,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
                     color={theme.primary}
                   />
                 }
-                label="Parent"
+                label={i18n('history_detail_parent')}
                 bg={theme.primaryBg}
               />
               <View
@@ -777,7 +787,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
                         fontWeight: '700',
                       }}
                     >
-                      QR parent direct
+                      {i18n('history_detail_qr_parent')}
                     </Text>
                   </View>
                 </View>

@@ -36,6 +36,7 @@ import { Avatar } from '@/shared/ui/base/avatar';
 import { QueryError } from '@/shared/ui/base/query-error';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import { useChildrenSheetStore } from '@/features/parent/stores/childrenSheet.store';
+import { useTranslation } from 'react-i18next';
 
 // ── Child card inside the "Mes enfants" bottom sheet ──────────────────────────
 
@@ -133,6 +134,7 @@ function ChildrenPickerSheet({
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { t: i18n } = useTranslation('parent');
 
   const renderItem = useCallback(
     ({ item, index }: { item: Child; index: number }) => (
@@ -180,7 +182,7 @@ function ChildrenPickerSheet({
                 textTransform: 'uppercase',
               }}
             >
-              Mes enfants
+              {i18n('children_picker_title')}
             </Text>
             <Text
               style={{
@@ -191,7 +193,12 @@ function ChildrenPickerSheet({
                 marginTop: 2,
               }}
             >
-              {children.length} enfant{children.length > 1 ? 's' : ''}
+              {i18n(
+                children.length === 1
+                  ? 'children_picker_count_one'
+                  : 'children_picker_count_other',
+                { count: children.length }
+              )}
             </Text>
           </View>
           <TouchableOpacity
@@ -246,7 +253,7 @@ function ChildrenPickerSheet({
               <Text
                 style={{ color: theme.accent, fontWeight: '700', fontSize: 14 }}
               >
-                Ajouter un enfant
+                {i18n('add_child')}
               </Text>
             </TouchableOpacity>
           }
@@ -269,6 +276,7 @@ function AddFirstChildSheet({
 }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { t: i18n } = useTranslation('parent');
 
   return (
     <SheetModal visible={visible} onRequestClose={onClose}>
@@ -298,7 +306,7 @@ function AddFirstChildSheet({
           }}
         >
           <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
-            Mes enfants
+            {i18n('children_picker_title')}
           </Text>
           <TouchableOpacity
             onPress={onClose}
@@ -354,7 +362,7 @@ function AddFirstChildSheet({
               marginBottom: 10,
             }}
           >
-            Aucun enfant
+            {i18n('no_children_title')}
           </Text>
           <Text
             style={{
@@ -365,8 +373,7 @@ function AddFirstChildSheet({
               marginBottom: 28,
             }}
           >
-            Ajoutez votre premier enfant pour commencer à gérer ses
-            autorisations de récupération.
+            {i18n('no_children_body')}
           </Text>
           <TouchableOpacity
             onPress={onAdd}
@@ -386,7 +393,7 @@ function AddFirstChildSheet({
               color="#fff"
             />
             <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-              Ajouter un enfant
+              {i18n('add_child')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -409,6 +416,7 @@ const GuardianCard = React.memo(function GuardianCard({
   onEdit: (guardianId: string, childId: string) => void;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const toggleGuardian = useToggleGuardian(childId);
   const deleteGuardian = useDeleteGuardian(childId);
 
@@ -419,24 +427,29 @@ const GuardianCard = React.memo(function GuardianCard({
       { guardianId: item.id, isActive: nextActive },
       {
         onSuccess: () =>
-          Toast.show(nextActive ? 'Accès activé' : 'Accès désactivé', {
-            type: nextActive ? 'success' : 'warning',
-            duration: 2000,
-          }),
+          Toast.show(
+            nextActive ? i18n('access_enabled') : i18n('access_disabled'),
+            {
+              type: nextActive ? 'success' : 'warning',
+              duration: 2000,
+            }
+          ),
         onError: () =>
-          Toast.show("Impossible de modifier l'accès", { type: 'error' }),
+          Toast.show(i18n('access_toggle_error'), { type: 'error' }),
       }
     );
-  }, [item.id, item.is_active, toggleGuardian]);
+  }, [item.id, item.is_active, toggleGuardian, i18n]);
 
   const handleDelete = useCallback(() => {
     Alert.alert(
-      "Retirer l'autorisation",
-      `Retirer l'accès à ${item.first_name} ${item.last_name} ?`,
+      i18n('guardian_remove_title'),
+      i18n('guardian_remove_confirm', {
+        name: `${item.first_name} ${item.last_name}`,
+      }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: i18n('guardian_add_relation_cancel'), style: 'cancel' },
         {
-          text: 'Retirer',
+          text: i18n('edit_child_photo_remove'),
           style: 'destructive',
           onPress: () => {
             deleteGuardian.mutate(item.id);
@@ -445,7 +458,7 @@ const GuardianCard = React.memo(function GuardianCard({
         },
       ]
     );
-  }, [item, deleteGuardian]);
+  }, [item, deleteGuardian, i18n]);
 
   return (
     <Animated.View
@@ -540,6 +553,7 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
   onChildPress: (child: Child) => void;
 }) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const { data: guardians, isLoading } = useGuardians(child.id);
   const count = guardians?.length ?? 0;
   const activeCount = useMemo(
@@ -609,7 +623,12 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
                   fontWeight: '700',
                 }}
               >
-                {activeCount} actif{activeCount > 1 ? 's' : ''}
+                {i18n(
+                  activeCount === 1
+                    ? 'guardian_active_one'
+                    : 'guardian_active_other',
+                  { count: activeCount }
+                )}
               </Text>
             </View>
           )}
@@ -634,7 +653,7 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
               color="#fff"
             />
             <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
-              Ajouter
+              {i18n('child_detail_add')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -666,7 +685,7 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
               textAlign: 'center',
             }}
           >
-            Aucune personne autorisée
+            {i18n('guardian_none_authorized')}
           </Text>
           <TouchableOpacity
             onPress={() => {
@@ -677,7 +696,7 @@ const ChildGuardianSection = React.memo(function ChildGuardianSection({
             <Text
               style={{ color: theme.accent, fontSize: 13, fontWeight: '600' }}
             >
-              Autoriser quelqu'un
+              {i18n('guardian_authorize_someone')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -712,6 +731,7 @@ export default function CollectorsScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const nav = useAppNavigation();
+  const { t: i18n } = useTranslation('parent');
 
   const { data: children, isLoading, isError, refetch } = useChildren();
   const deleteChild = useDeleteChild();
@@ -741,13 +761,11 @@ export default function CollectorsScreen() {
     setChildrenSheetVisible(true);
   }, []);
 
-  // Clic sur un enfant dans la sheet liste → ouvre EditChildSheet
   const handleSelectChild = useCallback((child: Child) => {
     setChildrenSheetVisible(false);
     setTimeout(() => setEditingChildId(child.id), 300);
   }, []);
 
-  // Clic sur un enfant dans la section guardians → ouvre EditChildSheet
   const handleChildSectionPress = useCallback((child: Child) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setEditingChildId(child.id);
@@ -764,17 +782,19 @@ export default function CollectorsScreen() {
       deleteChild.mutate(childId, {
         onSuccess: () => {
           setEditingChildId(null);
-          Toast.show(`${child?.first_name ?? "L'enfant"} a été supprimé(e)`, {
-            type: 'success',
-            duration: 3000,
-          });
+          Toast.show(
+            child
+              ? i18n('child_deleted', { name: child.first_name })
+              : i18n('child_delete_error'),
+            { type: 'success', duration: 3000 }
+          );
         },
         onError: () => {
-          Toast.show("Impossible de supprimer l'enfant", { type: 'error' });
+          Toast.show(i18n('child_delete_error'), { type: 'error' });
         },
       });
     },
-    [children, deleteChild]
+    [children, deleteChild, i18n]
   );
 
   const handleAddGuardian = useCallback(
@@ -826,7 +846,7 @@ export default function CollectorsScreen() {
                 marginBottom: 4,
               }}
             >
-              Personnes autorisées
+              {i18n('collectors_header_authorized')}
             </Text>
             <Text
               style={{
@@ -836,7 +856,7 @@ export default function CollectorsScreen() {
                 letterSpacing: -0.5,
               }}
             >
-              Collecteurs
+              {i18n('collectors_header_title')}
             </Text>
           </View>
 
@@ -867,8 +887,13 @@ export default function CollectorsScreen() {
               }}
             >
               {childrenCount === 0
-                ? 'Ajouter un enfant'
-                : `${childrenCount} enfant${childrenCount > 1 ? 's' : ''}`}
+                ? i18n('add_child')
+                : i18n(
+                    childrenCount === 1
+                      ? 'children_picker_count_one'
+                      : 'children_picker_count_other',
+                    { count: childrenCount }
+                  )}
             </Text>
           </TouchableOpacity>
         </View>
@@ -917,7 +942,7 @@ export default function CollectorsScreen() {
               marginBottom: 10,
             }}
           >
-            Aucun enfant enregistré
+            {i18n('no_children')}
           </Text>
           <Text
             style={{
@@ -928,8 +953,7 @@ export default function CollectorsScreen() {
               marginBottom: 28,
             }}
           >
-            Ajoutez votre premier enfant pour commencer à gérer ses collecteurs
-            et autorisations.
+            {i18n('collectors_empty_body')}
           </Text>
           <TouchableOpacity
             onPress={() => nav.goToParentChildAdd()}
@@ -949,7 +973,7 @@ export default function CollectorsScreen() {
               color="#fff"
             />
             <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-              Ajouter un enfant
+              {i18n('add_child')}
             </Text>
           </TouchableOpacity>
         </View>

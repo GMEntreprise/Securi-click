@@ -2,6 +2,7 @@ import React, {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -44,40 +45,23 @@ import {
 } from '@/features/collector/hooks/usePickupSchedule';
 import { parentService } from '@/features/parent/services/parent.service';
 import { supabase } from '@/lib/supabase/client';
+import { useTranslation } from 'react-i18next';
 
-const PRESET_RELATIONSHIPS = [
-  'Grand-père',
-  'Grand-mère',
-  'Oncle',
-  'Tante',
-  'Frère',
-  'Sœur',
-  'Cousin(e)',
-  'Nourrice',
-  'Voisin',
-  "Parent d'élève",
-  'Autre',
-];
-
-const schema = z.object({
-  first_name: z.string().min(2, 'Minimum 2 caractères'),
-  last_name: z.string().min(2, 'Minimum 2 caractères'),
-  phone: z.string().optional().or(z.literal('')),
-  email: z.string().email('Email invalide'),
-  relationship: z.string().min(1, 'Sélectionnez une relation'),
-  // Empty = keep existing hash. 6 digits = replace. Anything else = error.
-  access_code: z
-    .string()
-    .refine(v => v === '' || /^\d{6}$/.test(v), '6 chiffres requis'),
-});
-
-type FormData = z.infer<typeof schema>;
+type FormData = {
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  email: string;
+  relationship: string;
+  access_code: string;
+};
 
 export default function GuardianEditScreen() {
   const router = useRouter();
   const navigation = useNavigation();
   const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const { guardianId, childId } = useLocalSearchParams<{
     guardianId: string;
     childId: string;
@@ -92,6 +76,41 @@ export default function GuardianEditScreen() {
   const updateGuardian = useUpdateGuardian(childId ?? '');
   const toggleGuardian = useToggleGuardian(childId ?? '');
   const deleteGuardian = useDeleteGuardian(childId ?? '');
+
+  const schema = useMemo(
+    () =>
+      z.object({
+        first_name: z.string().min(2, i18n('guardian_add_error_min')),
+        last_name: z.string().min(2, i18n('guardian_add_error_min')),
+        phone: z.string().optional().or(z.literal('')),
+        email: z.string().email(i18n('guardian_add_error_email')),
+        relationship: z.string().min(1, i18n('guardian_add_error_relation')),
+        access_code: z
+          .string()
+          .refine(
+            v => v === '' || /^\d{6}$/.test(v),
+            i18n('guardian_add_error_pin')
+          ),
+      }),
+    [i18n]
+  );
+
+  const PRESET_RELATIONSHIPS = useMemo(
+    () => [
+      i18n('guardian_rel_grandfather'),
+      i18n('guardian_rel_grandmother'),
+      i18n('guardian_rel_uncle'),
+      i18n('guardian_rel_aunt'),
+      i18n('guardian_rel_brother'),
+      i18n('guardian_rel_sister'),
+      i18n('guardian_rel_cousin'),
+      i18n('guardian_rel_nanny'),
+      i18n('guardian_rel_neighbor'),
+      i18n('guardian_rel_other_parent'),
+      i18n('guardian_rel_other'),
+    ],
+    [i18n]
+  );
 
   const { data: pickupAuth } = usePickupAuthorization(
     childId ?? '',
@@ -138,7 +157,7 @@ export default function GuardianEditScreen() {
 
   const handleRelationshipSelect = useCallback(
     (rel: string) => {
-      if (rel === 'Autre') {
+      if (rel === i18n('guardian_rel_other')) {
         setCustomInput('');
         setCustomModalVisible(true);
         return;
@@ -147,7 +166,7 @@ export default function GuardianEditScreen() {
       setValue('relationship', rel, { shouldValidate: true });
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     },
-    [setValue]
+    [setValue, i18n]
   );
 
   const handleCustomConfirm = useCallback(() => {
@@ -189,20 +208,20 @@ export default function GuardianEditScreen() {
         }
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        Toast.show('Autorisation mise à jour', {
+        Toast.show(i18n('guardian_edit_success'), {
           type: 'success',
           duration: 2500,
         });
         router.back();
       } catch {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-        Toast.show('Impossible de sauvegarder les modifications', {
+        Toast.show(i18n('guardian_edit_error'), {
           type: 'error',
           duration: 3000,
         });
       }
     },
-    [guardianId, updateGuardian, router]
+    [guardianId, updateGuardian, router, i18n]
   );
 
   const handleToggle = useCallback(
@@ -217,12 +236,14 @@ export default function GuardianEditScreen() {
   const handleDelete = useCallback(() => {
     if (!guardianId || !guardian) return;
     Alert.alert(
-      "Supprimer l'autorisation",
-      `Retirer l'accès à ${guardian.first_name} ${guardian.last_name} ?`,
+      i18n('guardian_edit_delete_title'),
+      i18n('guardian_edit_delete_confirm', {
+        name: `${guardian.first_name} ${guardian.last_name}`,
+      }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: i18n('guardian_add_relation_cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: i18n('edit_child_delete_title'),
           style: 'destructive',
           onPress: () => {
             deleteGuardian.mutate(guardianId);
@@ -232,7 +253,7 @@ export default function GuardianEditScreen() {
         },
       ]
     );
-  }, [guardianId, guardian, deleteGuardian, router]);
+  }, [guardianId, guardian, deleteGuardian, router, i18n]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -321,8 +342,8 @@ export default function GuardianEditScreen() {
                 }}
               >
                 {guardian.is_active
-                  ? "Accès actif — peut récupérer l'enfant"
-                  : "Accès désactivé — ne peut pas récupérer l'enfant"}
+                  ? i18n('guardian_edit_status_active')
+                  : i18n('guardian_edit_status_inactive')}
               </Text>
             </Animated.View>
           )}
@@ -332,7 +353,7 @@ export default function GuardianEditScreen() {
             <AuthInputField
               control={control}
               name="first_name"
-              label="Prénom"
+              label={i18n('edit_child_first_name_label')}
               icon={
                 <Ionicons
                   name="person-outline"
@@ -340,13 +361,13 @@ export default function GuardianEditScreen() {
                   color={theme.textMuted}
                 />
               }
-              placeholder="Ex. Jean"
+              placeholder={i18n('guardian_add_first_name_placeholder')}
               error={errors.first_name?.message}
             />
             <AuthInputField
               control={control}
               name="last_name"
-              label="Nom"
+              label={i18n('edit_child_last_name_label')}
               icon={
                 <Ionicons
                   name="person-outline"
@@ -354,13 +375,13 @@ export default function GuardianEditScreen() {
                   color={theme.textMuted}
                 />
               }
-              placeholder="Ex. Dupont"
+              placeholder={i18n('guardian_add_last_name_placeholder')}
               error={errors.last_name?.message}
             />
             <AuthInputField
               control={control}
               name="email"
-              label="Email"
+              label={i18n('guardian_add_email_label')}
               icon={
                 <Ionicons
                   name="mail-outline"
@@ -368,7 +389,7 @@ export default function GuardianEditScreen() {
                   color={theme.textMuted}
                 />
               }
-              placeholder="collecteur@email.com"
+              placeholder={i18n('guardian_add_email_placeholder')}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -377,7 +398,7 @@ export default function GuardianEditScreen() {
             <AuthInputField
               control={control}
               name="phone"
-              label="Téléphone (optionnel)"
+              label={i18n('guardian_add_phone_label')}
               icon={
                 <Ionicons
                   name="call-outline"
@@ -385,7 +406,7 @@ export default function GuardianEditScreen() {
                   color={theme.textMuted}
                 />
               }
-              placeholder="+33 6 00 00 00 00"
+              placeholder={i18n('guardian_add_phone_placeholder')}
               keyboardType="phone-pad"
               error={errors.phone?.message}
             />
@@ -406,19 +427,20 @@ export default function GuardianEditScreen() {
                 marginBottom: 10,
               }}
             >
-              Relation
+              {i18n('guardian_edit_relation_label')}
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {PRESET_RELATIONSHIPS.map(r => {
+                const otherKey = i18n('guardian_rel_other');
                 const isCustomSelected =
                   !PRESET_RELATIONSHIPS.includes(selectedRelationship) &&
                   selectedRelationship !== '';
                 const active =
-                  r === 'Autre'
-                    ? isCustomSelected || selectedRelationship === 'Autre'
+                  r === otherKey
+                    ? isCustomSelected || selectedRelationship === otherKey
                     : selectedRelationship === r;
                 const label =
-                  r === 'Autre' && isCustomSelected ? selectedRelationship : r;
+                  r === otherKey && isCustomSelected ? selectedRelationship : r;
                 return (
                   <TouchableOpacity
                     key={r}
@@ -482,7 +504,7 @@ export default function GuardianEditScreen() {
                 marginBottom: 10,
               }}
             >
-              Planning de récupération
+              {i18n('guardian_edit_schedule_label')}
             </Text>
             <TouchableOpacity
               onPress={() => {
@@ -530,7 +552,7 @@ export default function GuardianEditScreen() {
                       }}
                     >
                       {getActiveDayLabels(pickupAuth).join(', ') ||
-                        'Aucun jour défini'}
+                        i18n('guardian_edit_schedule_no_days')}
                     </Text>
                     <View
                       style={{
@@ -559,7 +581,7 @@ export default function GuardianEditScreen() {
                         fontSize: 14,
                       }}
                     >
-                      Définir le planning
+                      {i18n('guardian_edit_schedule_set')}
                     </Text>
                     <Text
                       style={{
@@ -568,7 +590,7 @@ export default function GuardianEditScreen() {
                         marginTop: 2,
                       }}
                     >
-                      Jours et horaires de récupération
+                      {i18n('guardian_edit_schedule_subtitle')}
                     </Text>
                   </>
                 )}
@@ -593,7 +615,7 @@ export default function GuardianEditScreen() {
                 marginBottom: 10,
               }}
             >
-              Zone dangereuse
+              {i18n('guardian_edit_danger_zone')}
             </Text>
             <TouchableOpacity
               onPress={handleDelete}
@@ -625,7 +647,7 @@ export default function GuardianEditScreen() {
                 <Text
                   style={{ color: theme.red, fontWeight: '700', fontSize: 14 }}
                 >
-                  Supprimer l'autorisation
+                  {i18n('guardian_edit_delete_title')}
                 </Text>
                 <Text
                   style={{
@@ -635,7 +657,7 @@ export default function GuardianEditScreen() {
                     marginTop: 2,
                   }}
                 >
-                  Cette personne ne pourra plus récupérer l'enfant.
+                  {i18n('guardian_edit_delete_body')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -669,7 +691,9 @@ export default function GuardianEditScreen() {
           >
             <Ionicons name="checkmark" size={18} color="#fff" />
             <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-              {isSaving ? 'Enregistrement…' : 'Enregistrer les modifications'}
+              {isSaving
+                ? i18n('guardian_edit_cta_saving')
+                : i18n('guardian_edit_cta_save')}
             </Text>
           </TouchableOpacity>
           {updateGuardian.isError ? (
@@ -681,7 +705,7 @@ export default function GuardianEditScreen() {
                 marginTop: 8,
               }}
             >
-              Une erreur est survenue. Réessayez.
+              {i18n('guardian_edit_form_error')}
             </Text>
           ) : null}
         </View>
@@ -718,13 +742,13 @@ export default function GuardianEditScreen() {
             <Text
               style={{ fontSize: 16, fontWeight: '700', color: theme.text }}
             >
-              Autre relation
+              {i18n('guardian_edit_relation_other')}
             </Text>
             <TextInput
               ref={customInputRef}
               value={customInput}
               onChangeText={setCustomInput}
-              placeholder="Ex. Baby-sitter, Tuteur légal…"
+              placeholder={i18n('guardian_edit_relation_placeholder')}
               placeholderTextColor={theme.placeholder}
               returnKeyType="done"
               onSubmitEditing={handleCustomConfirm}
@@ -757,7 +781,7 @@ export default function GuardianEditScreen() {
                     fontSize: 14,
                   }}
                 >
-                  Annuler
+                  {i18n('guardian_add_relation_cancel')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -775,7 +799,7 @@ export default function GuardianEditScreen() {
                 <Text
                   style={{ fontWeight: '700', color: '#fff', fontSize: 14 }}
                 >
-                  Confirmer
+                  {i18n('guardian_add_relation_confirm')}
                 </Text>
               </TouchableOpacity>
             </View>

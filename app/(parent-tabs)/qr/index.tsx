@@ -28,28 +28,12 @@ import {
   useRecentScans,
   useGenerateQrCode,
 } from '@/features/parent/hooks/useQr';
-
-const STATUS_CFG = {
-  completed: {
-    iconName: 'checkmark-circle' as const,
-    color: '#10b981',
-    label: 'Validé',
-  },
-  denied: {
-    iconName: 'close-circle' as const,
-    color: '#ef4444',
-    label: 'Refusé',
-  },
-  cancelled: {
-    iconName: 'remove-circle' as const,
-    color: '#f59e0b',
-    label: 'Annulé',
-  },
-} as const;
+import { useTranslation } from 'react-i18next';
 
 export default function QRScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
   const [unlocked, setUnlocked] = useState(false);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [showChildPicker, setShowChildPicker] = useState(false);
@@ -77,25 +61,53 @@ export default function QRScreen() {
   );
   const generateMutation = useGenerateQrCode();
 
+  const STATUS_CFG = useMemo(
+    () => ({
+      completed: {
+        iconName: 'checkmark-circle' as const,
+        color: '#10b981',
+        label: i18n('activity_ok'),
+      },
+      denied: {
+        iconName: 'close-circle' as const,
+        color: '#ef4444',
+        label: i18n('activity_denied'),
+      },
+      cancelled: {
+        iconName: 'remove-circle' as const,
+        color: '#f59e0b',
+        label: i18n('activity_cancelled'),
+      },
+    }),
+    [i18n]
+  );
+
   const activeQr = qrCodes?.[0] ?? null;
 
   const timeLeftLabel = useMemo(() => {
     if (!activeQr) return '';
     const msLeft = new Date(activeQr.expires_at).getTime() - Date.now();
-    if (msLeft <= 0) return 'Expiré';
+    if (msLeft <= 0) return i18n('qr_time_expired');
     const hoursLeft = Math.floor(msLeft / 3600000);
     if (hoursLeft < 24)
-      return `${hoursLeft}h restante${hoursLeft > 1 ? 's' : ''}`;
+      return i18n('qr_time_hours', {
+        h: hoursLeft,
+        s: hoursLeft > 1 ? 's' : '',
+      });
     const daysLeft = Math.floor(hoursLeft / 24);
-    return `${daysLeft} jour${daysLeft > 1 ? 's' : ''} restant${daysLeft > 1 ? 's' : ''}`;
-  }, [activeQr]);
+    return i18n('qr_time_days', {
+      d: daysLeft,
+      s: daysLeft > 1 ? 's' : '',
+      ss: daysLeft > 1 ? 's' : '',
+    });
+  }, [activeQr, i18n]);
 
   const handleBiometric = useCallback(async () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authentifiez-vous pour accéder au QR',
-        cancelLabel: 'Annuler',
+        promptMessage: i18n('qr_biometric_prompt'),
+        cancelLabel: i18n('guardian_add_relation_cancel'),
       });
       if (result.success) {
         setUnlocked(true);
@@ -104,10 +116,13 @@ export default function QRScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } catch {
-      Alert.alert('Erreur', 'Authentification indisponible sur cet appareil.');
+      Alert.alert(
+        i18n('qr_biometric_error_title'),
+        i18n('qr_biometric_error_body')
+      );
       setUnlocked(true);
     }
-  }, []);
+  }, [i18n]);
 
   const handleGenerate = useCallback(() => {
     if (!activeChild) return;
@@ -128,14 +143,14 @@ export default function QRScreen() {
         onSuccess: () => {
           qrScale.value = withSpring(1);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          Toast.show('QR code généré avec succès', {
+          Toast.show(i18n('qr_generate_success'), {
             type: 'success',
             duration: 2500,
           });
         },
         onError: () => {
           qrScale.value = withSpring(1);
-          Toast.show('Impossible de générer le QR code', {
+          Toast.show(i18n('qr_generate_error'), {
             type: 'error',
             duration: 3000,
           });
@@ -149,6 +164,7 @@ export default function QRScreen() {
     qrScale,
     qrRotate,
     generateMutation,
+    i18n,
   ]);
 
   const isGenerating = generateMutation.isPending;
@@ -191,7 +207,7 @@ export default function QRScreen() {
               textTransform: 'uppercase',
             }}
           >
-            QR Code sécurisé
+            {i18n('qr_header_label')}
           </Text>
         </View>
 
@@ -217,7 +233,7 @@ export default function QRScreen() {
             >
               {activeChild
                 ? `${activeChild.first_name} ${activeChild.last_name}`
-                : 'Choisir un enfant'}
+                : i18n('qr_choose_child')}
             </Text>
             <Ionicons name="chevron-down" size={16} color={theme.textMuted} />
           </TouchableOpacity>
@@ -235,7 +251,7 @@ export default function QRScreen() {
               ? '…'
               : activeChild
                 ? `${activeChild.first_name} ${activeChild.last_name}`
-                : 'Aucun enfant'}
+                : i18n('qr_no_child')}
           </Text>
         )}
 
@@ -343,7 +359,7 @@ export default function QRScreen() {
                   textAlign: 'center',
                 }}
               >
-                Ajoutez un enfant pour générer un QR code
+                {i18n('qr_add_child_hint')}
               </Text>
             </View>
           ) : unlocked && activeQr ? (
@@ -378,7 +394,7 @@ export default function QRScreen() {
                   fontWeight: '600',
                 }}
               >
-                {activeQr ? 'Verrouillé' : 'Aucun QR actif'}
+                {activeQr ? i18n('qr_locked') : i18n('qr_no_active')}
               </Text>
               {!activeQr && (
                 <Text
@@ -389,7 +405,7 @@ export default function QRScreen() {
                     paddingHorizontal: 20,
                   }}
                 >
-                  Générez un QR code pour ce collecteur
+                  {i18n('qr_generate_hint')}
                 </Text>
               )}
             </View>
@@ -412,7 +428,7 @@ export default function QRScreen() {
           >
             <Ionicons name="checkmark-circle" size={13} color="#10b981" />
             <Text style={{ color: '#10b981', fontSize: 12, fontWeight: '700' }}>
-              Actif · {timeLeftLabel}
+              {i18n('qr_active_badge')} · {timeLeftLabel}
             </Text>
           </View>
         )}
@@ -465,12 +481,12 @@ export default function QRScreen() {
               }}
             >
               {isGenerating
-                ? 'Génération...'
+                ? i18n('qr_action_generating')
                 : unlocked
                   ? activeQr
-                    ? 'Régénérer le QR'
-                    : 'Générer un QR'
-                  : 'Déverrouiller'}
+                    ? i18n('qr_action_regenerate')
+                    : i18n('qr_generate')
+                  : i18n('qr_action_unlock')}
             </Text>
           </TouchableOpacity>
         </Animated.View>
@@ -486,7 +502,7 @@ export default function QRScreen() {
             marginBottom: 12,
           }}
         >
-          Scans récents
+          {i18n('qr_recent_scans')}
         </Text>
         <View
           style={{
@@ -502,7 +518,7 @@ export default function QRScreen() {
           ) : !recentScans || recentScans.length === 0 ? (
             <View style={{ padding: 24, alignItems: 'center' }}>
               <Text style={{ color: theme.textMuted, fontSize: 14 }}>
-                Aucun scan récent
+                {i18n('qr_no_recent_scans')}
               </Text>
             </View>
           ) : (
@@ -511,7 +527,7 @@ export default function QRScreen() {
               const { iconName } = cfg;
               const guardianName = scan.guardian
                 ? `${scan.guardian.first_name} ${scan.guardian.last_name}`
-                : 'Inconnu';
+                : i18n('activity_unknown');
               const d = new Date(scan.pickup_time);
               const timeStr = d.toLocaleTimeString('fr-FR', {
                 hour: '2-digit',
@@ -564,7 +580,8 @@ export default function QRScreen() {
                           marginTop: 1,
                         }}
                       >
-                        {scan.guardian.relationship} · {dateStr} à {timeStr}
+                        {scan.guardian.relationship} · {dateStr}{' '}
+                        {i18n('qr_scan_at')} {timeStr}
                       </Text>
                     ) : (
                       <Text
@@ -574,7 +591,7 @@ export default function QRScreen() {
                           marginTop: 1,
                         }}
                       >
-                        {dateStr} à {timeStr}
+                        {dateStr} {i18n('qr_scan_at')} {timeStr}
                       </Text>
                     )}
                   </View>

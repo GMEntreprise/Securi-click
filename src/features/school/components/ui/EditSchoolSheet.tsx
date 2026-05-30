@@ -20,6 +20,7 @@ import { Toast } from '@/shared/ui/molecules/Toast';
 import type { SchoolProfile } from '../../types';
 import { SchoolPickerSheet } from '@/features/parent/components/ui/SchoolPickerSheet';
 import type { SchoolSearchResult } from '@/features/school/services/schoolSearch.service';
+import { useTranslation } from 'react-i18next';
 
 const MANAGER_FUNCTIONS = [
   'Directeur / Directrice',
@@ -128,6 +129,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
   onClose,
 }: EditSchoolSheetProps) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('school');
   const insets = useSafeAreaInsets();
   const updateSchool = useUpdateSchool();
 
@@ -176,20 +178,21 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
 
   const validate = useCallback((): boolean => {
     const next: FormErrors = {};
-    if (!form.name.trim()) next.name = 'Nom requis';
-    if (!form.phone.trim()) next.phone = 'Téléphone requis';
-    if (!form.address.trim()) next.address = 'Adresse requise';
-    if (!form.city.trim()) next.city = 'Ville requise';
+    if (!form.name.trim()) next.name = i18n('edit_school_error_name');
+    if (!form.phone.trim()) next.phone = i18n('edit_school_error_phone');
+    if (!form.address.trim()) next.address = i18n('edit_school_error_address');
+    if (!form.city.trim()) next.city = i18n('edit_school_error_city');
     if (!form.postal_code.trim() || form.postal_code.trim().length < 5)
-      next.postal_code = 'Code postal invalide';
+      next.postal_code = i18n('edit_school_error_postal');
     if (!form.manager_first_name.trim())
-      next.manager_first_name = 'Prénom requis';
-    if (!form.manager_last_name.trim()) next.manager_last_name = 'Nom requis';
+      next.manager_first_name = i18n('edit_school_error_first_name');
+    if (!form.manager_last_name.trim())
+      next.manager_last_name = i18n('edit_school_error_last_name');
     if (!form.manager_function.trim())
-      next.manager_function = 'Fonction requise';
+      next.manager_function = i18n('edit_school_error_function');
     setErrors(next);
     return Object.keys(next).length === 0;
-  }, [form]);
+  }, [form, i18n]);
 
   const handleSave = useCallback(async () => {
     if (!validate()) {
@@ -213,19 +216,19 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
         },
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show('Établissement mis à jour', {
+      Toast.show(i18n('edit_school_save_success'), {
         type: 'success',
         duration: 2500,
       });
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show("Impossible d'enregistrer les modifications", {
+      Toast.show(i18n('edit_school_save_error'), {
         type: 'error',
         duration: 3000,
       });
     }
-  }, [validate, updateSchool, school.id, form, onClose]);
+  }, [validate, updateSchool, school.id, form, onClose, i18n]);
 
   const isBusy = updateSchool.isPending;
 
@@ -262,7 +265,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
           }}
         >
           <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
-            Modifier l'établissement
+            {i18n('edit_school_title')}
           </Text>
           <TouchableOpacity
             onPress={onClose}
@@ -311,14 +314,14 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     color={theme.accent}
                   />
                 }
-                label="Établissement"
+                label={i18n('edit_school_section_school')}
                 bg={theme.accentBg}
               />
               <InputField
-                label="Nom de l'établissement"
+                label={i18n('edit_school_name_label')}
                 value={form.name}
                 onChangeText={setField('name')}
-                placeholder="École Saint-Joseph"
+                placeholder={i18n('edit_school_name_placeholder')}
                 autoCapitalize="words"
                 error={errors.name}
               />
@@ -365,7 +368,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                       fontWeight: '700',
                     }}
                   >
-                    Rechercher dans la base officielle
+                    {i18n('edit_school_search_official')}
                   </Text>
                   <Text
                     style={{
@@ -374,7 +377,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                       marginTop: 1,
                     }}
                   >
-                    Préremplir nom, type et adresse automatiquement
+                    {i18n('edit_school_search_subtitle')}
                   </Text>
                 </View>
                 <Ionicons
@@ -394,7 +397,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     marginBottom: 6,
                   }}
                 >
-                  Type d'établissement
+                  {i18n('edit_school_type_label')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => {
@@ -427,7 +430,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     }}
                     numberOfLines={1}
                   >
-                    {form.type || 'Sélectionnez le type'}
+                    {form.type || i18n('edit_school_type_placeholder')}
                   </Text>
                   <Ionicons
                     name="chevron-down"
@@ -477,7 +480,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                       letterSpacing: -0.3,
                     }}
                   >
-                    Type d'établissement
+                    {i18n('edit_school_type_picker_title')}
                   </Text>
                   <ScrollView
                     showsVerticalScrollIndicator={false}
@@ -543,10 +546,10 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
               </Modal>
 
               <InputField
-                label="Téléphone"
+                label={i18n('edit_school_phone_label')}
                 value={form.phone}
                 onChangeText={setField('phone')}
-                placeholder="01 23 45 67 89"
+                placeholder={i18n('edit_school_phone_placeholder')}
                 keyboardType="phone-pad"
                 autoCapitalize="none"
                 error={errors.phone}
@@ -572,32 +575,32 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     color={theme.green}
                   />
                 }
-                label="Adresse"
+                label={i18n('edit_school_section_address')}
                 bg={theme.greenBg}
               />
               <InputField
-                label="Rue"
+                label={i18n('edit_school_address_label')}
                 value={form.address}
                 onChangeText={setField('address')}
-                placeholder="12 rue de la Paix"
+                placeholder={i18n('edit_school_address_placeholder')}
                 error={errors.address}
               />
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <View style={{ flex: 1 }}>
                   <InputField
-                    label="Ville"
+                    label={i18n('edit_school_city_label')}
                     value={form.city}
                     onChangeText={setField('city')}
-                    placeholder="Paris"
+                    placeholder={i18n('edit_school_city_placeholder')}
                     error={errors.city}
                   />
                 </View>
                 <View style={{ width: 110 }}>
                   <InputField
-                    label="Code postal"
+                    label={i18n('edit_school_postal_label')}
                     value={form.postal_code}
                     onChangeText={setField('postal_code')}
-                    placeholder="75001"
+                    placeholder={i18n('edit_school_postal_placeholder')}
                     keyboardType="numeric"
                     autoCapitalize="none"
                     error={errors.postal_code}
@@ -625,26 +628,30 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     color={theme.primary}
                   />
                 }
-                label="Responsable"
+                label={i18n('edit_school_section_manager')}
                 bg={theme.primaryBg}
               />
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <View style={{ flex: 1 }}>
                   <InputField
-                    label="Prénom"
+                    label={i18n('edit_school_manager_first_name_label')}
                     value={form.manager_first_name}
                     onChangeText={setField('manager_first_name')}
-                    placeholder="Jean"
+                    placeholder={i18n(
+                      'edit_school_manager_first_name_placeholder'
+                    )}
                     autoCapitalize="words"
                     error={errors.manager_first_name}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
                   <InputField
-                    label="Nom"
+                    label={i18n('edit_school_manager_last_name_label')}
                     value={form.manager_last_name}
                     onChangeText={setField('manager_last_name')}
-                    placeholder="Dupont"
+                    placeholder={i18n(
+                      'edit_school_manager_last_name_placeholder'
+                    )}
                     autoCapitalize="words"
                     error={errors.manager_last_name}
                   />
@@ -660,7 +667,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     marginBottom: 6,
                   }}
                 >
-                  Fonction
+                  {i18n('edit_school_function_label')}
                 </Text>
                 <TouchableOpacity
                   onPress={() => {
@@ -699,7 +706,8 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     }}
                     numberOfLines={1}
                   >
-                    {form.manager_function || 'Sélectionnez une fonction'}
+                    {form.manager_function ||
+                      i18n('edit_school_function_placeholder')}
                   </Text>
                   <Ionicons
                     name="chevron-down"
@@ -770,7 +778,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                       letterSpacing: -0.3,
                     }}
                   >
-                    Fonction
+                    {i18n('edit_school_function_picker_title')}
                   </Text>
                   <ScrollView
                     showsVerticalScrollIndicator={false}
@@ -860,7 +868,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     <Text
                       style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
                     >
-                      Enregistrer les modifications
+                      {i18n('edit_school_save')}
                     </Text>
                   </>
                 )}
@@ -874,7 +882,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     marginTop: 8,
                   }}
                 >
-                  Impossible d'enregistrer. Réessayez.
+                  {i18n('edit_school_form_error')}
                 </Text>
               ) : null}
             </Animated.View>
