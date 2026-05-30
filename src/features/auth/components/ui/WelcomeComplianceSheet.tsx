@@ -130,16 +130,16 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                 icon="lock-closed"
                 iconColor={theme.primary}
                 iconBg={theme.primaryBg}
-                title="Données sécurisées"
-                body="Vos données sont chiffrées et hébergées en Europe. Seules les informations nécessaires au service sont collectées."
+                title="Données collectées"
+                body="Nous collectons uniquement les données nécessaires : nom, email, téléphone, et photos de profil. Aucune donnée n'est vendue ni partagée avec des tiers. Hébergement sécurisé via Supabase (UE)."
               />
               <Separator color={theme.separator} />
               <InfoRow
-                icon="person-circle-outline"
+                icon="people-outline"
                 iconColor={theme.accent}
                 iconBg={theme.accentBg}
-                title="Votre compte vous appartient"
-                body="Vous pouvez modifier ou supprimer votre compte à tout moment depuis les paramètres de l'application."
+                title="Données des enfants"
+                body="Les informations saisies concernant les enfants (prénom, nom, photo) sont strictement réservées à la gestion de leurs récupérations. Elles ne sont accessibles qu'aux personnes explicitement autorisées par le parent."
               />
               <Separator color={theme.separator} />
               <InfoRow
@@ -147,7 +147,15 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                 iconColor={theme.green}
                 iconBg={theme.greenBg}
                 title="Notifications"
-                body="Les notifications servent uniquement à vous alerter des récupérations et événements liés à votre compte."
+                body="Les notifications push sont utilisées exclusivement pour vous informer des événements liés à votre compte (récupérations, autorisations). Vous pouvez les désactiver à tout moment."
+              />
+              <Separator color={theme.separator} />
+              <InfoRow
+                icon="trash-outline"
+                iconColor={theme.red}
+                iconBg={theme.redBg}
+                title="Suppression du compte"
+                body="Vous pouvez supprimer votre compte et l'ensemble de vos données définitivement depuis Profil → Sécurité. Cette fonctionnalité est disponible pour tous les types de comptes."
               />
               <Separator color={theme.separator} />
               <InfoRow
@@ -155,7 +163,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                 iconColor={theme.textMuted}
                 iconBg={theme.iconBg}
                 title="Conformité RGPD"
-                body="Traitement conforme au RGPD. Contact : contact@securi-click.com — SARL Securi'ClickT, Toulon."
+                body="Traitement conforme au RGPD (UE) 2016/679. Vous disposez d'un droit d'accès, de modification et de suppression de vos données. Contact : contact@securi-click.com"
               />
             </Animated.View>
 
