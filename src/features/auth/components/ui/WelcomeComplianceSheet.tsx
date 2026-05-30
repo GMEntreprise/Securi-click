@@ -6,6 +6,8 @@ import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useLanguageStore } from '@/stores/language.store';
+import type { SupportedLanguage } from '@/i18n/resources';
 
 interface WelcomeComplianceSheetProps {
   visible: boolean;
@@ -23,6 +25,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation('auth');
+  const { language, setLanguage } = useLanguageStore();
 
   const handleContinue = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -218,7 +221,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                     fontWeight: '600',
                   }}
                 >
-                  Politique de confidentialité
+                  {t('legal_privacy')}
                 </Text>
                 <Ionicons
                   name="chevron-forward"
@@ -263,7 +266,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                     fontWeight: '600',
                   }}
                 >
-                  Mentions légales
+                  {t('legal_mentions')}
                 </Text>
                 <Ionicons
                   name="chevron-forward"
@@ -271,6 +274,55 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                   color={theme.textMuted}
                 />
               </TouchableOpacity>
+            </Animated.View>
+
+            {/* Language selector */}
+            <Animated.View
+              entering={FadeInDown.delay(120).duration(250)}
+              style={{
+                flexDirection: 'row',
+                gap: 10,
+              }}
+            >
+              {(['fr', 'en'] as SupportedLanguage[]).map(code => {
+                const isActive = language === code;
+                return (
+                  <TouchableOpacity
+                    key={code}
+                    onPress={() => {
+                      if (!isActive) {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setLanguage(code);
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 6,
+                      paddingVertical: 12,
+                      borderRadius: 14,
+                      borderWidth: 1.5,
+                      borderColor: isActive ? theme.primary : theme.cardBorder,
+                      backgroundColor: isActive ? theme.primaryBg : theme.bg,
+                    }}
+                  >
+                    <Text style={{ fontSize: 16 }}>
+                      {code === 'fr' ? '🇫🇷' : '🇬🇧'}
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: isActive ? '700' : '500',
+                        color: isActive ? theme.primary : theme.textMuted,
+                      }}
+                    >
+                      {code === 'fr' ? 'Français' : 'English'}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </Animated.View>
 
             {/* CTA */}
