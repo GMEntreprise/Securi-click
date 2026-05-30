@@ -165,5 +165,8 @@
   "edit_school_save": "Save changes",
   "edit_school_save_success": "School updated",
   "edit_school_save_error": "Unable to save changes",
-  "edit_school_form_error": "Unable to save. Please try again."
+  "edit_school_form_error": "Unable to save. Please try again.",
+
+  "profile_language": "Language",
+  "profile_language_subtitle": "Français, English"
 }

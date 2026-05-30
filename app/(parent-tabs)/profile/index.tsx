@@ -312,6 +312,19 @@ export default function ProfileScreen() {
             onToggle: handleBiometricToggle,
             onPress: () => nav.goToParentSecurity(),
           },
+          {
+            icon: (
+              <Ionicons
+                name="language-outline"
+                size={16}
+                color={theme.primary}
+              />
+            ),
+            iconBg: theme.primaryBg,
+            title: i18n('profile_language'),
+            subtitle: i18n('profile_language_subtitle'),
+            onPress: () => nav.goToParentLanguage(),
+          },
         ] as RowItem[],
       },
       {

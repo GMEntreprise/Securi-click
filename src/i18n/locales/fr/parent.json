@@ -338,5 +338,8 @@
   "schedule_day_fri": "Ven",
   "schedule_reminder_15": "15 min",
   "schedule_reminder_30": "30 min",
-  "schedule_reminder_60": "1 heure"
+  "schedule_reminder_60": "1 heure",
+
+  "profile_language": "Langue",
+  "profile_language_subtitle": "Français, English"
 }

@@ -374,6 +374,60 @@ export default function SchoolProfileScreen() {
           </TouchableOpacity>
         </Animated.View>
 
+        {/* Langue */}
+        <Animated.View
+          entering={FadeInDown.delay(108).duration(350)}
+          style={{ marginBottom: 16 }}
+        >
+          <TouchableOpacity
+            onPress={() => nav.goToSchoolLanguage()}
+            style={{
+              backgroundColor: theme.card,
+              borderRadius: 18,
+              borderWidth: 1,
+              borderColor: theme.cardBorder,
+              padding: 16,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+            }}
+          >
+            <View
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                backgroundColor: theme.primaryBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Ionicons
+                name="language-outline"
+                size={18}
+                color={theme.primary}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
+              >
+                {i18n('profile_language')}
+              </Text>
+              <Text
+                style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
+              >
+                {i18n('profile_language_subtitle')}
+              </Text>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={16}
+              color={theme.textMuted}
+            />
+          </TouchableOpacity>
+        </Animated.View>
+
         {/* Support & Légal */}
         <Animated.View
           entering={FadeInDown.delay(110).duration(350)}

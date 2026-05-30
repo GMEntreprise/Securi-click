@@ -165,5 +165,8 @@
   "edit_school_save": "Enregistrer les modifications",
   "edit_school_save_success": "Établissement mis à jour",
   "edit_school_save_error": "Impossible d'enregistrer les modifications",
-  "edit_school_form_error": "Impossible d'enregistrer. Réessayez."
+  "edit_school_form_error": "Impossible d'enregistrer. Réessayez.",
+
+  "profile_language": "Langue",
+  "profile_language_subtitle": "Français, English"
 }
