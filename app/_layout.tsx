@@ -34,6 +34,7 @@ import { useUnreadCountQuery } from '@/features/notifications/hooks/useNotificat
 import { NotificationCenterScreen } from '@/features/notifications/screens/NotificationCenterScreen';
 import { NetworkBanner } from '@/shared/ui/molecules/NetworkBanner';
 import { useOTAUpdate } from '@/hooks/useOTAUpdate';
+import { useLanguageStore } from '@/stores/language.store';
 import { StatusBar } from 'expo-status-bar';
 
 const queryClient = new QueryClient({
@@ -500,10 +501,12 @@ function NotificationCenterModal() {
 export default function RootLayout() {
   const initialize = useAuthStore(s => s.initialize);
   const initCollectorSession = useCollectorSessionStore(s => s.initialize);
+  const initLanguage = useLanguageStore(s => s.initialize);
 
   useOTAUpdate();
 
   useEffect(() => {
+    initLanguage();
     initCollectorSession();
     Linking.getInitialURL().then(url => {
       if (isAuthCallbackUrl(url)) {
@@ -512,7 +515,7 @@ export default function RootLayout() {
         initialize();
       }
     });
-  }, [initialize, initCollectorSession]);
+  }, [initialize, initCollectorSession, initLanguage]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

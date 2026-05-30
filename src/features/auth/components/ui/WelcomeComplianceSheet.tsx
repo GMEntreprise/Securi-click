@@ -5,6 +5,7 @@ import React, { memo } from 'react';
 import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 interface WelcomeComplianceSheetProps {
   visible: boolean;
@@ -21,6 +22,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
 }: WelcomeComplianceSheetProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation('auth');
 
   const handleContinue = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -96,12 +98,12 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
               <Text
                 style={{ fontSize: 18, fontWeight: '800', color: theme.text }}
               >
-                Bienvenue sur Securi'Click
+                {t('welcome_title')}
               </Text>
               <Text
                 style={{ fontSize: 13, color: theme.textMuted, marginTop: 2 }}
               >
-                Quelques points importants avant de commencer
+                {t('welcome_subtitle')}
               </Text>
             </View>
           </View>
@@ -130,40 +132,40 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                 icon="lock-closed"
                 iconColor={theme.primary}
                 iconBg={theme.primaryBg}
-                title="Données collectées"
-                body="Nous collectons uniquement les données nécessaires : nom, email, téléphone, et photos de profil. Aucune donnée n'est vendue ni partagée avec des tiers. Hébergement sécurisé via Supabase (UE)."
+                title={t('welcome_data_title')}
+                body={t('welcome_data_body')}
               />
               <Separator color={theme.separator} />
               <InfoRow
                 icon="people-outline"
                 iconColor={theme.accent}
                 iconBg={theme.accentBg}
-                title="Données des enfants"
-                body="Les informations saisies concernant les enfants (prénom, nom, photo) sont strictement réservées à la gestion de leurs récupérations. Elles ne sont accessibles qu'aux personnes explicitement autorisées par le parent."
+                title={t('welcome_children_title')}
+                body={t('welcome_children_body')}
               />
               <Separator color={theme.separator} />
               <InfoRow
                 icon="notifications-outline"
                 iconColor={theme.green}
                 iconBg={theme.greenBg}
-                title="Notifications"
-                body="Les notifications push sont utilisées exclusivement pour vous informer des événements liés à votre compte (récupérations, autorisations). Vous pouvez les désactiver à tout moment."
+                title={t('welcome_notif_title')}
+                body={t('welcome_notif_body')}
               />
               <Separator color={theme.separator} />
               <InfoRow
                 icon="trash-outline"
                 iconColor={theme.red}
                 iconBg={theme.redBg}
-                title="Suppression du compte"
-                body="Vous pouvez supprimer votre compte et l'ensemble de vos données définitivement depuis Profil → Sécurité. Cette fonctionnalité est disponible pour tous les types de comptes."
+                title={t('welcome_delete_title')}
+                body={t('welcome_delete_body')}
               />
               <Separator color={theme.separator} />
               <InfoRow
                 icon="document-text-outline"
                 iconColor={theme.textMuted}
                 iconBg={theme.iconBg}
-                title="Conformité RGPD"
-                body="Traitement conforme au RGPD (UE) 2016/679. Vous disposez d'un droit d'accès, de modification et de suppression de vos données. Contact : contact@securi-click.com"
+                title={t('welcome_rgpd_title')}
+                body={t('welcome_rgpd_body')}
               />
             </Animated.View>
 
@@ -291,7 +293,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                 <Text
                   style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}
                 >
-                  J'ai compris, continuer
+                  {t('welcome_cta')}
                 </Text>
                 <Ionicons name="arrow-forward" size={16} color="#fff" />
               </TouchableOpacity>

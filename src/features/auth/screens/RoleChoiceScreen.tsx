@@ -5,7 +5,9 @@ import * as SecureStore from 'expo-secure-store';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome6, MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { WelcomeComplianceSheet } from '../components/ui/WelcomeComplianceSheet';
+import { useLanguageStore } from '@/stores/language.store';
 import {
   Dimensions,
   Image,
@@ -35,33 +37,35 @@ interface RoleItem {
   route: string;
 }
 
-const ROLES: RoleItem[] = [
-  {
-    id: 'parent',
-    title: 'Parent',
-    description: 'Suivi et sécurité des enfants',
-    icon: color => <FontAwesome6 name="user-group" size={22} color={color} />,
-    route: '/(auth)/parent',
-  },
-  {
-    id: 'collector',
-    title: 'Collecteur',
-    description: 'Validation des autorisations',
-    icon: color => (
-      <MaterialCommunityIcons name="shield-check" size={24} color={color} />
-    ),
-    route: '/(auth)/collector-pin',
-  },
-  {
-    id: 'school',
-    title: 'Établissement',
-    description: 'Gestion globale de la sécurité',
-    icon: color => (
-      <MaterialCommunityIcons name="school" size={24} color={color} />
-    ),
-    route: '/(auth)/school',
-  },
-];
+function buildRoles(t: (key: string) => string): RoleItem[] {
+  return [
+    {
+      id: 'parent',
+      title: t('role_parent_title'),
+      description: t('role_parent_desc'),
+      icon: color => <FontAwesome6 name="user-group" size={22} color={color} />,
+      route: '/(auth)/parent',
+    },
+    {
+      id: 'collector',
+      title: t('role_collector_title'),
+      description: t('role_collector_desc'),
+      icon: color => (
+        <MaterialCommunityIcons name="shield-check" size={24} color={color} />
+      ),
+      route: '/(auth)/collector-pin',
+    },
+    {
+      id: 'school',
+      title: t('role_school_title'),
+      description: t('role_school_desc'),
+      icon: color => (
+        <MaterialCommunityIcons name="school" size={24} color={color} />
+      ),
+      route: '/(auth)/school',
+    },
+  ];
+}
 
 interface RoleCardProps {
   item: RoleItem;
@@ -175,8 +179,13 @@ export const RoleChoiceScreen: React.FC = memo(() => {
   const nav = useAppNavigation();
   const insets = useSafeAreaInsets();
   const t = useTheme();
+  const { t: i18n } = useTranslation('auth');
+  const { t: i18nCommon } = useTranslation('common');
+  const language = useLanguageStore(s => s.language);
   const [selectedId, setSelectedId] = useState<RoleItem['id'] | null>(null);
   const [complianceVisible, setComplianceVisible] = useState(false);
+
+  const roles = useMemo(() => buildRoles(i18n), [language]);
 
   useEffect(() => {
     SecureStore.getItemAsync(COMPLIANCE_SEEN_KEY).then(val => {
@@ -190,8 +199,8 @@ export const RoleChoiceScreen: React.FC = memo(() => {
   }, []);
 
   const selectedRoute = useMemo(
-    () => ROLES.find(r => r.id === selectedId)?.route,
-    [selectedId]
+    () => roles.find(r => r.id === selectedId)?.route,
+    [roles, selectedId]
   );
 
   const handleRolePress = useCallback((item: RoleItem) => {
@@ -258,14 +267,14 @@ export const RoleChoiceScreen: React.FC = memo(() => {
                 marginBottom: 6,
               }}
             >
-              Choisissez votre rôle
+              {i18n('role_title')}
             </Text>
             <Text style={{ fontSize: 15, color: t.textSecondary }}>
-              Pour une expérience personnalisée
+              {i18n('role_subtitle')}
             </Text>
           </Animated.View>
 
-          {ROLES.map((role, index) => (
+          {roles.map((role, index) => (
             <RoleCard
               key={role.id}
               item={role}
@@ -308,7 +317,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
               letterSpacing: 0.3,
             }}
           >
-            &#174;Securi'Click
+            {i18nCommon('rights_reserved')}
           </Text>
           <Text
             style={{
@@ -317,7 +326,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
               letterSpacing: 0.2,
             }}
           >
-            Tous droits réservés
+            {i18nCommon('all_rights')}
           </Text>
         </View>
       </Animated.View>
