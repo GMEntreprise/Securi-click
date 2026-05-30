@@ -16,6 +16,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { useTheme } from '@/theme';
+import { useTranslation } from 'react-i18next';
 import { useUpdateChild, useChild } from '../../hooks/useChildren';
 import { useSession } from '@/features/auth/store/auth.store';
 import { useImagePicker } from '@/hooks';
@@ -129,6 +130,8 @@ export const EditChildSheet = memo(function EditChildSheet({
   onDelete,
 }: EditChildSheetProps) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
+  const { t: i18nCommon } = useTranslation('common');
   const insets = useSafeAreaInsets();
   const session = useSession();
   const userId = session?.user.id ?? '';
@@ -197,33 +200,39 @@ export const EditChildSheet = memo(function EditChildSheet({
 
   const validate = useCallback((): boolean => {
     const next: FormErrors = {};
-    if (!form.firstName.trim()) next.firstName = 'Prénom requis';
-    if (!form.lastName.trim()) next.lastName = 'Nom requis';
-    if (!form.className.trim()) next.className = 'Classe requise';
-    if (!selectedSchool) next.school = 'Établissement requis';
+    if (!form.firstName.trim())
+      next.firstName = i18n('edit_child_error_first_name');
+    if (!form.lastName.trim())
+      next.lastName = i18n('edit_child_error_last_name');
+    if (!form.className.trim()) next.className = i18n('edit_child_error_class');
+    if (!selectedSchool) next.school = i18n('edit_child_error_school');
     setErrors(next);
     return Object.keys(next).length === 0;
-  }, [form, selectedSchool]);
+  }, [form, selectedSchool, i18n]);
 
   const handlePickPhoto = useCallback(() => {
-    Alert.alert("Photo de l'enfant", 'Choisir une source', [
-      {
-        text: 'Caméra',
-        onPress: async () => {
-          const result = await takePhoto();
-          if (result) setPhotoUri(result.signedUrl);
+    Alert.alert(
+      i18n('edit_child_photo_picker_title'),
+      i18n('edit_child_photo_picker_subtitle'),
+      [
+        {
+          text: i18nCommon('photo_camera'),
+          onPress: async () => {
+            const result = await takePhoto();
+            if (result) setPhotoUri(result.signedUrl);
+          },
         },
-      },
-      {
-        text: 'Galerie',
-        onPress: async () => {
-          const result = await pickFromGallery();
-          if (result) setPhotoUri(result.signedUrl);
+        {
+          text: i18nCommon('photo_library'),
+          onPress: async () => {
+            const result = await pickFromGallery();
+            if (result) setPhotoUri(result.signedUrl);
+          },
         },
-      },
-      { text: 'Annuler', style: 'cancel' },
-    ]);
-  }, [takePhoto, pickFromGallery]);
+        { text: i18nCommon('cancel'), style: 'cancel' },
+      ]
+    );
+  }, [takePhoto, pickFromGallery, i18n, i18nCommon]);
 
   const handleSchoolSelect = useCallback((school: SchoolSearchResult) => {
     userHasPickedSchool.current = true;
@@ -251,14 +260,14 @@ export const EditChildSheet = memo(function EditChildSheet({
         },
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show(`Profil de ${form.firstName} mis à jour`, {
+      Toast.show(i18n('profile_updated'), {
         type: 'success',
         duration: 2500,
       });
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show('Impossible de sauvegarder les modifications', {
+      Toast.show(i18n('edit_child_save_error'), {
         type: 'error',
         duration: 3000,
       });
@@ -308,7 +317,7 @@ export const EditChildSheet = memo(function EditChildSheet({
           }}
         >
           <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
-            Modifier l'enfant
+            {i18n('edit_child_title')}
           </Text>
           <TouchableOpacity
             onPress={onClose}
@@ -366,10 +375,10 @@ export const EditChildSheet = memo(function EditChildSheet({
                     textTransform: 'uppercase',
                   }}
                 >
-                  Photo
+                  {i18n('photo')}
                 </Text>
                 <Text style={{ color: theme.textMuted, fontSize: 12 }}>
-                  (optionnel)
+                  {i18n('edit_child_photo_optional')}
                 </Text>
               </View>
               <View style={{ alignItems: 'center', marginBottom: 14 }}>
@@ -436,7 +445,9 @@ export const EditChildSheet = memo(function EditChildSheet({
                       fontWeight: '600',
                     }}
                   >
-                    {photoUri ? 'Changer' : 'Ajouter une photo'}
+                    {photoUri
+                      ? i18n('edit_child_photo_change')
+                      : i18n('edit_child_photo_add')}
                   </Text>
                 </TouchableOpacity>
                 {photoUri ? (
@@ -460,7 +471,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                         fontWeight: '600',
                       }}
                     >
-                      Supprimer
+                      {i18n('edit_child_photo_remove')}
                     </Text>
                   </TouchableOpacity>
                 ) : null}
@@ -505,22 +516,22 @@ export const EditChildSheet = memo(function EditChildSheet({
                 <Text
                   style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
                 >
-                  Identité
+                  {i18n('edit_child_identity')}
                 </Text>
               </View>
               <InputField
-                label="Prénom"
+                label={i18n('edit_child_first_name')}
                 value={form.firstName}
                 onChangeText={setField('firstName')}
-                placeholder="Prénom de l'enfant"
+                placeholder={i18n('edit_child_first_name_placeholder')}
                 autoCapitalize="words"
                 error={errors.firstName}
               />
               <InputField
-                label="Nom"
+                label={i18n('edit_child_last_name')}
                 value={form.lastName}
                 onChangeText={setField('lastName')}
-                placeholder="Nom de famille"
+                placeholder={i18n('edit_child_last_name_placeholder')}
                 autoCapitalize="words"
                 error={errors.lastName}
               />
@@ -564,7 +575,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                 <Text
                   style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
                 >
-                  Scolarité
+                  {i18n('edit_child_schooling')}
                 </Text>
               </View>
               <Text
@@ -575,7 +586,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                   marginBottom: 8,
                 }}
               >
-                Classe
+                {i18n('edit_child_class')}
               </Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {GRADES.map(g => {
@@ -672,7 +683,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                 <Text
                   style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
                 >
-                  Établissement
+                  {i18n('edit_child_school_section')}
                 </Text>
               </View>
 
@@ -755,7 +766,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                           fontWeight: '600',
                         }}
                       >
-                        Rechercher l'école
+                        {i18n('edit_child_school_search')}
                       </Text>
                       <Text
                         style={{
@@ -764,7 +775,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                           marginTop: 2,
                         }}
                       >
-                        L'établissement verra votre enfant automatiquement
+                        {i18n('edit_child_school_auto_enroll')}
                       </Text>
                     </>
                   )}
@@ -788,7 +799,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                       fontWeight: '600',
                     }}
                   >
-                    Retirer l'établissement
+                    {i18n('edit_child_school_remove')}
                   </Text>
                 </TouchableOpacity>
               ) : errors.school ? (
@@ -850,14 +861,14 @@ export const EditChildSheet = memo(function EditChildSheet({
                 <Text
                   style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
                 >
-                  Notes médicales
+                  {i18n('edit_child_medical_section')}
                 </Text>
               </View>
               <InputField
-                label="Allergies, traitements, informations utiles"
+                label={i18n('edit_child_medical_label')}
                 value={form.medicalNotes}
                 onChangeText={setField('medicalNotes')}
-                placeholder="Optionnel"
+                placeholder={i18n('edit_child_medical_placeholder')}
                 multiline
               />
             </Animated.View>
@@ -886,7 +897,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                     <Text
                       style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
                     >
-                      Enregistrer les modifications
+                      {i18n('edit_child_save')}
                     </Text>
                   </>
                 )}
@@ -900,7 +911,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                     marginTop: 8,
                   }}
                 >
-                  Impossible d'enregistrer. Réessayez.
+                  {i18n('edit_child_save_error')}
                 </Text>
               ) : null}
             </Animated.View>
@@ -933,19 +944,24 @@ export const EditChildSheet = memo(function EditChildSheet({
                       textTransform: 'uppercase',
                     }}
                   >
-                    Zone dangereuse
+                    {i18n('edit_child_danger_zone')}
                   </Text>
                 </View>
                 <TouchableOpacity
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
                     Alert.alert(
-                      "Supprimer l'enfant",
-                      `Voulez-vous vraiment supprimer ${child.first_name} ${child.last_name} ? Toutes les autorisations associées seront également supprimées. Cette action est irréversible.`,
+                      i18n('edit_child_delete_title'),
+                      i18n('edit_child_delete_confirm', {
+                        firstName: child.first_name,
+                        lastName: child.last_name,
+                      }) +
+                        '\n\n' +
+                        i18n('edit_child_delete_message'),
                       [
-                        { text: 'Annuler', style: 'cancel' },
+                        { text: i18nCommon('cancel'), style: 'cancel' },
                         {
-                          text: 'Supprimer',
+                          text: i18nCommon('delete'),
                           style: 'destructive',
                           onPress: () => onDelete(child.id),
                         },
@@ -984,7 +1000,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                         fontWeight: '700',
                       }}
                     >
-                      Supprimer l'enfant
+                      {i18n('edit_child_delete_title')}
                     </Text>
                     <Text
                       style={{
@@ -993,7 +1009,7 @@ export const EditChildSheet = memo(function EditChildSheet({
                         marginTop: 1,
                       }}
                     >
-                      Supprime toutes les autorisations associées
+                      {i18n('edit_child_delete_subtitle')}
                     </Text>
                   </View>
                 </TouchableOpacity>

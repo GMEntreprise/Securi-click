@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 interface LegalConsentSheetProps {
   visible: boolean;
@@ -32,6 +33,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
 }: LegalConsentSheetProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { t: i18n } = useTranslation('auth');
   const [checkedTerms, setCheckedTerms] = useState(false);
   const [checkedPrivacy, setCheckedPrivacy] = useState(false);
 
@@ -114,7 +116,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
             <Text
               style={{ fontSize: 18, fontWeight: '800', color: theme.text }}
             >
-              Avant de continuer
+              {i18n('legal_title')}
             </Text>
           </View>
           <TouchableOpacity
@@ -158,24 +160,24 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
               bg={theme.primaryBg}
               text={
                 role === 'school'
-                  ? "Votre compte établissement est destiné à la gestion sécurisée des récupérations d'élèves."
-                  : 'Votre compte parent vous permet de gérer les récupérations de vos enfants en toute sécurité.'
+                  ? i18n('legal_school_summary')
+                  : i18n('legal_parent_summary')
               }
             />
             <SummaryPoint
               color={theme.accent}
               bg={theme.accentBg}
-              text="Nous collectons uniquement les données nécessaires au fonctionnement du service (nom, email, téléphone)."
+              text={i18n('legal_data_summary')}
             />
             <SummaryPoint
               color={theme.green}
               bg={theme.greenBg}
-              text="Vos données sont traitées conformément au RGPD. Vous pouvez les modifier ou les supprimer à tout moment."
+              text={i18n('legal_gdpr_summary')}
             />
             <SummaryPoint
               color={theme.textMuted}
               bg={theme.iconBg}
-              text="Contact : contact@securi-click.com — SARL Securi'ClickT, 1 Rue Louis Jourdan, 83000 Toulon."
+              text={i18n('legal_contact_summary')}
             />
           </Animated.View>
 
@@ -228,7 +230,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                   fontWeight: '600',
                 }}
               >
-                Mentions légales
+                {i18n('legal_mentions')}
               </Text>
               <Ionicons
                 name="chevron-forward"
@@ -273,7 +275,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                   fontWeight: '600',
                 }}
               >
-                Politique de confidentialité
+                {i18n('legal_privacy')}
               </Text>
               <Ionicons
                 name="chevron-forward"
@@ -300,11 +302,11 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                     flex: 1,
                   }}
                 >
-                  J'accepte les{' '}
+                  {i18n('terms_accept_pre')}{' '}
                   <Text style={{ color: theme.primary, fontWeight: '700' }}>
-                    Conditions Générales d'Utilisation
-                  </Text>{' '}
-                  de Securi'Click.
+                    {i18n('terms_accept_link')}
+                  </Text>
+                  {i18n('terms_accept_post')}
                 </Text>
               }
               accentColor={theme.primary}
@@ -322,11 +324,11 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                     flex: 1,
                   }}
                 >
-                  J'ai pris connaissance de la{' '}
+                  {i18n('privacy_accept_pre')}{' '}
                   <Text style={{ color: theme.primary, fontWeight: '700' }}>
-                    Politique de Confidentialité
-                  </Text>{' '}
-                  et j'accepte le traitement de mes données.
+                    {i18n('privacy_accept_link')}
+                  </Text>
+                  {i18n('privacy_accept_post')}
                 </Text>
               }
               accentColor={theme.primary}
@@ -359,7 +361,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                   fontSize: 15,
                 }}
               >
-                Continuer
+                {i18n('continue')}
               </Text>
               {canContinue && (
                 <Ionicons name="checkmark" size={16} color="#fff" />
@@ -374,7 +376,7 @@ export const LegalConsentSheet = memo(function LegalConsentSheet({
                   marginTop: 8,
                 }}
               >
-                Cochez les deux cases pour continuer
+                {i18n('check_both')}
               </Text>
             )}
           </Animated.View>

@@ -20,5 +20,9 @@
   "hours_ago_one": "Il y a {{count}} heure",
   "hours_ago_other": "Il y a {{count}} heures",
   "days_ago_one": "Il y a {{count}} jour",
-  "days_ago_other": "Il y a {{count}} jours"
+  "days_ago_other": "Il y a {{count}} jours",
+  "unread_one": "{{count}} non lue",
+  "unread_other": "{{count}} non lues",
+  "mark_all_read_short": "Tout lire",
+  "empty_body": "Vous serez notifié en temps réel des activités importantes."
 }

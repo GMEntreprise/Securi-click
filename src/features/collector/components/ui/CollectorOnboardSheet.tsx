@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
+import { useTranslation } from 'react-i18next';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import {
   usePendingInvites,
@@ -26,16 +27,16 @@ type SheetState =
   | { kind: 'pin_entry'; invite: PendingInvite }
   | { kind: 'success'; childName: string };
 
-function formatError(raw: string): string {
-  if (raw === 'invalid_token')
-    return 'Invitation introuvable ou déjà utilisée.';
-  if (raw === 'pin_locked')
-    return 'Trop de tentatives. Réessayez dans 15 minutes.';
+type I18nFn = (key: string) => string;
+
+function formatError(raw: string, t: I18nFn): string {
+  if (raw === 'invalid_token') return t('onboard_error_invalid_token');
+  if (raw === 'pin_locked') return t('onboard_error_pin_locked');
   if (raw === 'access_code_required')
-    return 'Un code PIN est requis pour cette invitation.';
+    return t('onboard_error_access_code_required');
   if (raw === 'invalid_access_code')
-    return 'Code incorrect. Vérifiez auprès du parent.';
-  return 'Une erreur est survenue. Réessayez.';
+    return t('onboard_error_invalid_access_code');
+  return t('onboard_error_generic');
 }
 
 export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
@@ -43,6 +44,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
   onDismiss,
 }: CollectorOnboardSheetProps) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('collector');
   const insets = useSafeAreaInsets();
   const { data: invites, isLoading: invitesLoading } = usePendingInvites();
   const acceptInvite = useAcceptInvite();
@@ -93,9 +95,9 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
           onSuccess: () => {
             const childName = invite.child
               ? `${invite.child.first_name} ${invite.child.last_name}`
-              : "l'enfant";
+              : i18n('authorized_for');
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Toast.show(`Accès confirmé pour ${childName}`, {
+            Toast.show(i18n('onboard_accept_success', { name: childName }), {
               type: 'success',
               duration: 3000,
             });
@@ -103,13 +105,14 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
           },
           onError: e => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            const msg = formatError(e.message);
+            const msg = formatError(e.message, i18n);
             setPinError(msg);
             Toast.show(msg, { type: 'error', duration: 4000 });
           },
         }
       );
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [acceptInvite]
   );
 
@@ -124,9 +127,9 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
           onSuccess: () => {
             const childName = invite.child
               ? `${invite.child.first_name} ${invite.child.last_name}`
-              : "l'enfant";
+              : i18n('authorized_for');
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Toast.show(`Accès confirmé pour ${childName}`, {
+            Toast.show(i18n('onboard_accept_success', { name: childName }), {
               type: 'success',
               duration: 3000,
             });
@@ -134,7 +137,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
           },
           onError: e => {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            const msg = formatError(e.message);
+            const msg = formatError(e.message, i18n);
             setPinError(msg);
             Toast.show(msg, { type: 'error', duration: 4000 });
           },
@@ -199,7 +202,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
           >
             <ActivityIndicator color={theme.accent} size="large" />
             <Text style={{ color: theme.textMuted, fontSize: 14 }}>
-              Vérification des invitations…
+              {i18n('onboard_loading')}
             </Text>
           </View>
         )}
@@ -235,7 +238,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                 textAlign: 'center',
               }}
             >
-              Aucune invitation
+              {i18n('onboard_no_invites')}
             </Text>
             <Text
               style={{
@@ -245,8 +248,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                 lineHeight: 21,
               }}
             >
-              Demandez au parent de vous inviter en renseignant votre adresse
-              email dans le formulaire d'ajout de personne autorisée.
+              {i18n('onboard_no_invites_body')}
             </Text>
             <TouchableOpacity
               onPress={handleDismiss}
@@ -259,7 +261,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
               }}
             >
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-                Compris
+                {i18n('onboard_understood')}
               </Text>
             </TouchableOpacity>
           </Animated.View>
@@ -295,7 +297,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                   marginBottom: 3,
                 }}
               >
-                Invitations en attente
+                {i18n('onboard_title')}
               </Text>
               <Text
                 style={{
@@ -306,8 +308,12 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                   marginBottom: 20,
                 }}
               >
-                {state.invites.length} invitation
-                {state.invites.length > 1 ? 's' : ''}
+                {i18n(
+                  state.invites.length === 1
+                    ? 'onboard_invite_count_one'
+                    : 'onboard_invite_count_other',
+                  { count: state.invites.length }
+                )}
               </Text>
 
               <View style={{ gap: 10 }}>
@@ -387,7 +393,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                               fontWeight: '700',
                             }}
                           >
-                            PIN requis
+                            {i18n('onboard_pin_required')}
                           </Text>
                         </View>
                       ) : null}
@@ -405,7 +411,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                     marginTop: 12,
                   }}
                 >
-                  {formatError(acceptInvite.error.message)}
+                  {formatError(acceptInvite.error.message, i18n)}
                 </Text>
               )}
             </View>
@@ -453,7 +459,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                 textAlign: 'center',
               }}
             >
-              Accès confirmé !
+              {i18n('access_confirmed')}
             </Text>
             <Text
               style={{
@@ -463,11 +469,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
                 lineHeight: 22,
               }}
             >
-              Vous êtes maintenant autorisé à récupérer{' '}
-              <Text style={{ fontWeight: '700', color: theme.text }}>
-                {state.childName}
-              </Text>
-              .
+              {i18n('access_confirmed_body', { name: state.childName })}
             </Text>
             <TouchableOpacity
               onPress={handleSuccessDone}
@@ -480,7 +482,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
               }}
             >
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 15 }}>
-                Continuer
+                {i18n('onboard_continue')}
               </Text>
             </TouchableOpacity>
           </Animated.View>

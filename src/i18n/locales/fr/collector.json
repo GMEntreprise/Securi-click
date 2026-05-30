@@ -26,5 +26,16 @@
   "access_confirmed_body": "Vous êtes maintenant autorisé à récupérer {{name}}.",
   "relationship": "Lien",
   "active": "Actif",
-  "inactive": "Désactivé"
+  "inactive": "Désactivé",
+
+  "onboard_understood": "Compris",
+  "onboard_continue": "Continuer",
+  "onboard_invite_count_one": "{{count}} invitation",
+  "onboard_invite_count_other": "{{count}} invitations",
+  "onboard_error_invalid_token": "Invitation introuvable ou déjà utilisée.",
+  "onboard_error_pin_locked": "Trop de tentatives. Réessayez dans 15 minutes.",
+  "onboard_error_access_code_required": "Un code PIN est requis pour cette invitation.",
+  "onboard_error_invalid_access_code": "Code incorrect. Vérifiez auprès du parent.",
+  "onboard_error_generic": "Une erreur est survenue. Réessayez.",
+  "pin_hide_countdown": "Masquage dans 8 s"
 }

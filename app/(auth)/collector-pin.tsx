@@ -24,6 +24,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme';
+import { useTranslation } from 'react-i18next';
 import {
   useCollectorPinLogin,
   formatPinError,
@@ -34,6 +35,8 @@ const AUTO_HIDE_MS = 8_000;
 
 export default memo(function CollectorPinScreen() {
   const t = useTheme();
+  const { t: i18n } = useTranslation('auth');
+  const { t: i18nCollector } = useTranslation('collector');
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const markVerified = useCollectorSessionStore(s => s.markVerified);
@@ -174,7 +177,7 @@ export default memo(function CollectorPinScreen() {
                     fontWeight: '500',
                   }}
                 >
-                  Retour
+                  {i18n('back')}
                 </Text>
               </TouchableOpacity>
 
@@ -204,7 +207,7 @@ export default memo(function CollectorPinScreen() {
                   textAlign: 'center',
                 }}
               >
-                Espace collecteur
+                {i18n('collector_title')}
               </Text>
               <Text
                 style={{
@@ -214,8 +217,7 @@ export default memo(function CollectorPinScreen() {
                   textAlign: 'center',
                 }}
               >
-                Entrez votre email et le code de connexion communiqué par le
-                parent.
+                {i18n('collector_subtitle')}
               </Text>
             </LinearGradient>
           </Animated.View>
@@ -254,14 +256,13 @@ export default memo(function CollectorPinScreen() {
                   lineHeight: 17,
                 }}
               >
-                Ce code à 6 chiffres vous a été communiqué par le parent qui
-                vous a autorisé.
+                {i18n('collector_code_hint')}
               </Text>
             </Animated.View>
 
             {/* Champ email */}
             <Animated.View entering={FadeInDown.delay(80).duration(320)}>
-              <InputLabel label="Email" />
+              <InputLabel label={i18n('email')} />
               <View
                 style={{
                   flexDirection: 'row',
@@ -291,7 +292,7 @@ export default memo(function CollectorPinScreen() {
                   autoCorrect={false}
                   autoComplete="email"
                   returnKeyType="next"
-                  placeholder="votre@email.com"
+                  placeholder={i18n('email_placeholder')}
                   placeholderTextColor={t.placeholder}
                   editable={!isPending}
                   style={{
@@ -306,7 +307,7 @@ export default memo(function CollectorPinScreen() {
 
             {/* Champ code */}
             <Animated.View entering={FadeInDown.delay(130).duration(320)}>
-              <InputLabel label="Votre code" />
+              <InputLabel label={i18n('collector_code_label')} />
               <Animated.View
                 style={[
                   shakeStyle,
@@ -379,7 +380,7 @@ export default memo(function CollectorPinScreen() {
                     fontWeight: '600',
                   }}
                 >
-                  Masquage dans 8 s
+                  {i18nCollector('pin_hide_countdown')}
                 </Text>
               ) : errorMsg ? (
                 <Text
@@ -402,7 +403,7 @@ export default memo(function CollectorPinScreen() {
                     marginLeft: 2,
                   }}
                 >
-                  Code communiqué par le parent
+                  {i18n('collector_code_placeholder')}
                 </Text>
               )}
             </Animated.View>
@@ -475,7 +476,7 @@ export default memo(function CollectorPinScreen() {
                         letterSpacing: 0.1,
                       }}
                     >
-                      Continuer
+                      {i18nCollector('onboard_continue')}
                     </Text>
                     {isReady && (
                       <Ionicons name="arrow-forward" size={16} color="#fff" />

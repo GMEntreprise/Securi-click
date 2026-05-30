@@ -9,8 +9,9 @@ import { useTheme } from '@/theme';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
-import React, { memo, useCallback, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -31,24 +32,15 @@ import {
 import { useUploadImage } from '../../hooks/useUploadImage';
 import type { ParentProfile } from '../../types';
 
-const profileSchema = z.object({
-  first_name: z.string().min(2, 'Minimum 2 caractères'),
-  last_name: z.string().min(2, 'Minimum 2 caractères'),
-  phone: z.string().min(10, 'Numéro invalide'),
-});
-
-const passwordSchema = z
-  .object({
-    new_password: z.string().min(8, 'Minimum 8 caractères'),
-    confirm_password: z.string(),
-  })
-  .refine(d => d.new_password === d.confirm_password, {
-    message: 'Les mots de passe ne correspondent pas',
-    path: ['confirm_password'],
-  });
-
-type ProfileForm = z.infer<typeof profileSchema>;
-type PasswordForm = z.infer<typeof passwordSchema>;
+type ProfileForm = {
+  first_name: string;
+  last_name: string;
+  phone: string;
+};
+type PasswordForm = {
+  new_password: string;
+  confirm_password: string;
+};
 
 type Tab = 'info' | 'password';
 
@@ -72,9 +64,35 @@ export const EditProfileSheet = memo(function EditProfileSheet({
   onClose,
 }: EditProfileSheetProps) {
   const theme = useTheme();
+  const { t: i18n } = useTranslation('parent');
+  const { t: i18nCommon } = useTranslation('common');
   const insets = useSafeAreaInsets();
   const session = useSession();
   const userId = session?.user.id ?? '';
+
+  const profileSchema = useMemo(
+    () =>
+      z.object({
+        first_name: z.string().min(2, i18n('edit_profile_name_min')),
+        last_name: z.string().min(2, i18n('edit_profile_name_min')),
+        phone: z.string().min(10, i18n('edit_profile_phone_invalid')),
+      }),
+    [i18n]
+  );
+
+  const passwordSchema = useMemo(
+    () =>
+      z
+        .object({
+          new_password: z.string().min(8, i18n('edit_profile_password_min')),
+          confirm_password: z.string(),
+        })
+        .refine(d => d.new_password === d.confirm_password, {
+          message: i18n('edit_profile_passwords_mismatch'),
+          path: ['confirm_password'],
+        }),
+    [i18n]
+  );
 
   const [tab, setTab] = useState<Tab>('info');
   const [avatarUri, setAvatarUri] = useState<string | null>(profile.avatar_url);
@@ -136,7 +154,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
       try {
         await updateAvatar.mutateAsync(result.signedUrl);
       } catch {
-        Toast.show('Impossible de sauvegarder la photo. Réessayez.', {
+        Toast.show(i18n('edit_profile_photo_save_error'), {
           type: 'error',
           duration: 3000,
         });
@@ -150,7 +168,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
     try {
       await updateAvatar.mutateAsync('');
     } catch {
-      Toast.show('Impossible de supprimer la photo. Réessayez.', {
+      Toast.show(i18n('edit_profile_photo_remove_error'), {
         type: 'error',
         duration: 3000,
       });
@@ -182,7 +200,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
         }}
       >
         <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
-          Modifier le profil
+          {i18n('edit_profile_title')}
         </Text>
         <TouchableOpacity
           onPress={onClose}
@@ -238,7 +256,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
           </View>
         </TouchableOpacity>
         <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 12 }}>
-          Appuyer pour modifier la photo
+          {i18n('edit_profile_tap_photo')}
         </Text>
       </Animated.View>
 
@@ -281,7 +299,9 @@ export const EditProfileSheet = memo(function EditProfileSheet({
                 color: tab === t ? theme.text : theme.textMuted,
               }}
             >
-              {t === 'info' ? 'Informations' : 'Mot de passe'}
+              {t === 'info'
+                ? i18n('edit_profile_tab_info')
+                : i18n('edit_profile_tab_password')}
             </Text>
           </TouchableOpacity>
         ))}
@@ -305,7 +325,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
               <AuthInputField
                 control={profileForm.control}
                 name="first_name"
-                label="Prénom"
+                label={i18n('edit_child_first_name')}
                 icon={
                   <Ionicons
                     name="person-outline"
@@ -313,13 +333,13 @@ export const EditProfileSheet = memo(function EditProfileSheet({
                     color={theme.textMuted}
                   />
                 }
-                placeholder="Votre prénom"
+                placeholder={i18n('edit_profile_first_name_placeholder')}
                 error={profileForm.formState.errors.first_name?.message}
               />
               <AuthInputField
                 control={profileForm.control}
                 name="last_name"
-                label="Nom"
+                label={i18n('edit_child_last_name')}
                 icon={
                   <Ionicons
                     name="person-outline"
@@ -327,13 +347,13 @@ export const EditProfileSheet = memo(function EditProfileSheet({
                     color={theme.textMuted}
                   />
                 }
-                placeholder="Votre nom"
+                placeholder={i18n('edit_profile_last_name_placeholder')}
                 error={profileForm.formState.errors.last_name?.message}
               />
               <AuthInputField
                 control={profileForm.control}
                 name="phone"
-                label="Téléphone"
+                label={i18nCommon('phone')}
                 icon={
                   <Ionicons
                     name="call-outline"
@@ -341,7 +361,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
                     color={theme.textMuted}
                   />
                 }
-                placeholder="+33 6 00 00 00 00"
+                placeholder={i18n('edit_profile_phone_placeholder')}
                 keyboardType="phone-pad"
                 error={profileForm.formState.errors.phone?.message}
               />
@@ -349,6 +369,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
               <SaveButton
                 onPress={profileForm.handleSubmit(handleSaveInfo)}
                 isLoading={updateProfile.isPending}
+                label={i18n('edit_profile_save')}
                 theme={theme}
               />
               {updateProfile.isError && (
@@ -360,7 +381,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
                     marginTop: 8,
                   }}
                 >
-                  Une erreur est survenue. Réessayez.
+                  {i18n('edit_profile_save_error')}
                 </Text>
               )}
             </Animated.View>
@@ -369,7 +390,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
               <AuthPasswordField
                 control={passwordForm.control}
                 name="new_password"
-                label="Nouveau mot de passe"
+                label={i18n('edit_profile_new_password')}
                 error={passwordForm.formState.errors.new_password?.message}
               />
               {newPasswordValue.length > 0 && (
@@ -378,14 +399,14 @@ export const EditProfileSheet = memo(function EditProfileSheet({
               <AuthPasswordField
                 control={passwordForm.control}
                 name="confirm_password"
-                label="Confirmer le mot de passe"
+                label={i18n('edit_profile_confirm_password')}
                 error={passwordForm.formState.errors.confirm_password?.message}
               />
 
               <SaveButton
                 onPress={passwordForm.handleSubmit(handleSavePassword)}
                 isLoading={changePassword.isPending}
-                label="Mettre à jour"
+                label={i18n('edit_profile_update_password')}
                 theme={theme}
               />
               {changePassword.isError && (
@@ -397,7 +418,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
                     marginTop: 8,
                   }}
                 >
-                  Erreur lors du changement de mot de passe.
+                  {i18n('edit_profile_password_error')}
                 </Text>
               )}
             </Animated.View>

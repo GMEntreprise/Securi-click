@@ -9,6 +9,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
+import { useTranslation } from 'react-i18next';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { NotificationItem } from '../components/NotificationItem';
 import {
@@ -27,6 +28,7 @@ import type { Notification } from '../types';
 
 export const NotificationCenterScreen = memo(() => {
   const t = useTheme();
+  const { t: i18n } = useTranslation('notifications');
   const insets = useSafeAreaInsets();
   const nav = useAppNavigation();
   const closeCenter = useNotificationStore(s => s.closeCenter);
@@ -98,11 +100,11 @@ export const NotificationCenterScreen = memo(() => {
               letterSpacing: -0.4,
             }}
           >
-            Notifications
+            {i18n('title')}
           </Text>
           {unread > 0 && (
             <Text style={{ fontSize: 13, color: t.textMuted, marginTop: 2 }}>
-              {unread} non lue{unread > 1 ? 's' : ''}
+              {i18n('unread_other', { count: unread })}
             </Text>
           )}
         </View>
@@ -128,7 +130,7 @@ export const NotificationCenterScreen = memo(() => {
               color={t.accent}
             />
             <Text style={{ fontSize: 13, color: t.accent, fontWeight: '700' }}>
-              Tout lire
+              {i18n('mark_all_read_short')}
             </Text>
           </Pressable>
         )}
@@ -193,7 +195,7 @@ export const NotificationCenterScreen = memo(() => {
             />
           </View>
           <Text style={{ fontSize: 17, fontWeight: '700', color: t.text }}>
-            Aucune notification
+            {i18n('empty')}
           </Text>
           <Text
             style={{
@@ -204,7 +206,7 @@ export const NotificationCenterScreen = memo(() => {
               lineHeight: 20,
             }}
           >
-            Vous serez notifié en temps réel des activités importantes.
+            {i18n('empty_body')}
           </Text>
         </View>
       ) : (
