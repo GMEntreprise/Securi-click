@@ -6,33 +6,32 @@ import {
   type SupportedLanguage,
 } from './resources';
 
-export function initI18n(language: SupportedLanguage = DEFAULT_LANGUAGE) {
-  if (i18n.isInitialized) {
-    if (i18n.language !== language) {
-      i18n.changeLanguage(language);
-    }
-    return;
-  }
+const I18N_CONFIG = {
+  resources,
+  lng: DEFAULT_LANGUAGE,
+  fallbackLng: DEFAULT_LANGUAGE,
+  defaultNS: 'common',
+  ns: [
+    'common',
+    'auth',
+    'parent',
+    'collector',
+    'school',
+    'notifications',
+    'errors',
+  ],
+  interpolation: {
+    escapeValue: false,
+  },
+};
 
-  i18n.use(initReactI18next).init({
-    resources,
-    lng: language,
-    fallbackLng: DEFAULT_LANGUAGE,
-    defaultNS: 'common',
-    ns: [
-      'common',
-      'auth',
-      'parent',
-      'collector',
-      'school',
-      'notifications',
-      'errors',
-    ],
-    interpolation: {
-      escapeValue: false,
-    },
-    compatibilityJSON: 'v4',
-  });
+// Initialize synchronously at module load so t() is always safe to call on first render
+i18n.use(initReactI18next).init(I18N_CONFIG);
+
+export function initI18n(language: SupportedLanguage = DEFAULT_LANGUAGE) {
+  if (i18n.language !== language) {
+    i18n.changeLanguage(language);
+  }
 }
 
 export { i18n };
