@@ -9,12 +9,7 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'automatic',
 
   updates: {
-    url: 'https://u.expo.dev/858bf27d-7dbe-4355-bb8c-13fc80bb2b24',
-    checkAutomatically: 'ON_ERROR_RECOVERY',
-    fallbackToCacheTimeout: 0,
-  },
-  runtimeVersion: {
-    policy: 'appVersion',
+    enabled: false,
   },
 
   icon: './assets/icons/adaptive-icon.png',
@@ -85,7 +80,6 @@ const config: ExpoConfig = {
 
   plugins: [
     'expo-router',
-    'expo-updates',
     [
       'expo-splash-screen',
       {
