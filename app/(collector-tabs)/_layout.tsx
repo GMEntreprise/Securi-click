@@ -6,7 +6,6 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
 import { useTheme } from '@/theme';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
-import { ComplianceGate } from '@/features/auth/components/ui';
 
 const ICON_SIZE = 24;
 
@@ -37,7 +36,6 @@ export default function CollectorTabsLayout() {
 
   return (
     <>
-      <ComplianceGate />
       <Tabs screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
         <Tabs.Screen
           name="home"

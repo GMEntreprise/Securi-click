@@ -1,21 +1,48 @@
 import { create } from 'zustand';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '@/lib/supabase/client';
 
+const WELCOME_KEY = 'has-seen-welcome-v1';
+
 interface ComplianceState {
-  // null = not yet loaded from DB, false = not accepted, true = accepted
+  // Local flag — set before any account exists, persisted in AsyncStorage
+  hasSeenWelcome: boolean | null;
+  // DB flag — synced after login for existing accounts
   hasSeenCompliance: boolean | null;
   isLoading: boolean;
-  // Called once after session is restored and user_id is known
+
+  // Load local welcome flag at app start (no userId needed)
+  initializeLocal: () => Promise<void>;
+  // Mark welcome as seen locally (called when user taps "Continuer" on RoleChoiceScreen)
+  acceptWelcome: () => Promise<void>;
+  // Sync compliance state from DB after login (existing accounts)
   initialize: (userId: string) => Promise<void>;
-  // Called when user taps "J'ai compris" in the sheet
+  // Write compliance to DB after login
   accept: (userId: string) => Promise<void>;
-  // Reset local state on logout
+  // Reset on logout
   reset: () => void;
 }
 
 export const useComplianceStore = create<ComplianceState>(set => ({
+  hasSeenWelcome: null,
   hasSeenCompliance: null,
   isLoading: false,
+
+  initializeLocal: async () => {
+    try {
+      const stored = await AsyncStorage.getItem(WELCOME_KEY);
+      set({ hasSeenWelcome: stored === 'true' });
+    } catch {
+      set({ hasSeenWelcome: false });
+    }
+  },
+
+  acceptWelcome: async () => {
+    set({ hasSeenWelcome: true });
+    try {
+      await AsyncStorage.setItem(WELCOME_KEY, 'true');
+    } catch {}
+  },
 
   initialize: async (userId: string) => {
     set({ isLoading: true });
@@ -30,13 +57,11 @@ export const useComplianceStore = create<ComplianceState>(set => ({
         isLoading: false,
       });
     } catch {
-      // On error, assume not seen — safer to show than to skip
       set({ hasSeenCompliance: false, isLoading: false });
     }
   },
 
   accept: async (userId: string) => {
-    // Optimistic update: mark locally before DB round-trip to avoid flash
     set({ hasSeenCompliance: true });
     await supabase
       .from('user_profiles')
@@ -51,7 +76,8 @@ export const useComplianceStore = create<ComplianceState>(set => ({
   reset: () => set({ hasSeenCompliance: null, isLoading: false }),
 }));
 
-// Selectors
+export const useHasSeenWelcome = () =>
+  useComplianceStore(s => s.hasSeenWelcome);
 export const useHasSeenCompliance = () =>
   useComplianceStore(s => s.hasSeenCompliance);
 export const useComplianceLoading = () => useComplianceStore(s => s.isLoading);

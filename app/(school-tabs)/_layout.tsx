@@ -5,7 +5,6 @@ import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
 import { useTheme } from '@/theme';
-import { ComplianceGate } from '@/features/auth/components/ui';
 
 const ICON_SIZE = 24;
 
@@ -36,7 +35,6 @@ export default function SchoolTabsLayout() {
 
   return (
     <>
-      <ComplianceGate />
       <Tabs screenOptions={{ headerShown: false }} tabBar={renderTabBar}>
         <Tabs.Screen
           name="home"

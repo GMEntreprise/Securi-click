@@ -504,12 +504,14 @@ export default function RootLayout() {
   const initialize = useAuthStore(s => s.initialize);
   const initCollectorSession = useCollectorSessionStore(s => s.initialize);
   const initLanguage = useLanguageStore(s => s.initialize);
+  const initializeLocal = useComplianceStore(s => s.initializeLocal);
 
   useOTAUpdate();
 
   useEffect(() => {
     initLanguage();
     initCollectorSession();
+    initializeLocal();
     Linking.getInitialURL().then(url => {
       if (isAuthCallbackUrl(url)) {
         useAuthStore.setState({ isRestoring: false });
@@ -517,7 +519,7 @@ export default function RootLayout() {
         initialize();
       }
     });
-  }, [initialize, initCollectorSession, initLanguage]);
+  }, [initialize, initCollectorSession, initLanguage, initializeLocal]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

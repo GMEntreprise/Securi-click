@@ -7,6 +7,11 @@ import React, { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from '@/stores/language.store';
 import {
+  useComplianceStore,
+  useHasSeenWelcome,
+} from '@/stores/compliance.store';
+import { WelcomeComplianceSheet } from '../components/ui/WelcomeComplianceSheet';
+import {
   Dimensions,
   Image,
   Pressable,
@@ -179,6 +184,10 @@ export const RoleChoiceScreen: React.FC = memo(() => {
   const { t: i18nCommon } = useTranslation('common');
   const language = useLanguageStore(s => s.language);
   const [selectedId, setSelectedId] = useState<RoleItem['id'] | null>(null);
+  const [showCompliance, setShowCompliance] = useState(false);
+
+  const hasSeenWelcome = useHasSeenWelcome();
+  const acceptWelcome = useComplianceStore(s => s.acceptWelcome);
 
   const roles = useMemo(() => buildRoles(i18n), [language]);
 
@@ -195,11 +204,27 @@ export const RoleChoiceScreen: React.FC = memo(() => {
   const handleContinue = useCallback(() => {
     if (!selectedRoute) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    nav.pushRoute(selectedRoute);
-  }, [selectedRoute, nav]);
+    if (!hasSeenWelcome) {
+      setShowCompliance(true);
+    } else {
+      nav.pushRoute(selectedRoute);
+    }
+  }, [selectedRoute, nav, hasSeenWelcome]);
+
+  const handleComplianceContinue = useCallback(async () => {
+    await acceptWelcome();
+    setShowCompliance(false);
+    if (selectedRoute) nav.pushRoute(selectedRoute);
+  }, [acceptWelcome, selectedRoute, nav]);
 
   return (
     <View style={{ flex: 1, backgroundColor: t.bg }}>
+      <WelcomeComplianceSheet
+        visible={showCompliance}
+        onContinue={handleComplianceContinue}
+        onOpenPrivacy={() => nav.goToParentPrivacyPolicy()}
+        onOpenLegal={() => nav.goToParentLegalMentions()}
+      />
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}

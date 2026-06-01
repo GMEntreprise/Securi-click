@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(bun --version)",
+      "Bash(bunx --version)",
+      "Read(//Users/edouardgeorges-michel/.bun/bin/**)",
+      "Bash(/Users/edouardgeorges-michel/.bun/bin/bun --version)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(git commit -m ' *)",
+      "Bash(PATH=__TRACKED_VAR__:/Users/edouardgeorges-michel/.bun/bin git -C /Users/edouardgeorges-michel/Documents/Developper/Securiclick commit -m ' *)",
+      "Bash(PATH=__TRACKED_VAR__:/Users/edouardgeorges-michel/.bun/bin bunx testflight)",
+      "Bash(PATH=__TRACKED_VAR__:/Users/edouardgeorges-michel/.bun/bin bunx eas-cli build -p ios --auto-submit)",
+      "Bash(PATH=__TRACKED_VAR__:/Users/edouardgeorges-michel/.bun/bin bunx eas-cli build:view 3be126ff-91a9-4055-846d-e95b9304c6f9 --json)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s \"https://storage.googleapis.com/eas-workflows-production/logs/858bf27d-7dbe-4355-bb8c-13fc80bb2b24/3be126ff-91a9-4055-846d-e95b9304c6f9/2026-06-01T08%3A25%3A07Z-5fb8942a-29fa-4099-b699-049ba8cb50c3.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260601%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260601T082657Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=15a72454801b664c270ccb5dee88bfb519a416af9dc2c50efec52b003dc70b3d139eb92c2aee8a3feeb3011d45e67a127c7099a49b55f9b13a5b3c55a3f3c11009bcddf0148f4521f8086165ba6f034025c3bfbd55f0f1042bbabf2df021e7bc0461e80e4a605f799bb6c54e68966c4474200c063cf328eb734a254dabdab7ed8d89ed6a0d458274cff02896667e0811afb139ce3101b56007d844577ea68319634c8b559e0fc8c88e598a7eb8dee9af8cae1ed9c5b49872ad14f73a8cbd024c79352ce99cb503d038261583ba2a55364f85b85598bb2c99b5fdec6db13e9e2a9764c053cca5dc00110830c621cbedfe77dcae1f9977bb8cbd4a8e80a6777913\")",
+      "Bash(gunzip)",
+      "Bash(curl -s \"https://storage.googleapis.com/eas-workflows-production/logs/858bf27d-7dbe-4355-bb8c-13fc80bb2b24/3be126ff-91a9-4055-846d-e95b9304c6f9/2026-06-01T08%3A25%3A07Z-5fb8942a-29fa-4099-b699-049ba8cb50c3.txt?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Credential=www-production%40exponentjs.iam.gserviceaccount.com%2F20260601%2Fauto%2Fstorage%2Fgoog4_request&X-Goog-Date=20260601T082657Z&X-Goog-Expires=900&X-Goog-SignedHeaders=host&X-Goog-Signature=15a72454801b664c270ccb5dee88bfb519a416af9dc2c50efec52b003dc70b3d139eb92c2aee8a3feeb3011d45e67a127c7099a49b55f9b13a5b3c55a3f3c11009bcddf0148f4521f8086165ba6f034025c3bfbd55f0f1042bbabf2df021e7bc0461e80e4a605f799bb6c54e68966c4474200c063cf328eb734a254dabdab7ed8d89ed6a0d458274cff02896667e0811afb139ce3101b56007d844577ea68319634c8b559e0fc8c88e598a7eb8dee9af8cae1ed9c5b49872ad14f73a8cbd024c79352ce99cb503d038261583ba2a55364f85b85598bb2c99b5fdec6db13e9e2a9764c053cca5dc00110830c621cbedfe77dcae1f9977bb8cbd4a8e80a6777913\" -o /tmp/eas_build.log.gz)",
+      "Bash(zcat /tmp/eas_build.log.gz)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('production:', json.dumps\\(d.get\\('build',{}\\).get\\('production',{}\\), indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); scripts=d.get\\('scripts',{}\\); [print\\(k,':',v\\) for k,v in scripts.items\\(\\) if 'eas' in k.lower\\(\\) or 'build' in k.lower\\(\\)]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k,':',v\\) for k,v in d.get\\('scripts',{}\\).items\\(\\)]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('packageManager:', d.get\\('packageManager', 'NOT SET'\\)\\)\")",
+      "Bash(PATH=__TRACKED_VAR__:/Users/edouardgeorges-michel/.bun/bin git -C /Users/edouardgeorges-michel/Documents/Developper/Securiclick add package.json)",
+      "Bash(git -C /Users/edouardgeorges-michel/Documents/Developper/Securiclick commit -m ' *)",
+      "Bash(PATH=__TRACKED_VAR__:/Users/edouardgeorges-michel/.bun/bin git commit -m ' *)",
+      "Bash(PATH=__TRACKED_VAR__:/Users/edouardgeorges-michel/.bun/bin git -C /Users/edouardgeorges-michel/Documents/Developper/Securiclick add app.config.ts src/hooks/useOTAUpdate.ts)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('react-compiler:', d['version']\\)\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('i18next:', d['version']\\); print\\('main:', d.get\\('main','none'\\)\\); print\\('module:', d.get\\('module','none'\\)\\)\")",
+      "Bash(bunx tsc *)",
+      "Bash(tar -tzf react-native-reanimated-4.4.0.tgz)",
+      "Bash(tar -tzf /tmp/react-native-reanimated-4.4.0.tgz)",
+      "Bash(node -e \"const { execSync } = require\\('child_process'\\); console.log\\(execSync\\('npm view @shopify/react-native-skia@2.6.4 peerDependencies'\\).toString\\(\\)\\)\")"
+    ]
+  }
+}
