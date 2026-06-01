@@ -1,10 +1,13 @@
 import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getLocales } from 'expo-localization';
-import { i18n, initI18n, type SupportedLanguage } from '@/i18n';
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '@/i18n/resources';
-
-const LANGUAGE_KEY = 'app-language-v1';
+import { i18n } from '@/i18n';
+import {
+  SUPPORTED_LANGUAGES,
+  DEFAULT_LANGUAGE,
+  type SupportedLanguage,
+} from '@/i18n/resources';
 
 function detectSystemLanguage(): SupportedLanguage {
   const locales = getLocales();
@@ -22,29 +25,43 @@ interface LanguageState {
   setLanguage: (lang: SupportedLanguage) => Promise<void>;
 }
 
-export const useLanguageStore = create<LanguageState>((set, get) => ({
-  language: DEFAULT_LANGUAGE,
-  isReady: false,
+export const useLanguageStore = create<LanguageState>()(
+  persist(
+    (set, get) => ({
+      language: DEFAULT_LANGUAGE,
+      isReady: false,
 
-  initialize: async () => {
-    if (get().isReady) return;
-    let lang: SupportedLanguage;
-    try {
-      const stored = await AsyncStorage.getItem(LANGUAGE_KEY);
-      lang =
-        stored && (SUPPORTED_LANGUAGES as string[]).includes(stored)
-          ? (stored as SupportedLanguage)
-          : detectSystemLanguage();
-    } catch {
-      lang = detectSystemLanguage();
+      initialize: async () => {
+        if (get().isReady) return;
+        // Language already rehydrated from AsyncStorage by persist middleware.
+        // Just detect system language as fallback if still on default.
+        const current = get().language;
+        const lang =
+          current !== DEFAULT_LANGUAGE ? current : detectSystemLanguage();
+        await i18n.changeLanguage(lang);
+        set({ language: lang, isReady: true });
+      },
+
+      setLanguage: async (lang: SupportedLanguage) => {
+        await i18n.changeLanguage(lang);
+        set({ language: lang });
+      },
+    }),
+    {
+      name: 'app-language-v1',
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: state => ({ language: state.language }),
+      onRehydrateStorage: () => state => {
+        // Sync i18next as soon as persist rehydrates (before first render)
+        if (state?.language) {
+          i18n.changeLanguage(state.language);
+        }
+      },
     }
-    initI18n(lang);
-    set({ language: lang, isReady: true });
-  },
+  )
+);
 
-  setLanguage: async (lang: SupportedLanguage) => {
-    await AsyncStorage.setItem(LANGUAGE_KEY, lang);
-    i18n.changeLanguage(lang);
-    set({ language: lang });
-  },
-}));
+// Selectors
+export const useLanguage = () => useLanguageStore(s => s.language);
+export const useIsLanguageReady = () => useLanguageStore(s => s.isReady);
+export const useSetLanguage = () => useLanguageStore(s => s.setLanguage);

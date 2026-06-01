@@ -1,12 +1,9 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import {
-  resources,
-  DEFAULT_LANGUAGE,
-  type SupportedLanguage,
-} from './resources';
+import { resources, DEFAULT_LANGUAGE } from './resources';
 
-const I18N_CONFIG = {
+// Initialized synchronously at module load so t() is always safe on first render
+i18n.use(initReactI18next).init({
   resources,
   lng: DEFAULT_LANGUAGE,
   fallbackLng: DEFAULT_LANGUAGE,
@@ -20,19 +17,8 @@ const I18N_CONFIG = {
     'notifications',
     'errors',
   ],
-  interpolation: {
-    escapeValue: false,
-  },
-};
-
-// Initialize synchronously at module load so t() is always safe to call on first render
-i18n.use(initReactI18next).init(I18N_CONFIG);
-
-export function initI18n(language: SupportedLanguage = DEFAULT_LANGUAGE) {
-  if (i18n.language !== language) {
-    i18n.changeLanguage(language);
-  }
-}
+  interpolation: { escapeValue: false },
+});
 
 export { i18n };
-export type { SupportedLanguage };
+export type { SupportedLanguage } from './resources';
