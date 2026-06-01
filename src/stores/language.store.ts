@@ -10,12 +10,10 @@ import {
 
 function detectSystemLanguage(): SupportedLanguage {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { getLocales } = require('expo-localization') as {
-      getLocales: () => { languageTag: string }[];
-    };
-    const tag = getLocales()[0]?.languageTag ?? '';
-    const code = tag.split('-')[0]?.toLowerCase() ?? '';
+    const tag =
+      Intl.DateTimeFormat().resolvedOptions().locale ??
+      (typeof navigator !== 'undefined' ? navigator.language : '');
+    const code = (tag ?? '').split('-')[0]?.toLowerCase() ?? '';
     return (SUPPORTED_LANGUAGES as string[]).includes(code)
       ? (code as SupportedLanguage)
       : DEFAULT_LANGUAGE;
