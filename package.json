@@ -51,7 +51,6 @@
     "expo-store-review": "~55.0.14",
     "expo-symbols": "~55.0.8",
     "expo-system-ui": "~55.0.17",
-    "expo-updates": "~55.0.24",
     "expo-web-browser": "~55.0.15",
     "i18next": "^26.3.0",
     "lucide-react-native": "^1.14.0",
