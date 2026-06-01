@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getLocales } from 'expo-localization';
 import { i18n } from '@/i18n';
 import {
   SUPPORTED_LANGUAGES,
@@ -10,12 +9,19 @@ import {
 } from '@/i18n/resources';
 
 function detectSystemLanguage(): SupportedLanguage {
-  const locales = getLocales();
-  const tag = locales[0]?.languageTag ?? '';
-  const code = tag.split('-')[0]?.toLowerCase() ?? '';
-  return (SUPPORTED_LANGUAGES as string[]).includes(code)
-    ? (code as SupportedLanguage)
-    : DEFAULT_LANGUAGE;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { getLocales } = require('expo-localization') as {
+      getLocales: () => { languageTag: string }[];
+    };
+    const tag = getLocales()[0]?.languageTag ?? '';
+    const code = tag.split('-')[0]?.toLowerCase() ?? '';
+    return (SUPPORTED_LANGUAGES as string[]).includes(code)
+      ? (code as SupportedLanguage)
+      : DEFAULT_LANGUAGE;
+  } catch {
+    return DEFAULT_LANGUAGE;
+  }
 }
 
 interface LanguageState {
