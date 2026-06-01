@@ -26,12 +26,14 @@ import { useImagePicker } from '@/hooks';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { EditSchoolSheet } from '@/features/school/components/ui/EditSchoolSheet';
 import { useTranslation } from 'react-i18next';
+import { useLanguageStore } from '@/stores/language.store';
 
 export default function SchoolProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const nav = useAppNavigation();
   const { t: i18n } = useTranslation('school');
+  const { language } = useLanguageStore();
   const unreadCount = useUnreadCount();
   const session = useSession();
   const userId = session?.user.id ?? '';
@@ -417,7 +419,7 @@ export default function SchoolProfileScreen() {
               <Text
                 style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
               >
-                {i18n('profile_language_subtitle')}
+                {language === 'fr' ? '🇫🇷 Français' : '🇬🇧 English'}
               </Text>
             </View>
             <Ionicons

@@ -29,6 +29,7 @@ import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { useLanguageStore } from '@/stores/language.store';
 
 interface RowItem {
   icon: React.ReactNode;
@@ -128,6 +129,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t: i18n } = useTranslation('parent');
+  const { language } = useLanguageStore();
   const session = useSession();
   const { isDark, toggleTheme } = useThemeSwitcher();
 
@@ -322,7 +324,7 @@ export default function ProfileScreen() {
             ),
             iconBg: theme.primaryBg,
             title: i18n('profile_language'),
-            subtitle: i18n('profile_language_subtitle'),
+            subtitle: language === 'fr' ? '🇫🇷 Français' : '🇬🇧 English',
             onPress: () => nav.goToParentLanguage(),
           },
         ] as RowItem[],
