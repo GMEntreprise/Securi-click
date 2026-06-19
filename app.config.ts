@@ -1,4 +1,13 @@
+import { existsSync } from 'node:fs';
 import type { ExpoConfig } from 'expo/config';
+
+// iOS Firebase config is gitignored and absent locally; only wire it up when
+// the file (or EAS secret env var) is actually present so `prebuild` won't crash.
+const iosGoogleServicesFile =
+  process.env.GOOGLE_SERVICES_PLIST ??
+  (existsSync('./GoogleService-Info.plist')
+    ? './GoogleService-Info.plist'
+    : undefined);
 
 const config: ExpoConfig = {
   name: 'SecuriClick',
@@ -16,8 +25,9 @@ const config: ExpoConfig = {
 
   ios: {
     bundleIdentifier: 'com.shavod.Securiclick',
-    googleServicesFile:
-      process.env.GOOGLE_SERVICES_PLIST ?? './GoogleService-Info.plist',
+    ...(iosGoogleServicesFile
+      ? { googleServicesFile: iosGoogleServicesFile }
+      : {}),
     icon: {
       light: './assets/icons/ios-light.png',
       dark: './assets/icons/ios-dark.png',
