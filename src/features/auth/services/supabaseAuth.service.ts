@@ -6,6 +6,53 @@ import type {
 import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '../utils/mapAuthSession';
 
+/**
+ * Traduit une erreur Supabase signUp en message clair et actionnable.
+ * On distingue les cas fréquents (doublon, rate limit email, erreur DB)
+ * au lieu d'un générique « Impossible de créer le compte » qui masque tout.
+ */
+function mapSignUpError(error: {
+  message: string;
+  code?: string;
+  status?: number;
+}): Error {
+  const msg = (error.message ?? '').toLowerCase();
+  const code = error.code ?? '';
+
+  if (
+    msg.includes('already registered') ||
+    msg.includes('already been registered')
+  ) {
+    return new Error(
+      'Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.'
+    );
+  }
+  if (
+    code === 'over_email_send_rate_limit' ||
+    error.status === 429 ||
+    msg.includes('rate limit')
+  ) {
+    return new Error(
+      "Trop de demandes d'inscription pour le moment. Réessayez dans quelques minutes."
+    );
+  }
+  if (msg.includes('database error') || msg.includes('saving new user')) {
+    return new Error(
+      'Erreur serveur lors de la création du compte. Notre équipe a été informée, réessayez plus tard.'
+    );
+  }
+  if (msg.includes('password')) {
+    return new Error(
+      'Le mot de passe ne respecte pas les exigences de sécurité.'
+    );
+  }
+  // Cas inconnu : conserver le message réel en dev pour le diagnostic
+  if (__DEV__) {
+    return new Error(`Inscription échouée: ${error.message}`);
+  }
+  return new Error('Impossible de créer le compte. Réessayez.');
+}
+
 async function signInWithPassword(
   email: string,
   password: string
@@ -69,16 +116,7 @@ async function registerParent(data: RegisterParentData): Promise<void> {
   });
 
   if (error) {
-    const msg = error.message.toLowerCase();
-    if (
-      msg.includes('already registered') ||
-      msg.includes('already been registered')
-    ) {
-      throw new Error(
-        'Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.'
-      );
-    }
-    throw new Error('Impossible de créer le compte. Réessayez.');
+    throw mapSignUpError(error);
   }
 }
 
@@ -119,16 +157,7 @@ async function registerSchool(data: RegisterSchoolData): Promise<void> {
   });
 
   if (error) {
-    const msg = error.message.toLowerCase();
-    if (
-      msg.includes('already registered') ||
-      msg.includes('already been registered')
-    ) {
-      throw new Error(
-        'Un compte existe déjà avec cet email. Connectez-vous ou utilisez un autre email.'
-      );
-    }
-    throw new Error('Impossible de créer le compte. Réessayez.');
+    throw mapSignUpError(error);
   }
 }
 
