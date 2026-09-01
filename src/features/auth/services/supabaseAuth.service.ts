@@ -6,12 +6,16 @@ import type {
 import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '../utils/mapAuthSession';
 import { directoryService } from '@/features/school/directory';
+import { resolveSignUpOutcome } from '../utils/signUpOutcome';
 
 /**
  * Traduit une erreur Supabase signUp en message clair et actionnable.
  * On distingue les cas fréquents (doublon, rate limit email, erreur DB)
  * au lieu d'un générique « Impossible de créer le compte » qui masque tout.
  */
+const UNUSABLE_SIGNUP_MESSAGE =
+  "L'inscription n'a pas abouti. Réessayez dans quelques instants.";
+
 function mapSignUpError(error: {
   message: string;
   code?: string;
@@ -89,20 +93,7 @@ async function signInWithPassword(
 async function registerParent(data: RegisterParentData): Promise<void> {
   const normalizedEmail = data.email.trim().toLowerCase();
 
-  // Check if an account already exists with this email via a SECURITY DEFINER RPC
-  // that queries auth.users server-side. Supabase signUp is silent on duplicate
-  // emails to prevent enumeration — we must pre-check ourselves.
-  const { data: emailTaken } = await supabase.rpc('check_email_exists', {
-    p_email: normalizedEmail,
-  });
-
-  if (emailTaken) {
-    throw new Error(
-      'Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.'
-    );
-  }
-
-  const { error } = await supabase.auth.signUp({
+  const { data: signUp, error } = await supabase.auth.signUp({
     email: normalizedEmail,
     password: data.password,
     options: {
@@ -118,6 +109,9 @@ async function registerParent(data: RegisterParentData): Promise<void> {
 
   if (error) {
     throw mapSignUpError(error);
+  }
+  if (resolveSignUpOutcome(signUp) === 'unusable') {
+    throw new Error(UNUSABLE_SIGNUP_MESSAGE);
   }
 }
 
@@ -143,20 +137,7 @@ async function registerSchool(data: RegisterSchoolData): Promise<void> {
     );
   }
 
-  // Check if any account already exists with this email (school or parent).
-  // Supabase signUp is silent on duplicate emails to prevent enumeration —
-  // we must pre-check via a SECURITY DEFINER RPC that queries auth.users.
-  const { data: emailTaken } = await supabase.rpc('check_email_exists', {
-    p_email: normalizedEmail,
-  });
-
-  if (emailTaken) {
-    throw new Error(
-      'Un compte existe déjà avec cet email. Connectez-vous ou utilisez un autre email.'
-    );
-  }
-
-  const { error } = await supabase.auth.signUp({
+  const { data: signUp, error } = await supabase.auth.signUp({
     email: normalizedEmail,
     password: data.password,
     options: {
@@ -185,6 +166,9 @@ async function registerSchool(data: RegisterSchoolData): Promise<void> {
       );
     }
     throw mapSignUpError(error);
+  }
+  if (resolveSignUpOutcome(signUp) === 'unusable') {
+    throw new Error(UNUSABLE_SIGNUP_MESSAGE);
   }
 }
 
