@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/features/auth/store/auth.store';
-import { useCollectorSessionStore } from '@/features/collector/stores/collectorSession.store';
 import { ROUTES } from './routes';
 import { setExplicitLogoutInProgress } from './authFlags';
 
@@ -41,10 +40,8 @@ export function useAppNavigation() {
   // ── Logout (shared by all roles) ────────────────────────────────────────────
 
   const logout = useCallback(async () => {
-    const logoutAction = useAuthStore.getState().logout;
-    const clearPin = useCollectorSessionStore.getState().clear;
     setExplicitLogoutInProgress(true);
-    await Promise.allSettled([logoutAction(), clearPin()]);
+    await useAuthStore.getState().logout();
     setExplicitLogoutInProgress(false);
     router.replace(ROUTES.auth.login as any);
   }, [router]);
@@ -54,11 +51,9 @@ export function useAppNavigation() {
   const deleteAccount = useCallback(async () => {
     const { authService } =
       await import('@/features/auth/services/supabaseAuth.service');
-    const clearPin = useCollectorSessionStore.getState().clear;
     setExplicitLogoutInProgress(true);
     await authService.deleteAccount();
-    await Promise.allSettled([clearPin()]);
-    useAuthStore.setState({ session: null });
+    await useAuthStore.getState().clearSession();
     setExplicitLogoutInProgress(false);
     router.replace(ROUTES.auth.login as any);
   }, [router]);

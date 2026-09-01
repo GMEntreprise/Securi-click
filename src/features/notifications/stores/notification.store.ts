@@ -19,18 +19,21 @@ interface NotificationState {
   markReadLocally: (ids: string[]) => void;
   markAllReadLocally: () => void;
 
+  reset: () => void;
+
   openCenter: () => void;
   closeCenter: () => void;
 }
 
-export const useNotificationStore = create<NotificationState>((set, get) => ({
+export const useNotificationStore = create<NotificationState>(set => ({
   unreadCount: 0,
   items: [],
   centerOpen: false,
 
   setUnreadCount: count => set({ unreadCount: Math.max(0, count) }),
   incrementUnread: () => set(s => ({ unreadCount: s.unreadCount + 1 })),
-  decrementUnread: (by = 1) => set(s => ({ unreadCount: Math.max(0, s.unreadCount - by) })),
+  decrementUnread: (by = 1) =>
+    set(s => ({ unreadCount: Math.max(0, s.unreadCount - by) })),
   resetUnread: () => set({ unreadCount: 0 }),
 
   setItems: items => set({ items }),
@@ -48,8 +51,14 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     })),
   markAllReadLocally: () =>
     set(s => ({
-      items: s.items.map(n => ({ ...n, is_read: true, read_at: new Date().toISOString() })),
+      items: s.items.map(n => ({
+        ...n,
+        is_read: true,
+        read_at: new Date().toISOString(),
+      })),
     })),
+
+  reset: () => set({ unreadCount: 0, items: [], centerOpen: false }),
 
   openCenter: () => set({ centerOpen: true }),
   closeCenter: () => set({ centerOpen: false }),
@@ -58,4 +67,5 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
 // Stable selectors — zero re-render on unrelated state changes
 export const useUnreadCount = () => useNotificationStore(s => s.unreadCount);
 export const useNotificationItems = () => useNotificationStore(s => s.items);
-export const useNotificationCenterOpen = () => useNotificationStore(s => s.centerOpen);
+export const useNotificationCenterOpen = () =>
+  useNotificationStore(s => s.centerOpen);

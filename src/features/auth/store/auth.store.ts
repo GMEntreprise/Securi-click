@@ -1,50 +1,71 @@
 import { create } from 'zustand';
-import { authService } from '../services/supabaseAuth.service';
-import type { AuthSession, AuthState } from '../types';
+import { queryClient } from '@/lib/queryClient';
 import { useComplianceStore } from '@/stores/compliance.store';
+import { useNotificationStore } from '@/features/notifications/stores/notification.store';
+import { useCollectorSessionStore } from '@/features/collector/stores/collectorSession.store';
+import { authService } from '../services/supabaseAuth.service';
+import { shouldResetQueryCache } from '../utils/sessionReset';
+import type { AuthSession, AuthState } from '../types';
 
 interface AuthActions {
   initialize: () => Promise<void>;
   login: (session: AuthSession) => void;
   logout: () => Promise<void>;
+  clearSession: () => Promise<void>;
   setLoading: (isLoading: boolean) => void;
 }
 
-export const useAuthStore = create<AuthState & AuthActions>(set => ({
+async function discardUserData(): Promise<void> {
+  queryClient.cancelQueries();
+  queryClient.clear();
+  useComplianceStore.getState().reset();
+  useNotificationStore.getState().reset();
+  await useCollectorSessionStore.getState().clear();
+}
+
+export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   session: null,
   isLoading: false,
   isRestoring: true,
+
   initialize: async () => {
     try {
       const session = await authService.restoreSession();
-      if (session) {
-        set({ session, isRestoring: false });
-      } else {
-        set({ isRestoring: false });
-      }
+      set({ session: session ?? null, isRestoring: false });
     } catch {
       set({ isRestoring: false });
     }
   },
 
-  login: session => set({ session, isLoading: false }),
+  login: session => {
+    const previousUserId = get().session?.user.id ?? null;
+    if (shouldResetQueryCache(previousUserId, session.user.id)) {
+      queryClient.cancelQueries();
+      queryClient.clear();
+      useNotificationStore.getState().reset();
+    }
+    set({ session, isLoading: false });
+  },
 
   logout: async () => {
     set({ isLoading: true });
     try {
       await authService.signOut();
-      useComplianceStore.getState().reset();
-      set({ session: null, isLoading: false });
-    } catch (error) {
-      set({ isLoading: false });
-      throw error;
+    } catch {
+      /* empty */
     }
+    await discardUserData();
+    set({ session: null, isLoading: false });
+  },
+
+  clearSession: async () => {
+    await discardUserData();
+    set({ session: null, isLoading: false });
   },
 
   setLoading: isLoading => set({ isLoading }),
 }));
 
-// Selectors pour ZERO re-renders
 export const useSession = () => useAuthStore(s => s.session);
 export const useIsAuthenticated = () => useAuthStore(s => !!s.session);
 export const useIsLoading = () =>

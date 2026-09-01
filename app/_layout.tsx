@@ -15,7 +15,8 @@ import { mapSupabaseSessionToAuthSession } from '@/features/auth/utils/mapAuthSe
 import { passwordLoginInProgress } from '@/features/auth/hooks/useLogin';
 import { collectorPinLoginInProgress } from '@/features/collector/hooks/useCollectorPinLogin';
 import { explicitLogoutInProgress } from '@/navigation/authFlags';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 import { ThemeProvider } from '@/shared/ui/organisms/theme-switch/context';
 import { ThemeMode } from '@/shared/ui/organisms/theme-switch/types';
 import { ToastProviderWithViewport, Toast } from '@/shared/ui/molecules/Toast';
@@ -37,13 +38,6 @@ import { useOTAUpdate } from '@/hooks/useOTAUpdate';
 import { useLanguageStore } from '@/stores/language.store';
 import { useComplianceStore } from '@/stores/compliance.store';
 import { StatusBar } from 'expo-status-bar';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: 1, staleTime: 5 * 60 * 1000 },
-    mutations: { retry: 0 },
-  },
-});
 
 function parseUrlParams(url: string): {
   code: string | null;
@@ -295,8 +289,7 @@ function AuthStateSync() {
         // Supabase fires SIGNED_OUT spuriously on 401s from background requests
         // (e.g. a Realtime channel reconnect with an expired token) — ignore those.
         if (explicitLogoutInProgress) {
-          useComplianceStore.getState().reset();
-          useAuthStore.setState({ session: null });
+          await useAuthStore.getState().clearSession();
         }
         return;
       }
