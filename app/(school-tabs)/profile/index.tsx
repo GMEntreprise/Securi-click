@@ -27,6 +27,7 @@ import { Avatar } from '@/shared/ui/base/avatar';
 import { EditSchoolSheet } from '@/features/school/components/ui/EditSchoolSheet';
 import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from '@/stores/language.store';
+import { getOfficialSchoolUai } from '@/features/school/utils/officialSchoolIdentity';
 
 export default function SchoolProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -96,6 +97,7 @@ export default function SchoolProfileScreen() {
   }
 
   const isLogoBusy = isUploading || updateLogo.isPending;
+  const officialUai = getOfficialSchoolUai(school);
 
   return (
     <>
@@ -214,6 +216,13 @@ export default function SchoolProfileScreen() {
               overflow: 'hidden',
             }}
           >
+            {officialUai && (
+              <InfoRow
+                iconName="key-outline"
+                label={i18n('profile_info_uai')}
+                value={officialUai}
+              />
+            )}
             <InfoRow
               iconName="business-outline"
               label={i18n('profile_info_manager')}

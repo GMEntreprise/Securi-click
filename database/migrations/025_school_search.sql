@@ -13,16 +13,36 @@ ALTER TABLE schools
   ADD COLUMN IF NOT EXISTS normalized_name TEXT;
 
 -- 3. Fonction de normalisation (minuscules + unaccent + collapse espaces)
-CREATE OR REPLACE FUNCTION normalize_school_name(input TEXT)
-RETURNS TEXT
-LANGUAGE sql
-IMMUTABLE STRICT
-AS $$
-  SELECT regexp_replace(
-    lower(unaccent(trim(input))),
-    '\s+', ' ', 'g'
+DO $migration$
+DECLARE
+  unaccent_schema TEXT;
+BEGIN
+  SELECT namespace.nspname
+  INTO STRICT unaccent_schema
+  FROM pg_catalog.pg_extension installed_extension
+  JOIN pg_catalog.pg_namespace namespace
+    ON namespace.oid = installed_extension.extnamespace
+  WHERE installed_extension.extname = 'unaccent';
+
+  EXECUTE pg_catalog.format(
+    $function$
+      CREATE OR REPLACE FUNCTION public.normalize_school_name(input TEXT)
+      RETURNS TEXT
+      LANGUAGE sql
+      IMMUTABLE
+      STRICT
+      SET search_path = pg_catalog
+      AS $body$
+        SELECT pg_catalog.regexp_replace(
+          pg_catalog.lower(%I.unaccent(pg_catalog.btrim(input))),
+          '\s+', ' ', 'g'
+        );
+      $body$;
+    $function$,
+    unaccent_schema
   );
-$$;
+END;
+$migration$;
 
 -- 4. Populer normalized_name pour les écoles existantes
 UPDATE schools

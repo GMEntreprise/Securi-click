@@ -41,19 +41,14 @@ import { LegalConsentSheet } from '../components/ui/LegalConsentSheet';
 import { LegalMentionsScreen } from '@/features/legal/screens/LegalMentionsScreen';
 import { PrivacyPolicyScreen } from '@/features/legal/screens/PrivacyPolicyScreen';
 import { useTheme } from '@/theme';
-import { SchoolNameSmartField } from '@/features/school/components/ui/SchoolNameSmartField';
-import type { SchoolPrefillData } from '@/features/school/components/ui/SchoolNameSmartField';
+import {
+  EstablishmentSelector,
+  type EducationEstablishment,
+} from '@/features/school/directory';
 import { useTranslation } from 'react-i18next';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.3;
-
-const SCHOOL_TYPES = [
-  'École maternelle privée',
-  'École maternelle publique',
-  'École primaire privée',
-  'École primaire publique',
-];
 
 const MANAGER_FUNCTIONS = [
   'Directeur / Directrice',
@@ -187,11 +182,12 @@ const SchoolRegisterForm: React.FC<{
   }) => {
     const t = useTheme();
     const { t: i18n } = useTranslation('auth');
+    const [selectedEstablishment, setSelectedEstablishment] =
+      useState<EducationEstablishment | null>(null);
     const {
       control,
       handleSubmit,
       setValue,
-      watch,
       formState: { errors },
     } = useForm<RegisterValues>({
       resolver: zodResolver(schoolRegisterSchema),
@@ -206,6 +202,7 @@ const SchoolRegisterForm: React.FC<{
         phone: '',
         address: '',
         school_type: '',
+        directory_uai: '',
         password: '',
         confirm_password: '',
         accept_terms: false,
@@ -213,18 +210,33 @@ const SchoolRegisterForm: React.FC<{
       },
     });
 
-    const schoolNameValue = watch('school_name');
-
-    const handlePrefill = useCallback(
-      (data: SchoolPrefillData) => {
-        setValue('school_name', data.name, { shouldValidate: true });
-        setValue('school_type', data.type, { shouldValidate: true });
-        setValue('address', data.address, { shouldValidate: true });
-        setValue('city', data.city, { shouldValidate: true });
-        setValue('postal_code', data.postal_code, { shouldValidate: true });
+    const handleEstablishmentConfirm = useCallback(
+      (establishment: EducationEstablishment) => {
+        setSelectedEstablishment(establishment);
+        setValue('directory_uai', establishment.uai, { shouldValidate: true });
+        setValue('school_name', establishment.official_name, {
+          shouldValidate: true,
+        });
+        setValue('school_type', establishment.nature_label, {
+          shouldValidate: true,
+        });
+        setValue(
+          'address',
+          establishment.address_line_1 ?? establishment.city,
+          { shouldValidate: true }
+        );
+        setValue('city', establishment.city, { shouldValidate: true });
+        setValue('postal_code', establishment.postal_code, {
+          shouldValidate: true,
+        });
       },
       [setValue]
     );
+
+    const handleEstablishmentModify = useCallback(() => {
+      setSelectedEstablishment(null);
+      setValue('directory_uai', '', { shouldValidate: true });
+    }, [setValue]);
 
     return (
       <View style={{ paddingHorizontal: 24, paddingTop: 8 }}>
@@ -270,101 +282,17 @@ const SchoolRegisterForm: React.FC<{
           </View>
         )}
 
-        <SchoolNameSmartField
-          value={schoolNameValue}
-          onChangeText={text =>
-            setValue('school_name', text, {
-              shouldValidate: !!errors.school_name,
-            })
-          }
-          onPrefill={handlePrefill}
-          error={errors.school_name?.message}
-        />
-
-        <AuthPickerField
-          control={control}
-          name="school_type"
-          label={i18n('school_type')}
-          options={SCHOOL_TYPES}
-          icon={
-            <Ionicons name="school-outline" size={18} color={t.textMuted} />
-          }
-          placeholder="Sélectionnez le type"
-          error={errors.school_type?.message}
-        />
-
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <View style={{ flex: 1 }}>
-            <AuthInputField
-              control={control}
-              name="city"
-              label={i18n('school_city')}
-              placeholder="Paris"
-              icon={
-                <Ionicons
-                  name="location-outline"
-                  size={18}
-                  color={t.textMuted}
-                />
-              }
-              error={errors.city?.message}
-            />
-          </View>
-          <View style={{ width: 110 }}>
-            <AuthInputField
-              control={control}
-              name="postal_code"
-              label={i18n('school_postal_code')}
-              placeholder="75001"
-              error={errors.postal_code?.message}
-              keyboardType="numeric"
-              maxLength={5}
-            />
-          </View>
-        </View>
-
-        <AuthInputField
-          control={control}
-          name="address"
-          label={i18n('school_address')}
-          placeholder="12 rue de la Paix"
-          icon={
-            <Ionicons name="location-outline" size={18} color={t.textMuted} />
-          }
-          error={errors.address?.message}
-        />
-
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'flex-start',
-            gap: 8,
-            marginBottom: 16,
-            backgroundColor: t.amberBg,
-            borderWidth: 1,
-            borderColor: t.isDark ? 'rgba(245,158,11,0.2)' : '#fde68a',
-            paddingHorizontal: 12,
-            paddingVertical: 10,
-            borderRadius: 14,
-          }}
-        >
-          <Ionicons
-            name="alert-circle-outline"
-            size={14}
-            color={t.amber}
-            style={{ marginTop: 2 }}
+        <View style={{ marginBottom: 24 }}>
+          <EstablishmentSelector
+            confirmed={selectedEstablishment}
+            onConfirm={handleEstablishmentConfirm}
+            onModify={handleEstablishmentModify}
           />
-          <Text
-            style={{
-              fontSize: 12,
-              color: t.textSecondary,
-              flex: 1,
-              fontStyle: 'italic',
-              lineHeight: 17,
-            }}
-          >
-            {i18n('school_address_hint')}
-          </Text>
+          {errors.directory_uai?.message && (
+            <Text style={{ color: t.red, fontSize: 12, marginTop: 8 }}>
+              {errors.directory_uai.message}
+            </Text>
+          )}
         </View>
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -533,16 +461,19 @@ export const SchoolAuthScreen: React.FC = memo(() => {
             duration: 4000,
           });
         },
-        onError: (e: any) => {
+        onError: (error: unknown) => {
           setPendingData(null);
-          Toast.show(e?.message ?? i18n('register_error'), {
-            type: 'error',
-            duration: 5000,
-          });
+          Toast.show(
+            error instanceof Error ? error.message : i18n('register_error'),
+            {
+              type: 'error',
+              duration: 5000,
+            }
+          );
         },
       }
     );
-  }, [pendingData, registerMutation]);
+  }, [i18n, pendingData, registerMutation]);
 
   const handleRegister = handleRegisterFormSubmit;
 

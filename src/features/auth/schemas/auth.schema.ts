@@ -32,6 +32,11 @@ export const schoolRegisterSchema = z
   .object({
     school_name: z.string().min(2, "Nom de l'établissement requis"),
     school_type: z.string().min(2, "Type d'établissement requis"),
+    directory_uai: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[0-9]{7}[A-Z]$/, 'Confirmez un établissement officiel'),
     email: z.string().email('Email invalide'),
     phone: z.string().min(10, 'Téléphone requis'),
     address: z.string().min(5, 'Adresse requise'),

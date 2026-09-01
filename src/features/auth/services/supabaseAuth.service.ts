@@ -5,6 +5,7 @@ import type {
 } from '../types';
 import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '../utils/mapAuthSession';
+import { directoryService } from '@/features/school/directory';
 
 /**
  * Traduit une erreur Supabase signUp en message clair et actionnable.
@@ -122,6 +123,25 @@ async function registerParent(data: RegisterParentData): Promise<void> {
 
 async function registerSchool(data: RegisterSchoolData): Promise<void> {
   const normalizedEmail = data.email.trim().toLowerCase();
+  const establishment = await directoryService.byUai(data.directory_uai);
+  if (establishment.status === 'network_error') {
+    throw new Error(
+      'Connexion impossible. Vérifiez votre réseau et réessayez.'
+    );
+  }
+  if (establishment.status !== 'found') {
+    throw new Error(
+      'Établissement introuvable. Vérifiez le code UAI sélectionné.'
+    );
+  }
+  if (!establishment.establishment.is_active) {
+    throw new Error("Cet établissement n'est actuellement pas disponible.");
+  }
+  if (establishment.establishment.is_claimed) {
+    throw new Error(
+      'Cet établissement possède déjà un compte SecuriClick. Connectez-vous ou contactez le support.'
+    );
+  }
 
   // Check if any account already exists with this email (school or parent).
   // Supabase signUp is silent on duplicate emails to prevent enumeration —
@@ -144,6 +164,7 @@ async function registerSchool(data: RegisterSchoolData): Promise<void> {
       data: {
         school_name: data.school_name,
         school_type: data.school_type,
+        directory_uai: data.directory_uai.trim().toUpperCase(),
         phone: data.phone,
         address: data.address,
         city: data.city,
@@ -157,6 +178,12 @@ async function registerSchool(data: RegisterSchoolData): Promise<void> {
   });
 
   if (error) {
+    const latest = await directoryService.byUai(data.directory_uai);
+    if (latest.status === 'found' && latest.establishment.is_claimed) {
+      throw new Error(
+        'Cet établissement possède déjà un compte SecuriClick. Connectez-vous ou contactez le support.'
+      );
+    }
     throw mapSignUpError(error);
   }
 }

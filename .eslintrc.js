@@ -1,10 +1,12 @@
 module.exports = {
-  extends: [
-    'expo',
-    '@react-native-community',
-    'prettier',
-  ],
-  plugins: ['react-hooks', 'unused-imports'],
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    ecmaFeatures: { jsx: true },
+  },
+  extends: ['expo', 'prettier'],
+  plugins: ['@typescript-eslint', 'react-hooks', 'unused-imports'],
   rules: {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',

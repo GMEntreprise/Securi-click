@@ -67,6 +67,7 @@ function InputField({
   error,
   keyboardType,
   autoCapitalize = 'sentences',
+  editable = true,
 }: {
   label: string;
   value: string;
@@ -75,6 +76,7 @@ function InputField({
   error?: string;
   keyboardType?: 'default' | 'phone-pad' | 'email-address' | 'numeric';
   autoCapitalize?: 'none' | 'sentences' | 'words';
+  editable?: boolean;
 }) {
   const theme = useTheme();
   return (
@@ -96,8 +98,9 @@ function InputField({
         placeholderTextColor={theme.placeholder}
         keyboardType={keyboardType ?? 'default'}
         autoCapitalize={autoCapitalize}
+        editable={editable}
         style={{
-          backgroundColor: theme.input,
+          backgroundColor: editable ? theme.input : theme.iconBg,
           borderWidth: 1,
           borderColor: error ? theme.red : theme.inputBorder,
           borderRadius: 14,
@@ -231,6 +234,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
   }, [validate, updateSchool, school.id, form, onClose, i18n]);
 
   const isBusy = updateSchool.isPending;
+  const officialLocked = school.education_establishment_id !== null;
 
   return (
     <>
@@ -324,68 +328,83 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                 placeholder={i18n('edit_school_name_placeholder')}
                 autoCapitalize="words"
                 error={errors.name}
+                editable={!officialLocked}
               />
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setSchoolPickerVisible(true);
-                }}
-                activeOpacity={0.75}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 10,
-                  backgroundColor: theme.iconBg,
-                  borderRadius: 14,
-                  borderWidth: 1,
-                  borderColor: theme.cardBorder,
-                  padding: 12,
-                  marginBottom: 14,
-                }}
-              >
-                <View
+              {officialLocked && (
+                <Text
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: theme.primaryBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flexShrink: 0,
+                    color: theme.primary,
+                    fontSize: 12,
+                    fontWeight: '700',
+                    marginBottom: 14,
                   }}
                 >
+                  {i18n('edit_school_official_readonly')}
+                </Text>
+              )}
+              {!officialLocked && (
+                <TouchableOpacity
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSchoolPickerVisible(true);
+                  }}
+                  activeOpacity={0.75}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 10,
+                    backgroundColor: theme.iconBg,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    borderColor: theme.cardBorder,
+                    padding: 12,
+                    marginBottom: 14,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      backgroundColor: theme.primaryBg,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Ionicons
+                      name="search-outline"
+                      size={15}
+                      color={theme.primary}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        color: theme.text,
+                        fontSize: 13,
+                        fontWeight: '700',
+                      }}
+                    >
+                      {i18n('edit_school_search_official')}
+                    </Text>
+                    <Text
+                      style={{
+                        color: theme.textMuted,
+                        fontSize: 12,
+                        marginTop: 1,
+                      }}
+                    >
+                      {i18n('edit_school_search_subtitle')}
+                    </Text>
+                  </View>
                   <Ionicons
-                    name="search-outline"
+                    name="chevron-forward"
                     size={15}
-                    color={theme.primary}
+                    color={theme.textMuted}
                   />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text
-                    style={{
-                      color: theme.text,
-                      fontSize: 13,
-                      fontWeight: '700',
-                    }}
-                  >
-                    {i18n('edit_school_search_official')}
-                  </Text>
-                  <Text
-                    style={{
-                      color: theme.textMuted,
-                      fontSize: 12,
-                      marginTop: 1,
-                    }}
-                  >
-                    {i18n('edit_school_search_subtitle')}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={15}
-                  color={theme.textMuted}
-                />
-              </TouchableOpacity>
+                </TouchableOpacity>
+              )}
 
               {/* Type picker */}
               <View style={{ marginBottom: 14 }}>
@@ -400,9 +419,10 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                   {i18n('edit_school_type_label')}
                 </Text>
                 <TouchableOpacity
+                  disabled={officialLocked}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setTypePickerOpen(true);
+                    if (!officialLocked) setTypePickerOpen(true);
                   }}
                   activeOpacity={0.75}
                   style={{
@@ -441,7 +461,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
               </View>
 
               <Modal
-                visible={typePickerOpen}
+                visible={typePickerOpen && !officialLocked}
                 transparent
                 animationType="slide"
                 onRequestClose={() => setTypePickerOpen(false)}
@@ -584,6 +604,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                 onChangeText={setField('address')}
                 placeholder={i18n('edit_school_address_placeholder')}
                 error={errors.address}
+                editable={!officialLocked}
               />
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <View style={{ flex: 1 }}>
@@ -593,6 +614,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     onChangeText={setField('city')}
                     placeholder={i18n('edit_school_city_placeholder')}
                     error={errors.city}
+                    editable={!officialLocked}
                   />
                 </View>
                 <View style={{ width: 110 }}>
@@ -604,6 +626,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     keyboardType="numeric"
                     autoCapitalize="none"
                     error={errors.postal_code}
+                    editable={!officialLocked}
                   />
                 </View>
               </View>

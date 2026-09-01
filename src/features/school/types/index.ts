@@ -17,6 +17,8 @@ export interface SchoolProfile {
   is_active: boolean;
   verified: boolean;
   external_id: string | null;
+  education_establishment_id: string | null;
+  education_link_status: 'linked' | 'needs_review' | 'not_applicable';
   created_at: string;
   updated_at: string;
 }

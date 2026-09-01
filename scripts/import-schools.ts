@@ -1,181 +1,314 @@
 #!/usr/bin/env -S npx ts-node --esm
-/**
- * Script d'import initial des établissements scolaires data.gouv.fr
- * Utilisation : SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npx ts-node scripts/import-schools.ts
- *
- * Télécharge les écoles (maternelles + primaires publiques/privées) depuis
- * l'API officielle Éducation Nationale et les upsert dans la table schools.
- */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import {
+  EDUCATION_DIRECTORY_FIELDS,
+  EDUCATION_DIRECTORY_SOURCE,
+  EDUCATION_DIRECTORY_URL,
+  FRANCE_DEPARTMENT_CODES,
+  PARIS_DEPARTMENT_CODE,
+  type DirectoryScope,
+  type OfficialEducationRecord,
+  isSkippableReason,
+  isSyncFailingFast,
+  normalizeOfficialRecord,
+  resolveStoredSplit,
+} from '../supabase/functions/_shared/educationDirectory.ts';
 
-const SUPABASE_URL             = process.env.SUPABASE_URL ?? '';
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+const PAGE_SIZE = 100;
+const MAX_RETRIES = 4;
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('❌  SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY requis');
-  process.exit(1);
+interface ApiPage {
+  results: OfficialEducationRecord[];
+  total_count: number;
+}
+interface SyncMetrics {
+  fetched: number;
+  stored: number;
+  skipped: number;
+  errors: number;
+  missing: number;
+}
+interface Checkpoint {
+  departmentIndex: number;
+  offset: number;
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-// ── API data.gouv.fr ──────────────────────────────────────────────────────────
-
-const BASE_URL = 'https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-annuaire-education/records';
-const BATCH_SIZE = 100; // max autorisé par data.gouv.fr
-const CONCURRENCY = 5; // upserts en parallèle par batch
-
-interface DataGouvRecord {
-  identifiant_de_l_etablissement?: string;
-  nom_etablissement?: string;
-  type_etablissement?: string;
-  statut_public_prive?: string;
-  libelle_nature?: string;
-  adresse_1?: string;
-  adresse_2?: string;
-  nom_commune?: string;
-  code_postal?: string;
-  code_departement?: string;
-  ecole_maternelle?: number;
-  ecole_elementaire?: number;
-  etat?: string;
+function readScope(): DirectoryScope {
+  return process.env.SYNC_SCOPE === 'france' ? 'france' : 'paris';
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  'ecole maternelle publique':  'École maternelle publique',
-  'ecole maternelle privee':    'École maternelle privée',
-  'ecole primaire publique':    'École primaire publique',
-  'ecole primaire privee':      'École primaire privée',
-  'ecole elementaire publique': 'École primaire publique',
-  'ecole elementaire privee':   'École primaire privée',
-};
-
-function deaccent(s: string): string {
-  return s.normalize('NFD').replace(/\p{Mn}/gu, '');
-}
-
-function resolveType(r: DataGouvRecord): string {
-  const nature = deaccent((r.libelle_nature ?? '').toLowerCase());
-  for (const [key, label] of Object.entries(TYPE_LABELS)) {
-    if (nature.includes(key)) return label;
+async function fetchWithRetry(url: string): Promise<ApiPage> {
+  let lastError: Error | null = null;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
+    try {
+      const response = await fetch(url, {
+        headers: { Accept: 'application/json' },
+      });
+      if (!response.ok)
+        throw new Error(`Education API HTTP ${response.status}`);
+      return (await response.json()) as ApiPage;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (attempt < MAX_RETRIES - 1)
+        await new Promise(resolve => setTimeout(resolve, 500 * 2 ** attempt));
+    }
   }
-  const isPublic = (r.statut_public_prive ?? '').toLowerCase() === 'public';
-  if (nature.includes('maternelle')) {
-    return isPublic ? 'École maternelle publique' : 'École maternelle privée';
-  }
-  return isPublic ? 'École primaire publique' : 'École primaire privée';
+  throw lastError ?? new Error('Education API unavailable');
 }
 
-function normalize(r: DataGouvRecord): {
-  external_id: string; name: string; type: string;
-  address: string; city: string; postal_code: string;
-} | null {
-  const uai = r.identifiant_de_l_etablissement?.trim();
-  if (!uai) return null;
-  if ((r.etat ?? '').toUpperCase() === 'FERME') return null;
-  const name = r.nom_etablissement?.trim();
-  if (!name) return null;
-  const address = [r.adresse_1, r.adresse_2].filter(Boolean).join(', ').trim();
-  return {
-    external_id:  uai,
-    name,
-    type:         resolveType(r),
-    address:      address || (r.nom_commune?.trim() ?? ''),
-    city:         r.nom_commune?.trim() ?? '',
-    postal_code:  r.code_postal?.trim() ?? '',
-  };
-}
-
-// Départements français — chaque tranche reste sous 10 000 records
-const DEPARTEMENTS = [
-  '001','002','003','004','005','006','007','008','009',
-  '010','011','012','013','014','015','016','017','018','019',
-  '021','022','023','024','025','026','027','028','029',
-  '030','031','032','033','034','035','036','037','038','039',
-  '040','041','042','043','044','045','046','047','048','049',
-  '050','051','052','053','054','055','056','057','058','059',
-  '060','061','062','063','064','065','066','067','068','069',
-  '070','071','072','073','074','075','076','077','078','079',
-  '080','081','082','083','084','085','086','087','088','089',
-  '090','091','092','093','094','095',
-  '971','972','973','974','976',
-  '02A','02B',
-];
-
-async function fetchDeptPage(dept: string, offset: number): Promise<{ records: DataGouvRecord[]; total: number }> {
+function pageUrl(department: string, offset: number): string {
   const where = encodeURIComponent(
-    `type_etablissement:"Ecole" AND etat:"OUVERT" AND code_departement:"${dept}"`
+    `type_etablissement:"Ecole" AND etat:"OUVERT" AND code_departement:"${department}"`
   );
-  const url = `${BASE_URL}?where=${where}&limit=${BATCH_SIZE}&offset=${offset}&timezone=Europe%2FParis`;
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-  const body = await res.json() as { results: DataGouvRecord[]; total_count: number };
-  return { records: body.results ?? [], total: body.total_count ?? 0 };
+  return `${EDUCATION_DIRECTORY_URL}?select=${encodeURIComponent(EDUCATION_DIRECTORY_FIELDS)}&where=${where}&order_by=identifiant_de_l_etablissement&limit=${PAGE_SIZE}&offset=${offset}&timezone=Europe%2FParis`;
 }
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+async function logRecordError(
+  supabase: SupabaseClient,
+  runId: string,
+  record: OfficialEducationRecord,
+  message: string
+): Promise<void> {
+  await supabase.from('education_sync_errors').insert({
+    run_id: runId,
+    uai: record.identifiant_de_l_etablissement ?? null,
+    message,
+    payload: record,
+  });
+}
 
-async function main() {
-  console.log('🏫  Import établissements data.gouv.fr → Supabase\n');
-
-  let inserted = 0, updated = 0, skipped = 0, errors = 0;
-  let page = 0;
-  let totalProcessed = 0;
-
-  for (const dept of DEPARTEMENTS) {
-    let offset = 0;
-    let deptTotal = Infinity;
-
-    while (offset < deptTotal) {
-      const { records, total } = await fetchDeptPage(dept, offset);
-      deptTotal = total;
-
-      if (records.length === 0) break;
-      page++;
-      totalProcessed += records.length;
-
-    const schools = records.flatMap(r => {
-      const n = normalize(r);
-      return n ? [n] : (skipped++, []);
-    });
-
-    // Upsert en micro-batches parallèles
-    const chunks: typeof schools[] = [];
-    for (let i = 0; i < schools.length; i += CONCURRENCY) {
-      chunks.push(schools.slice(i, i + CONCURRENCY));
+async function syncRecords(
+  supabase: SupabaseClient,
+  runId: string,
+  records: OfficialEducationRecord[],
+  metrics: SyncMetrics
+): Promise<void> {
+  const normalized = records.map(record => ({
+    record,
+    result: normalizeOfficialRecord(record, runId),
+  }));
+  const valid = normalized.flatMap(item =>
+    item.result.value ? [item.result.value] : []
+  );
+  for (const item of normalized) {
+    if (item.result.value) continue;
+    if (isSkippableReason(item.result.reason)) {
+      metrics.skipped += 1;
+      continue;
     }
-
-    for (const chunk of chunks) {
-      await Promise.all(chunk.map(async school => {
-        const { data, error } = await supabase.rpc('upsert_school_from_datagouv', {
-          p_external_id:     school.external_id,
-          p_name:            school.name,
-          p_type:            school.type,
-          p_address:         school.address,
-          p_city:            school.city,
-          p_postal_code:     school.postal_code,
-          p_external_source: 'datagouv',
-        });
-        if (error) { errors++; return; }
-        const r = data as { action: string };
-        if (r?.action === 'inserted') inserted++;
-        else updated++;
-      }));
+    metrics.errors += 1;
+    await logRecordError(
+      supabase,
+      runId,
+      item.record,
+      item.result.reason ?? 'invalid_record'
+    );
+  }
+  if (valid.length === 0) return;
+  const { error } = await supabase
+    .from('education_establishments')
+    .upsert(valid, { onConflict: 'uai' });
+  if (error) {
+    for (const item of normalized) {
+      if (!item.result.value) continue;
+      metrics.errors += 1;
+      await logRecordError(supabase, runId, item.record, error.message);
     }
+    return;
+  }
+  metrics.stored += valid.length;
+}
 
-      offset += records.length;
-      process.stdout.write(`\r  Dept ${dept} — page ${page} | ~${totalProcessed} traités | +${inserted} ins / ${updated} upd / ${errors} err`);
+async function countEstablishments(supabase: SupabaseClient): Promise<number> {
+  const { count, error } = await supabase
+    .from('education_establishments')
+    .select('id', { count: 'exact', head: true });
+  if (error) throw error;
+  return count ?? 0;
+}
 
-      if (records.length < BATCH_SIZE) break;
-    }
+async function reconcileClosures(
+  supabase: SupabaseClient,
+  runId: string,
+  scope: DirectoryScope
+): Promise<number> {
+  let countQuery = supabase
+    .from('education_establishments')
+    .select('id', { count: 'exact', head: true })
+    .eq('source', EDUCATION_DIRECTORY_SOURCE)
+    .eq('is_active', true)
+    .or(`last_seen_run_id.is.null,last_seen_run_id.neq.${runId}`);
+  if (scope === 'paris')
+    countQuery = countQuery.in('department_code', [
+      PARIS_DEPARTMENT_CODE,
+      '75',
+    ]);
+  const { count, error } = await countQuery;
+  if (error) throw error;
+  let updateQuery = supabase
+    .from('education_establishments')
+    .update({ is_active: false, synced_at: new Date().toISOString() })
+    .eq('source', EDUCATION_DIRECTORY_SOURCE)
+    .eq('is_active', true)
+    .or(`last_seen_run_id.is.null,last_seen_run_id.neq.${runId}`);
+  if (scope === 'paris')
+    updateQuery = updateQuery.in('department_code', [
+      PARIS_DEPARTMENT_CODE,
+      '75',
+    ]);
+  const { error: updateError } = await updateQuery;
+  if (updateError) throw updateError;
+  return count ?? 0;
+}
+
+async function main(): Promise<void> {
+  const url =
+    process.env.SUPABASE_URL ?? process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+  const serviceKey =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    process.env.EXPO_SUPABASE_SERVICE_ROLE_KEY ??
+    '';
+  if (!url || !serviceKey)
+    throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required');
+  const scope = readScope();
+  const departments =
+    scope === 'paris' ? [PARIS_DEPARTMENT_CODE] : FRANCE_DEPARTMENT_CODES;
+  const supabase = createClient(url, serviceKey, {
+    auth: { persistSession: false },
+  });
+  const startedAt = Date.now();
+  const metrics: SyncMetrics = {
+    fetched: 0,
+    stored: 0,
+    skipped: 0,
+    errors: 0,
+    missing: 0,
+  };
+  const requestedRunId = process.env.SYNC_RUN_ID?.trim();
+  let runId = requestedRunId ?? '';
+  let checkpoint: Checkpoint = { departmentIndex: 0, offset: 0 };
+  let resumedInserted = 0;
+  let resumedUpdated = 0;
+
+  if (runId) {
+    const { data, error } = await supabase
+      .from('education_sync_runs')
+      .select(
+        'id, scope, status, checkpoint, fetched_count, inserted_count, updated_count, skipped_count, error_count'
+      )
+      .eq('id', runId)
+      .single();
+    if (error || data.scope !== scope || data.status !== 'running')
+      throw new Error('Invalid resumable sync run');
+    const saved = data.checkpoint as Partial<Checkpoint> | null;
+    checkpoint = {
+      departmentIndex: saved?.departmentIndex ?? 0,
+      offset: saved?.offset ?? 0,
+    };
+    metrics.fetched = data.fetched_count;
+    metrics.skipped = data.skipped_count;
+    metrics.errors = data.error_count;
+    resumedInserted = data.inserted_count;
+    resumedUpdated = data.updated_count;
+  } else {
+    const { data, error } = await supabase
+      .from('education_sync_runs')
+      .insert({ scope, status: 'running', source: EDUCATION_DIRECTORY_SOURCE })
+      .select('id')
+      .single();
+    if (error) throw error;
+    runId = String(data.id);
   }
 
-  console.log('\n\n✅  Import terminé');
-  console.log(`   Insérés  : ${inserted}`);
-  console.log(`   Mis à jour: ${updated}`);
-  console.log(`   Ignorés  : ${skipped}`);
-  console.log(`   Erreurs  : ${errors}`);
-  console.log(`   Total    : ${totalProcessed}`);
+  const initialCount = await countEstablishments(supabase);
+
+  try {
+    for (
+      let departmentIndex = checkpoint.departmentIndex;
+      departmentIndex < departments.length;
+      departmentIndex += 1
+    ) {
+      const department = departments[departmentIndex];
+      let offset =
+        departmentIndex === checkpoint.departmentIndex ? checkpoint.offset : 0;
+      let total = Number.POSITIVE_INFINITY;
+      while (offset < total) {
+        const page = await fetchWithRetry(pageUrl(department, offset));
+        total = page.total_count;
+        metrics.fetched += page.results.length;
+        await syncRecords(supabase, runId, page.results, metrics);
+        offset += page.results.length;
+        const nextCheckpoint: Checkpoint =
+          page.results.length < PAGE_SIZE
+            ? { departmentIndex: departmentIndex + 1, offset: 0 }
+            : { departmentIndex, offset };
+        const { error } = await supabase
+          .from('education_sync_runs')
+          .update({
+            checkpoint: nextCheckpoint,
+            fetched_count: metrics.fetched,
+            skipped_count: metrics.skipped,
+            error_count: metrics.errors,
+          })
+          .eq('id', runId);
+        if (error) throw error;
+        if (isSyncFailingFast(metrics))
+          throw new Error(
+            `Sync aborted after ${metrics.fetched} fetched records: ${metrics.errors} rejected and none stored`
+          );
+        if (page.results.length < PAGE_SIZE) break;
+      }
+    }
+    if (metrics.errors === 0)
+      metrics.missing = await reconcileClosures(supabase, runId, scope);
+    const split = resolveStoredSplit({
+      initialCount,
+      finalCount: await countEstablishments(supabase),
+      stored: metrics.stored,
+    });
+    const inserted = resumedInserted + split.inserted;
+    const updated = resumedUpdated + split.updated;
+    const status = metrics.errors === 0 ? 'completed' : 'partial';
+    const { error } = await supabase
+      .from('education_sync_runs')
+      .update({
+        status,
+        inserted_count: inserted,
+        updated_count: updated,
+        missing_count: metrics.missing,
+        completed_at: new Date().toISOString(),
+        duration_ms: Date.now() - startedAt,
+      })
+      .eq('id', runId);
+    if (error) throw error;
+    console.log(
+      JSON.stringify({
+        run_id: runId,
+        scope,
+        status,
+        ...metrics,
+        inserted,
+        updated,
+        duration_ms: Date.now() - startedAt,
+      })
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await supabase
+      .from('education_sync_runs')
+      .update({
+        status: 'failed',
+        error_summary: message,
+        completed_at: new Date().toISOString(),
+        duration_ms: Date.now() - startedAt,
+      })
+      .eq('id', runId);
+    throw error;
+  }
 }
 
-main().catch(err => { console.error('\n❌', err); process.exit(1); });
+main().catch(error => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exit(1);
+});

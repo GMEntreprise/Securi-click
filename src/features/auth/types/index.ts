@@ -56,6 +56,7 @@ export interface RegisterParentData {
 export interface RegisterSchoolData {
   school_name: string;
   school_type: string;
+  directory_uai: string;
   email: string;
   phone: string;
   address: string;
