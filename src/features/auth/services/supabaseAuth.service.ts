@@ -87,7 +87,14 @@ async function signInWithPassword(
     throw new Error('Aucune session retournée');
   }
 
-  return mapSupabaseSessionToAuthSession(session);
+  try {
+    return await mapSupabaseSessionToAuthSession(session);
+  } catch {
+    await supabase.auth.signOut();
+    throw new Error(
+      'Votre profil est introuvable. Réessayez, ou contactez le support si le problème persiste.'
+    );
+  }
 }
 
 async function registerParent(data: RegisterParentData): Promise<void> {

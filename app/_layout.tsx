@@ -295,10 +295,15 @@ function AuthStateSync() {
       }
       if (!sess) return;
       if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
-        const session = await mapSupabaseSessionToAuthSession(sess);
-        if (__DEV__)
-          console.log('[AuthStateSync] loginAction role=', session.user.role);
-        loginAction(session);
+        try {
+          const session = await mapSupabaseSessionToAuthSession(sess);
+          if (__DEV__)
+            console.log('[AuthStateSync] loginAction role=', session.user.role);
+          loginAction(session);
+        } catch (error) {
+          if (__DEV__)
+            console.log('[AuthStateSync] role unresolved', String(error));
+        }
       }
     });
     return () => subscription.unsubscribe();
