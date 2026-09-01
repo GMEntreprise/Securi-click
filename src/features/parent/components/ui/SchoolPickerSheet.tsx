@@ -6,7 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import {
-  EstablishmentSelector,
+  EstablishmentBrowser,
+  canConfirmEstablishment,
   directoryService,
   type EducationEstablishment,
 } from '@/features/school/directory';
@@ -31,6 +32,10 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
 
   const handleConfirm = useCallback(
     async (establishment: EducationEstablishment) => {
+      if (!canConfirmEstablishment(establishment, 'parent-link')) {
+        setError(t('directory_not_on_securiclick'));
+        return;
+      }
       setIsResolving(true);
       setError(null);
       try {
@@ -102,10 +107,7 @@ export const SchoolPickerSheet = memo(function SchoolPickerSheet({
             <Ionicons name="close" size={20} color={theme.textMuted} />
           </TouchableOpacity>
         </View>
-        <EstablishmentSelector
-          purpose="parent-link"
-          onConfirm={handleConfirm}
-        />
+        <EstablishmentBrowser purpose="parent-link" onSelect={handleConfirm} />
         {isResolving && (
           <ActivityIndicator color={theme.primary} style={{ marginTop: 16 }} />
         )}

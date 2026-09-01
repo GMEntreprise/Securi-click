@@ -4,5 +4,7 @@ export * from './selectionPolicy';
 export * from './directory.service';
 export * from './queryKeys';
 export * from './hooks';
+export * from './formatEstablishmentAddress';
 export * from './EstablishmentCard';
+export * from './EstablishmentBrowser';
 export * from './EstablishmentSelector';

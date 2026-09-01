@@ -1,25 +1,17 @@
-import { memo, useCallback, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { memo, useCallback, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
+import { SheetModal } from '@/shared/ui/molecules/SheetModal';
+import { EstablishmentBrowser } from './EstablishmentBrowser';
 import { EstablishmentCard } from './EstablishmentCard';
-import { useDebouncedDirectorySearch, useEstablishmentByUai } from './hooks';
-import { isValidUaiFormat, normalizeUai } from './normalizeUai';
 import {
   canConfirmEstablishment,
   type EstablishmentSelectionPurpose,
 } from './selectionPolicy';
 import type { EducationEstablishment } from './types';
-
-type Mode = 'choice' | 'search' | 'uai' | 'confirm';
 
 interface Props {
   confirmed?: EducationEstablishment | null;
@@ -35,302 +27,172 @@ export const EstablishmentSelector = memo(function EstablishmentSelector({
   onModify,
 }: Props) {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation('school');
-  const [mode, setMode] = useState<Mode>(confirmed ? 'confirm' : 'choice');
-  const [query, setQuery] = useState('');
-  const [uaiInput, setUaiInput] = useState('');
-  const [requestedUai, setRequestedUai] = useState('');
-  const [candidate, setCandidate] = useState<EducationEstablishment | null>(
-    confirmed ?? null
-  );
-  const search = useDebouncedDirectorySearch(query);
-  const lookup = useEstablishmentByUai(requestedUai, requestedUai.length > 0);
-  const candidateUnavailable = !canConfirmEstablishment(candidate, purpose);
+  const [isBrowsing, setIsBrowsing] = useState(false);
+  const [rejected, setRejected] = useState<string | null>(null);
 
-  const lookupError = useMemo(() => {
-    if (requestedUai && !isValidUaiFormat(requestedUai)) return 'invalid_uai';
-    return lookup.data?.status && lookup.data.status !== 'found'
-      ? lookup.data.status
-      : null;
-  }, [lookup.data, requestedUai]);
+  const open = useCallback(() => {
+    setRejected(null);
+    setIsBrowsing(true);
+  }, []);
+  const close = useCallback(() => setIsBrowsing(false), []);
 
-  const selectCandidate = useCallback(
+  const handleSelect = useCallback(
     (establishment: EducationEstablishment) => {
-      setCandidate(establishment);
-      setMode('confirm');
+      if (!canConfirmEstablishment(establishment, purpose)) {
+        setRejected(
+          !establishment.is_active
+            ? t('directory_inactive')
+            : purpose === 'claim'
+              ? t('directory_already_claimed')
+              : t('directory_not_on_securiclick')
+        );
+        return;
+      }
+      setRejected(null);
+      setIsBrowsing(false);
+      onConfirm(establishment);
     },
-    []
+    [onConfirm, purpose, t]
   );
-  const confirm = useCallback(() => {
-    if (candidate && !candidateUnavailable) onConfirm(candidate);
-  }, [candidate, candidateUnavailable, onConfirm]);
-  const modify = useCallback(() => {
-    setCandidate(null);
-    setMode('choice');
-    setRequestedUai('');
+
+  const handleModify = useCallback(() => {
     onModify?.();
-  }, [onModify]);
-  const submitUai = useCallback(
-    () => setRequestedUai(normalizeUai(uaiInput)),
-    [uaiInput]
-  );
-  const renderItem = useCallback(
-    ({ item }: { item: EducationEstablishment }) => (
-      <View style={{ marginBottom: 10 }}>
-        <EstablishmentCard
-          establishment={item}
-          actionLabel={t('directory_select')}
-          onPress={() => selectCandidate(item)}
-        />
-      </View>
-    ),
-    [selectCandidate, t]
-  );
-  const keyExtractor = useCallback(
-    (item: EducationEstablishment) => item.id,
-    []
-  );
-
-  if (mode === 'confirm' && candidate) {
-    return (
-      <View style={{ gap: 12 }}>
-        <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
-          {t('directory_confirm_title')}
-        </Text>
-        <EstablishmentCard establishment={candidate} />
-        {purpose === 'claim' && candidate.is_claimed && (
-          <Text style={{ color: theme.red, fontSize: 13, lineHeight: 19 }}>
-            {t('directory_already_claimed')}
-          </Text>
-        )}
-        {purpose === 'parent-link' && !candidate.is_claimed && (
-          <Text style={{ color: theme.red, fontSize: 13, lineHeight: 19 }}>
-            {t('directory_not_on_securiclick')}
-          </Text>
-        )}
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={confirm}
-          disabled={candidateUnavailable}
-          style={{
-            minHeight: 50,
-            borderRadius: 15,
-            backgroundColor: theme.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: candidateUnavailable ? 0.45 : 1,
-          }}
-        >
-          <Text style={{ color: '#fff', fontWeight: '800' }}>
-            {t('directory_confirm')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={modify}
-          style={{
-            minHeight: 48,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ color: theme.primary, fontWeight: '700' }}>
-            {t('directory_modify')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  if (mode === 'choice') {
-    return (
-      <View style={{ gap: 12 }}>
-        <Text style={{ color: theme.text, fontSize: 22, fontWeight: '800' }}>
-          {t('directory_title')}
-        </Text>
-        <Text
-          style={{ color: theme.textSecondary, fontSize: 14, lineHeight: 20 }}
-        >
-          {t('directory_subtitle')}
-        </Text>
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={() => setMode('search')}
-          style={{
-            minHeight: 56,
-            borderRadius: 16,
-            backgroundColor: theme.primary,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-          }}
-        >
-          <Ionicons name="search-outline" size={18} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '800' }}>
-            {t('directory_search_option')}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={() => setMode('uai')}
-          style={{
-            minHeight: 56,
-            borderRadius: 16,
-            borderWidth: 1,
-            borderColor: theme.primary,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
-          }}
-        >
-          <Ionicons name="key-outline" size={18} color={theme.primary} />
-          <Text style={{ color: theme.primary, fontWeight: '800' }}>
-            {t('directory_uai_option')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  if (mode === 'uai') {
-    const found =
-      lookup.data?.status === 'found' ? lookup.data.establishment : null;
-    return (
-      <View style={{ gap: 12 }}>
-        <TouchableOpacity
-          onPress={() => setMode('choice')}
-          style={{ minHeight: 48, justifyContent: 'center' }}
-        >
-          <Text style={{ color: theme.primary, fontWeight: '700' }}>
-            ‹ {t('directory_back')}
-          </Text>
-        </TouchableOpacity>
-        <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
-          {t('directory_uai_title')}
-        </Text>
-        <TextInput
-          value={uaiInput}
-          onChangeText={setUaiInput}
-          autoCapitalize="characters"
-          autoCorrect={false}
-          maxLength={12}
-          placeholder="1234567A"
-          placeholderTextColor={theme.placeholder}
-          style={{
-            minHeight: 52,
-            borderRadius: 15,
-            borderWidth: 1,
-            borderColor: lookupError ? theme.red : theme.inputBorder,
-            backgroundColor: theme.input,
-            color: theme.text,
-            paddingHorizontal: 16,
-            fontSize: 16,
-            letterSpacing: 1,
-          }}
-        />
-        <TouchableOpacity
-          accessibilityRole="button"
-          onPress={submitUai}
-          disabled={!uaiInput.trim() || lookup.isFetching}
-          style={{
-            minHeight: 50,
-            borderRadius: 15,
-            backgroundColor: theme.primary,
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: !uaiInput.trim() ? 0.45 : 1,
-          }}
-        >
-          {lookup.isFetching ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={{ color: '#fff', fontWeight: '800' }}>
-              {t('directory_search_action')}
-            </Text>
-          )}
-        </TouchableOpacity>
-        {lookupError && (
-          <Text style={{ color: theme.red, lineHeight: 19 }}>
-            {t(`directory_error_${lookupError}`)}
-          </Text>
-        )}
-        {found && (
-          <EstablishmentCard
-            establishment={found}
-            actionLabel={t('directory_use')}
-            onPress={() => selectCandidate(found)}
-          />
-        )}
-      </View>
-    );
-  }
+    open();
+  }, [onModify, open]);
 
   return (
-    <View style={{ gap: 12 }}>
-      <TouchableOpacity
-        onPress={() => setMode('choice')}
-        style={{ minHeight: 48, justifyContent: 'center' }}
-      >
-        <Text style={{ color: theme.primary, fontWeight: '700' }}>
-          ‹ {t('directory_back')}
-        </Text>
-      </TouchableOpacity>
-      <TextInput
-        value={query}
-        onChangeText={setQuery}
-        autoCapitalize="words"
-        placeholder={t('directory_search_placeholder')}
-        placeholderTextColor={theme.placeholder}
-        style={{
-          minHeight: 52,
-          borderRadius: 15,
-          borderWidth: 1,
-          borderColor: theme.inputBorder,
-          backgroundColor: theme.input,
-          color: theme.text,
-          paddingHorizontal: 16,
-        }}
-      />
-      {search.isFetching && search.establishments.length === 0 && (
-        <ActivityIndicator color={theme.primary} />
-      )}
-      {search.isError && (
+    <View style={styles.container}>
+      <Text style={[styles.label, { color: theme.textMuted }]}>
+        {t('directory_field_label')}
+      </Text>
+
+      {confirmed ? (
+        <View style={styles.selected}>
+          <EstablishmentCard establishment={confirmed} highlight />
+          <TouchableOpacity
+            accessibilityRole="button"
+            onPress={handleModify}
+            style={styles.changeButton}
+          >
+            <Ionicons name="swap-horizontal" size={16} color={theme.primary} />
+            <Text style={[styles.changeText, { color: theme.primary }]}>
+              {t('directory_modify')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
         <TouchableOpacity
-          onPress={() => search.refetch()}
-          style={{ minHeight: 48, justifyContent: 'center' }}
+          accessibilityRole="button"
+          accessibilityLabel={t('directory_field_placeholder')}
+          onPress={open}
+          activeOpacity={0.75}
+          style={[
+            styles.field,
+            { backgroundColor: theme.input, borderColor: theme.inputBorder },
+          ]}
         >
-          <Text style={{ color: theme.red }}>
-            {t('directory_network_retry')}
-          </Text>
+          <View
+            style={[styles.fieldIcon, { backgroundColor: theme.primaryBg }]}
+          >
+            <Ionicons name="school-outline" size={18} color={theme.primary} />
+          </View>
+          <View style={styles.fieldTexts}>
+            <Text style={[styles.fieldTitle, { color: theme.text }]}>
+              {t('directory_field_placeholder')}
+            </Text>
+            <Text style={[styles.fieldHint, { color: theme.textMuted }]}>
+              {t('directory_subtitle')}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
         </TouchableOpacity>
       )}
-      {!search.isFetching &&
-        query.trim().length >= 2 &&
-        search.establishments.length === 0 && (
-          <Text style={{ color: theme.textMuted, textAlign: 'center' }}>
-            {t('directory_empty')}
-          </Text>
-        )}
-      <FlatList
-        data={search.establishments}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        keyboardShouldPersistTaps="handled"
-        style={{ maxHeight: 420 }}
-        onEndReached={() =>
-          search.hasNextPage &&
-          !search.isFetchingNextPage &&
-          search.fetchNextPage()
-        }
-        onEndReachedThreshold={0.4}
-        ListFooterComponent={
-          search.isFetchingNextPage ? (
-            <ActivityIndicator color={theme.primary} />
-          ) : null
-        }
-      />
+
+      <SheetModal visible={isBrowsing} onRequestClose={close}>
+        <View
+          style={[
+            styles.sheet,
+            { backgroundColor: theme.bg, paddingBottom: insets.bottom + 12 },
+          ]}
+        >
+          <View style={styles.sheetHeader}>
+            <Text style={[styles.sheetTitle, { color: theme.text }]}>
+              {t('directory_title')}
+            </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel={t('directory_close')}
+              onPress={close}
+              style={[styles.closeButton, { backgroundColor: theme.iconBg }]}
+            >
+              <Ionicons name="close" size={20} color={theme.textMuted} />
+            </TouchableOpacity>
+          </View>
+          {rejected && (
+            <Text style={[styles.rejected, { color: theme.red }]}>
+              {rejected}
+            </Text>
+          )}
+          <EstablishmentBrowser purpose={purpose} onSelect={handleSelect} />
+        </View>
+      </SheetModal>
     </View>
   );
+});
+
+const styles = StyleSheet.create({
+  container: { gap: 8 },
+  label: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  selected: { gap: 8 },
+  changeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 48,
+  },
+  changeText: { fontSize: 14, fontWeight: '700' },
+  field: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 68,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+  },
+  fieldIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fieldTexts: { flex: 1, gap: 2 },
+  fieldTitle: { fontSize: 15, fontWeight: '700' },
+  fieldHint: { fontSize: 12, lineHeight: 16 },
+  sheet: { flex: 1, paddingHorizontal: 20, paddingTop: 12 },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 14,
+  },
+  sheetTitle: { flex: 1, fontSize: 21, fontWeight: '800' },
+  closeButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rejected: { fontSize: 13, lineHeight: 19, marginBottom: 10 },
 });
