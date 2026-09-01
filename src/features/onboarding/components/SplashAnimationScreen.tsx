@@ -9,8 +9,6 @@ import Animated, {
   withDelay,
   withRepeat,
   Easing,
-  interpolate,
-  runOnJS,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,7 +18,6 @@ const { width: W, height: H } = Dimensions.get('window');
 
 const BRAND = '#208AEF';
 const BRAND_DARK = '#1570cc';
-const BRAND_LIGHT = '#e8f3fd';
 
 export function SplashAnimationScreen() {
   const insets = useSafeAreaInsets();

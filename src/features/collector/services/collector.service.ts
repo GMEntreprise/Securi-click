@@ -46,12 +46,6 @@ const GUARDIAN_SELECT = `
   )
 `.trim();
 
-const PENDING_INVITE_SELECT = `
-  id, invitation_token, access_code_hash, first_name, last_name,
-  relationship, parent_id,
-  child:children ( id, first_name, last_name, photo_url )
-`.trim();
-
 export interface PendingInvite {
   id: string;
   invitation_token: string;

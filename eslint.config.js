@@ -1,6 +1,7 @@
 const reactHooks = require('eslint-plugin-react-hooks');
 const unusedImports = require('eslint-plugin-unused-imports');
 const typescriptParser = require('@typescript-eslint/parser');
+const typescriptPlugin = require('@typescript-eslint/eslint-plugin');
 
 module.exports = [
   {
@@ -16,6 +17,7 @@ module.exports = [
     plugins: {
       'react-hooks': reactHooks,
       'unused-imports': unusedImports,
+      '@typescript-eslint': typescriptPlugin,
     },
     rules: {
       'react-hooks/rules-of-hooks': 'error',

@@ -222,17 +222,6 @@ export default function ParentDashboard() {
   } = useRecentPickupLogs(5);
   const requestChildrenSheetOpen = useChildrenSheetStore(s => s.requestOpen);
 
-  if (childrenError || logsError) {
-    return (
-      <QueryError
-        onRetry={() => {
-          refetchChildren();
-          refetchLogs();
-        }}
-      />
-    );
-  }
-
   const childrenCount = children?.length ?? 0;
   const completedCount = (recentLogs ?? []).filter(
     l => l.status === 'completed'
@@ -350,6 +339,17 @@ export default function ParentDashboard() {
     ],
     [theme, childrenCount, completedCount, recentLogs, i18n]
   );
+
+  if (childrenError || logsError) {
+    return (
+      <QueryError
+        onRetry={() => {
+          refetchChildren();
+          refetchLogs();
+        }}
+      />
+    );
+  }
 
   return (
     <ScrollView

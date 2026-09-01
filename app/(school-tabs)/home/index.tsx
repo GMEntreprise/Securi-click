@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -16,10 +16,7 @@ import { useTheme } from '@/theme';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { QueryError } from '@/shared/ui/base/query-error';
 import { useMySchool } from '@/features/school/hooks/useSchool';
-import {
-  useDashboardStats,
-  usePickupValidations,
-} from '@/features/school/hooks/useValidations';
+import { useDashboardStats } from '@/features/school/hooks/useValidations';
 import { useStudents } from '@/features/school/hooks/useStudents';
 import { pickupAuthorizationService } from '@/features/parent/services/pickupAuthorization.service';
 import { useQuery } from '@tanstack/react-query';

@@ -5,7 +5,6 @@ import {
   Text,
   Pressable,
   StyleSheet,
-  type PressableProps,
   type ViewStyle,
 } from 'react-native';
 import Animated, {

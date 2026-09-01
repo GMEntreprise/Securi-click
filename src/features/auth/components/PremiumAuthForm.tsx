@@ -89,7 +89,7 @@ export const PremiumAuthForm: React.FC<Props> = memo(
       control,
       handleSubmit,
       watch,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       formState: { errors },
     } = useForm<any>({
       resolver: zodResolver(schema),
@@ -402,7 +402,9 @@ export const PremiumAuthForm: React.FC<Props> = memo(
                       control={control}
                       name="confirm_password"
                       placeholder="•••••••••"
-                      error={errors.confirm_password?.message as string | undefined}
+                      error={
+                        errors.confirm_password?.message as string | undefined
+                      }
                       disabled={isLoading}
                     />
                   </View>

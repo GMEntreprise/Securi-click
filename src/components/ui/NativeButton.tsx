@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Text, Pressable, View, ActivityIndicator } from 'react-native';
+import { Text, Pressable, ActivityIndicator } from 'react-native';
 
 interface ButtonProps {
   children: React.ReactNode;

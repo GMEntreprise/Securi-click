@@ -1,4 +1,4 @@
-import type { ReactNode, ReactElement } from 'react';
+import type { ReactNode } from 'react';
 import { ViewStyle, TextStyle, StyleProp } from 'react-native';
 
 interface IEmptyContextValue {

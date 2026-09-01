@@ -1,4 +1,3 @@
-import { BlurView } from 'expo-blur';
 import { Image, ImageSource } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { memo } from 'react';

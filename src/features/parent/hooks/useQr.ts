@@ -3,7 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/features/auth/store/auth.store';
 import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
 import { qrService } from '../services/qr.service';
-import type { RecentScan } from '../services/qr.service';
 
 const QR_KEY = (parentId: string, childId?: string) =>
   ['qr-codes', parentId, childId ?? 'all'] as const;

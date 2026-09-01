@@ -3,7 +3,6 @@ import React, {
   useRef,
   forwardRef,
   useImperativeHandle,
-  memo,
 } from 'react';
 import {
   Canvas,
@@ -75,7 +74,9 @@ export const ThemeSwitcher = forwardRef<ThemeSwitcherRef, ThemeSwitcherProps>(
       circleCenterY.value = centerY;
 
       if (viewRef.current) {
-        const snapshot = await makeImageFromView<View>(viewRef as React.RefObject<View>);
+        const snapshot = await makeImageFromView<View>(
+          viewRef as React.RefObject<View>
+        );
         setOverlay(snapshot);
       }
 

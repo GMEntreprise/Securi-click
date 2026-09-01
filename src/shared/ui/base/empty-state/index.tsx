@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useMemo } from 'react';
+import React, { createContext, useMemo } from 'react';
 import {
   StyleSheet,
   Text,

@@ -1,5 +1,4 @@
 import type {
-  TextInputProps,
   ViewStyle,
   TextStyle,
   DimensionValue,

@@ -18,7 +18,6 @@ import type {
   Tab,
   ContentItemProps,
   AnimatedTabItemProps,
-  TabItemProps,
 } from './types';
 import Animated, {
   useAnimatedStyle,
@@ -32,8 +31,10 @@ import Animated, {
 import { BlurView } from 'expo-blur';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList as any) as any;
+
+const AnimatedFlatList = Animated.createAnimatedComponent(
+  FlatList as any
+) as any;
 
 const TAB_PADDING: number = 20;
 const MIN_UNDERLINE_WIDTH: number = 0.5;
@@ -208,7 +209,7 @@ export const TopTabs: React.FC<TopTabsProps> = ({
           animated: true,
           viewPosition: 0.2,
         });
-      } catch (error) {
+      } catch {
         const offset = tabPositions.current[index] || 0;
         tabBarFlatListRef.current?.scrollToOffset({
           offset,
@@ -258,7 +259,7 @@ export const TopTabs: React.FC<TopTabsProps> = ({
         animated: true,
       });
       setActiveIndex(index);
-    } catch (error) {
+    } catch {
       contentFlatListRef.current?.scrollToOffset({
         offset: index * screenWidth,
         animated: true,

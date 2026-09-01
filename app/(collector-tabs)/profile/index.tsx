@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 import { SheetModal } from '@/shared/ui/molecules/SheetModal';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
