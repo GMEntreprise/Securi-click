@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
+import { toUserFacingError } from '@/shared/errors/supabaseError';
 import type {
   CollectorGuardian,
   CollectorIdentity,
@@ -85,7 +86,7 @@ export const collectorService = {
       .select(GUARDIAN_SELECT)
       .eq('collector_user_id', collectorUserId)
       .order('updated_at', { ascending: false });
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return (data ?? []) as unknown as CollectorGuardian[];
   },
 
@@ -99,7 +100,7 @@ export const collectorService = {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return data as unknown as CollectorIdentity | null;
   },
 
@@ -121,7 +122,7 @@ export const collectorService = {
       .in('guardian_id', guardianIds)
       .order('pickup_time', { ascending: false })
       .limit(limit);
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return (data ?? []) as unknown as CollectorPickupLog[];
   },
 
@@ -150,7 +151,7 @@ export const collectorService = {
       )
       .select(IDENTITY_SELECT)
       .single();
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return data as unknown as CollectorIdentity;
   },
 
@@ -169,7 +170,7 @@ export const collectorService = {
     const { error } = await supabase.storage
       .from('identity-documents')
       .upload(path, arrayBuffer, { contentType: `image/${ext}`, upsert: true });
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return path;
   },
 
@@ -177,7 +178,7 @@ export const collectorService = {
     const { data, error } = await supabase.storage
       .from('identity-documents')
       .createSignedUrl(path, expiresIn);
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return data.signedUrl;
   },
 
@@ -185,7 +186,7 @@ export const collectorService = {
     const { data, error } = await supabase.rpc('get_pending_invites_by_email', {
       p_email: email,
     });
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return (data ?? []) as PendingInvite[];
   },
 
@@ -197,7 +198,7 @@ export const collectorService = {
       p_invitation_token: invitationToken,
       p_access_code: accessCode,
     });
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     if ((data as { error?: string }).error) {
       throw new Error((data as { error: string }).error);
     }
@@ -210,7 +211,7 @@ export const collectorService = {
       .select('id, first_name, last_name, phone, avatar_url, role, created_at')
       .eq('user_id', userId)
       .single();
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return data;
   },
 
@@ -222,7 +223,7 @@ export const collectorService = {
       .from('user_profiles')
       .update({ ...payload, updated_at: new Date().toISOString() })
       .eq('user_id', userId);
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
   },
 
   async uploadAvatar(userId: string, uri: string): Promise<string> {
@@ -243,7 +244,7 @@ export const collectorService = {
     const { error } = await supabase.storage
       .from('collector-avatars')
       .upload(path, arrayBuffer, { contentType, upsert: true });
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     const { data } = supabase.storage
       .from('collector-avatars')
       .getPublicUrl(path);
@@ -259,7 +260,7 @@ export const collectorService = {
       .from('user_profiles')
       .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
       .eq('user_id', userId);
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
   },
 
   // ── QR code — collector generates for their own child access ─────────────
@@ -293,7 +294,7 @@ export const collectorService = {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return data as unknown as CollectorQrCode | null;
   },
 
@@ -323,7 +324,7 @@ export const collectorService = {
     if (childId) q = q.eq('child_id', childId);
 
     const { data, error } = await q;
-    if (error) throw error;
+    if (error) throw toUserFacingError(error);
     return (data ?? []) as unknown as CollectorRecentScan[];
   },
 

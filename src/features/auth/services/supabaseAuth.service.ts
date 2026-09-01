@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '../utils/mapAuthSession';
 import { directoryService } from '@/features/school/directory';
 import { resolveSignUpOutcome } from '../utils/signUpOutcome';
+import { toAuthError } from '../utils/authError';
 
 /**
  * Traduit une erreur Supabase signUp en message clair et actionnable.
@@ -181,13 +182,13 @@ async function registerSchool(data: RegisterSchoolData): Promise<void> {
 
 async function inviteCollector(email: string): Promise<void> {
   const { error } = await supabase.auth.signInWithOtp({
-    email,
+    email: email.trim().toLowerCase(),
     options: {
       emailRedirectTo: 'securiclick://auth/callback',
       data: { role: 'collector' },
     },
   });
-  if (error) throw new Error(error.message);
+  if (error) throw toAuthError(error);
 }
 
 async function restoreSession(): Promise<AuthSession | null> {
@@ -224,16 +225,15 @@ async function signOut(): Promise<void> {
 
 async function deleteAccount(): Promise<void> {
   const { error } = await supabase.rpc('delete_own_account');
-  if (error) throw new Error(error.message);
+  if (error) throw toAuthError(error);
 }
 
 async function forgotPassword(email: string): Promise<void> {
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: 'securiclick://auth/callback',
-  });
-  if (error) {
-    throw new Error(error.message);
-  }
+  const { error } = await supabase.auth.resetPasswordForEmail(
+    email.trim().toLowerCase(),
+    { redirectTo: 'securiclick://auth/callback' }
+  );
+  if (error) throw toAuthError(error);
 }
 
 export const authService = {
