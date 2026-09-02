@@ -622,7 +622,7 @@ export default function AddGuardianScreen() {
             <AuthInputField
               control={control}
               name="first_name"
-              label={i18n('edit_child_first_name_label')}
+              label={i18n('edit_child_first_name')}
               icon={
                 <Ionicons
                   name="person-outline"
@@ -636,7 +636,7 @@ export default function AddGuardianScreen() {
             <AuthInputField
               control={control}
               name="last_name"
-              label={i18n('edit_child_last_name_label')}
+              label={i18n('edit_child_last_name')}
               icon={
                 <Ionicons
                   name="person-outline"
