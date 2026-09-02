@@ -9,6 +9,8 @@ const iosGoogleServicesFile =
     ? './GoogleService-Info.plist'
     : undefined);
 
+const EAS_PROJECT_ID = '858bf27d-7dbe-4355-bb8c-13fc80bb2b24';
+
 const config: ExpoConfig = {
   name: 'SecuriClick',
   slug: 'securiclick',
@@ -18,7 +20,15 @@ const config: ExpoConfig = {
   userInterfaceStyle: 'automatic',
 
   updates: {
-    enabled: false,
+    enabled: true,
+    url: `https://u.expo.dev/${EAS_PROJECT_ID}`,
+    checkAutomatically: 'ON_LOAD',
+    fallbackToCacheTimeout: 0,
+    useEmbeddedUpdate: true,
+  },
+
+  runtimeVersion: {
+    policy: 'fingerprint',
   },
 
   icon: './assets/icons/adaptive-icon.png',
@@ -137,7 +147,7 @@ const config: ExpoConfig = {
 
   extra: {
     eas: {
-      projectId: '858bf27d-7dbe-4355-bb8c-13fc80bb2b24',
+      projectId: EAS_PROJECT_ID,
     },
     supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL!,
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY!,
