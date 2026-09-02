@@ -12,6 +12,7 @@ import Animated, {
   interpolate,
   useAnimatedScrollHandler,
   useSharedValue,
+  type SharedValue,
   useAnimatedStyle,
   Extrapolation,
   interpolateColor,
@@ -26,6 +27,141 @@ const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const DEFAULT_ITEM_HEIGHT = 44;
 const DEFAULT_VISIBLE_ITEMS = 7;
+
+interface PickerItemProps {
+  item: string;
+  index: number;
+  scrollY: SharedValue<number>;
+  itemHeight: number;
+  width: ViewStyle['width'];
+  fontSize: number;
+  textColor: string;
+  selectedTextColor: string;
+}
+
+const PickerItem = memo(function PickerItem({
+  item,
+  index,
+  scrollY,
+  itemHeight,
+  width,
+  fontSize,
+  textColor,
+  selectedTextColor,
+}: PickerItemProps) {
+  const animatedStyle = useAnimatedStyle<
+    Required<Partial<Pick<ViewStyle, 'opacity' | 'transform'>>>
+  >(() => {
+    const centerOffset = index * itemHeight;
+    const distance = scrollY.value - centerOffset;
+    const normalizedDistance = distance / itemHeight;
+    const absDistance = Math.abs(normalizedDistance);
+
+    const opacity = interpolate(
+      absDistance,
+      [0, 0.3, 0.6, 1, 1.5, 2],
+      [1, 0.85, 0.6, 0.35, 0.15, 0.05],
+      Extrapolation.CLAMP
+    );
+
+    const scale = interpolate(
+      absDistance,
+      [0, 1, 2],
+      [1, 0.96, 0.94],
+      Extrapolation.CLAMP
+    );
+
+    const translateY = interpolate(
+      normalizedDistance,
+      [-3, -2, -1, 0, 1, 2, 3],
+      [15, 10, 5, 0, -5, -10, -15],
+      Extrapolation.CLAMP
+    );
+    const rotateX = interpolate(
+      normalizedDistance,
+      [-3, -2, -1, 0, 1, 2, 3],
+      [85, 60, 30, 0, -30, -60, -85],
+      Extrapolation.CLAMP
+    );
+    return {
+      opacity,
+      transform: [
+        { perspective: 1400 },
+        { translateY },
+        { rotateX: `${rotateX}deg` },
+        { scale },
+      ],
+    };
+  });
+
+  const textAnimatedStyle = useAnimatedStyle<
+    Required<Partial<Pick<TextStyle, 'color' | 'fontWeight'>>>
+  >(() => {
+    const centerOffset = index * itemHeight;
+    const distance = scrollY.value - centerOffset;
+    const normalizedDistance = Math.abs(distance / itemHeight);
+
+    const isSelected = normalizedDistance < 0.5;
+
+    return {
+      color: interpolateColor(
+        normalizedDistance,
+        [0, 1],
+        [selectedTextColor, textColor]
+      ),
+      fontWeight: isSelected ? '600' : '400',
+    };
+  });
+
+  const blurAnimatedProps = useAnimatedProps<BlurViewProps>(() => {
+    const centerOffset = index * itemHeight;
+    const distance = Math.abs(scrollY.value - centerOffset);
+    const normalizedDistance = distance / itemHeight;
+
+    const blurOpacity = interpolate(
+      normalizedDistance,
+      [0, 0.6, 1.2, 2],
+      [0, 2.5, 3.5, 6],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      intensity: blurOpacity,
+    };
+  });
+
+  return (
+    <Animated.View
+      style={[styles.item, { height: itemHeight, width: width }, animatedStyle]}
+    >
+      <Animated.Text
+        style={[
+          styles.itemText,
+          {
+            fontSize,
+          },
+          textAnimatedStyle,
+        ]}
+        numberOfLines={1}
+        allowFontScaling={false}
+      >
+        {item}
+      </Animated.Text>
+      <AnimatedBlurView
+        animatedProps={blurAnimatedProps}
+        tint="light"
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            overflow: 'hidden',
+            borderRadius: 99,
+          },
+        ]}
+        pointerEvents="none"
+      />
+    </Animated.View>
+  );
+});
 
 export const Picker: React.FC<IPicker> & React.FunctionComponent<IPicker> =
   memo<IPicker>(
@@ -91,128 +227,6 @@ export const Picker: React.FC<IPicker> & React.FunctionComponent<IPicker> =
         [items, onIndexChange, onItemChange, triggerHaptic]
       );
 
-      const AnimatedItem = useCallback(
-        ({ item, index }: { item: string; index: number }) => {
-          const animatedStyle = useAnimatedStyle<
-            Required<Partial<Pick<ViewStyle, 'opacity' | 'transform'>>>
-          >(() => {
-            const centerOffset = index * itemHeight;
-            const distance = scrollY.value - centerOffset;
-            const normalizedDistance = distance / itemHeight;
-            const absDistance = Math.abs(normalizedDistance);
-
-            const opacity = interpolate(
-              absDistance,
-              [0, 0.3, 0.6, 1, 1.5, 2],
-              [1, 0.85, 0.6, 0.35, 0.15, 0.05],
-              Extrapolation.CLAMP
-            );
-
-            const scale = interpolate(
-              absDistance,
-              [0, 1, 2],
-              [1, 0.96, 0.94],
-              Extrapolation.CLAMP
-            );
-
-            const translateY = interpolate(
-              normalizedDistance,
-              [-3, -2, -1, 0, 1, 2, 3],
-              [15, 10, 5, 0, -5, -10, -15],
-              Extrapolation.CLAMP
-            );
-            const rotateX = interpolate(
-              normalizedDistance,
-              [-3, -2, -1, 0, 1, 2, 3],
-              [85, 60, 30, 0, -30, -60, -85],
-              Extrapolation.CLAMP
-            );
-            return {
-              opacity,
-              transform: [
-                { perspective: 1400 },
-                { translateY },
-                { rotateX: `${rotateX}deg` },
-                { scale },
-              ],
-            };
-          });
-
-          const textAnimatedStyle = useAnimatedStyle<
-            Required<Partial<Pick<TextStyle, 'color' | 'fontWeight'>>>
-          >(() => {
-            const centerOffset = index * itemHeight;
-            const distance = scrollY.value - centerOffset;
-            const normalizedDistance = Math.abs(distance / itemHeight);
-
-            const isSelected = normalizedDistance < 0.5;
-
-            return {
-              color: interpolateColor(
-                normalizedDistance,
-                [0, 1],
-                [selectedTextColor, textColor]
-              ),
-              fontWeight: isSelected ? '600' : '400',
-            };
-          });
-
-          const blurAnimatedProps = useAnimatedProps<BlurViewProps>(() => {
-            const centerOffset = index * itemHeight;
-            const distance = Math.abs(scrollY.value - centerOffset);
-            const normalizedDistance = distance / itemHeight;
-
-            const blurOpacity = interpolate(
-              normalizedDistance,
-              [0, 0.6, 1.2, 2],
-              [0, 2.5, 3.5, 6],
-              Extrapolation.CLAMP
-            );
-
-            return {
-              intensity: blurOpacity,
-            };
-          });
-
-          return (
-            <Animated.View
-              style={[
-                styles.item,
-                { height: itemHeight, width: width },
-                animatedStyle,
-              ]}
-            >
-              <Animated.Text
-                style={[
-                  styles.itemText,
-                  {
-                    fontSize,
-                  },
-                  textAnimatedStyle,
-                ]}
-                numberOfLines={1}
-                allowFontScaling={false}
-              >
-                {item}
-              </Animated.Text>
-              <AnimatedBlurView
-                animatedProps={blurAnimatedProps}
-                tint="light"
-                style={[
-                  StyleSheet.absoluteFill,
-                  {
-                    overflow: 'hidden',
-                    borderRadius: 99,
-                  },
-                ]}
-                pointerEvents="none"
-              />
-            </Animated.View>
-          );
-        },
-        [scrollY, itemHeight, fontSize, textColor, selectedTextColor]
-      );
-
       const onScroll = useAnimatedScrollHandler<Record<string, unknown>>({
         onScroll: event => {
           scrollY.value = event.contentOffset.y;
@@ -241,10 +255,27 @@ export const Picker: React.FC<IPicker> & React.FunctionComponent<IPicker> =
       const renderItem = useCallback(
         ({ item, index }: { item: string; index: number }) => (
           <Pressable key={index} onPress={() => scrollToIndex(index)}>
-            <AnimatedItem item={item} index={index} />
+            <PickerItem
+              item={item}
+              index={index}
+              scrollY={scrollY}
+              itemHeight={itemHeight}
+              width={width}
+              fontSize={fontSize}
+              textColor={textColor}
+              selectedTextColor={selectedTextColor}
+            />
           </Pressable>
         ),
-        [AnimatedItem, scrollToIndex]
+        [
+          scrollToIndex,
+          scrollY,
+          itemHeight,
+          width,
+          fontSize,
+          textColor,
+          selectedTextColor,
+        ]
       );
 
       return (
