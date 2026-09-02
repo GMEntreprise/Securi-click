@@ -24,7 +24,6 @@ import * as Haptics from 'expo-haptics';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
-import { useSession } from '@/features/auth/store/auth.store';
 import { useMySchool } from '@/features/school/hooks/useSchool';
 import { useValidateQr } from '@/features/school/hooks/useValidations';
 import { Avatar } from '@/shared/ui/base/avatar';
@@ -619,7 +618,6 @@ export default function ScannerScreen() {
   const insets = useSafeAreaInsets();
   const t = useTheme();
   const { t: i18n } = useTranslation('school');
-  const session = useSession();
   const [permission, requestPermission] = useCameraPermissions();
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [result, setResult] = useState<QrScanResult | null>(null);
@@ -628,7 +626,6 @@ export default function ScannerScreen() {
 
   const { data: school } = useMySchool();
   const schoolId = school?.id ?? '';
-  const scannerUserId = session?.user.id ?? '';
   const validateQr = useValidateQr(schoolId);
 
   useEffect(() => {
@@ -674,8 +671,12 @@ export default function ScannerScreen() {
           if (__DEV__)
             console.log('[Scanner] access refused:', res.refusal_reason);
         }
-      } catch (e: any) {
-        if (__DEV__) console.error('[Scanner] server error:', e?.message ?? e);
+      } catch (error) {
+        if (__DEV__)
+          console.error(
+            '[Scanner] server error:',
+            error instanceof Error ? error.message : error
+          );
         setResult({
           success: false,
           refusal_reason: i18n('scanner_error_server'),
