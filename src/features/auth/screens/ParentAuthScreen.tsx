@@ -79,7 +79,7 @@ export const ParentAuthScreen: React.FC = memo(() => {
         },
       }
     );
-  }, [pendingData, registerMutation]);
+  }, [pendingData, registerMutation, i18n]);
 
   const handleForgotPassword = useCallback(() => {
     nav.goToForgotPassword();

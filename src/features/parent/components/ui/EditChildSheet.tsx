@@ -280,6 +280,7 @@ export const EditChildSheet = memo(function EditChildSheet({
       });
     }
   }, [
+    i18n,
     validate,
     updateChild,
     child.id,

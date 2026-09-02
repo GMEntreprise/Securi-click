@@ -160,7 +160,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
         });
       }
     },
-    [updateAvatar]
+    [updateAvatar, i18n]
   );
 
   const handleRemovePhoto = useCallback(async () => {
@@ -173,7 +173,7 @@ export const EditProfileSheet = memo(function EditProfileSheet({
         duration: 3000,
       });
     }
-  }, [updateAvatar]);
+  }, [updateAvatar, i18n]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>

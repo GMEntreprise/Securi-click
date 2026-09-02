@@ -144,7 +144,7 @@ export const CollectorOnboardSheet = memo(function CollectorOnboardSheet({
         }
       );
     },
-    [state, acceptInvite]
+    [state, acceptInvite, i18n]
   );
 
   const handleDismiss = useCallback(() => {

@@ -189,7 +189,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
   const hasSeenWelcome = useHasSeenWelcome();
   const acceptWelcome = useComplianceStore(s => s.acceptWelcome);
 
-  const roles = useMemo(() => buildRoles(i18n), [language]);
+  const roles = useMemo(() => buildRoles(i18n), [language, i18n]);
 
   const selectedRoute = useMemo(
     () => roles.find(r => r.id === selectedId)?.route,

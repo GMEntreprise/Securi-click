@@ -173,7 +173,7 @@ function RelationshipPicker({
       onSelect(rel);
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     },
-    [onSelect]
+    [onSelect, i18n]
   );
 
   const handleCustomConfirm = useCallback(() => {

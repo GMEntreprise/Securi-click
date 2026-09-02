@@ -167,7 +167,7 @@ export default function ProfileScreen() {
         });
       }
     },
-    [updateAvatar]
+    [updateAvatar, i18n]
   );
 
   const handleRemoveAvatar = useCallback(async () => {
@@ -180,7 +180,7 @@ export default function ProfileScreen() {
         duration: 3000,
       });
     }
-  }, [updateAvatar]);
+  }, [updateAvatar, i18n]);
 
   const firstName =
     profile?.first_name ??
