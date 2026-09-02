@@ -47,8 +47,8 @@ export const Avatar: React.FC<IAvatar> & React.FunctionComponent<IAvatar> =
     }: IAvatar):
       | (React.ReactNode & React.JSX.Element & React.ReactElement)
       | null => {
-      const [hasError, setHasError] = useState<boolean>(false);
-      const [imageLoaded, setImageLoaded] = useState<boolean>(false);
+      const [, setHasError] = useState<boolean>(false);
+      const [, setImageLoaded] = useState<boolean>(false);
 
       const shimmerProgress = useSharedValue<number>(0);
       const pressScale = useSharedValue<number>(1);

@@ -68,7 +68,6 @@ export default function AddGuardianScreen() {
     control,
     handleSubmit,
     setValue,
-    getValues,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),

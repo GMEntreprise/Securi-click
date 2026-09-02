@@ -383,7 +383,7 @@ const createStyles = <T extends StyleConfig>({
   barHeight,
   textSize,
   fontFamily,
-  ...props
+  ..._props
 }: T) =>
   StyleSheet.create({
     wrapper: {
@@ -500,7 +500,7 @@ export const CurvedBottomTabs: React.FC<
         };
       });
 
-      const handlePress = (tabIndex: number, tab: Tab): void => {
+      const handlePress = (tabIndex: number, _tab: Tab): void => {
         const { route, index } = visibleRoutes[tabIndex];
 
         const event = navigation.emit({

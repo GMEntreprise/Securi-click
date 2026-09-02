@@ -154,8 +154,6 @@ const Content = ({
       // Check bottom space
       const spaceBelow = SCREEN_HEIGHT - (y + height);
       const spaceAbove = y;
-      const spaceRight = SCREEN_WIDTH - x;
-      const spaceLeft = x;
 
       // Vertical positioning
       if (spaceBelow >= contentHeight + SPACING) {

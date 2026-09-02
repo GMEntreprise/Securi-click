@@ -97,7 +97,6 @@ export function useMyIdentity() {
 export function useMyPickupLogs() {
   const session = useSession();
   const uid = session?.user.id ?? '';
-  const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: LOGS_KEY(uid),
@@ -286,7 +285,6 @@ export function useAcceptInvite() {
 export function useCollectorQrCode(childId?: string) {
   const session = useSession();
   const uid = session?.user.id ?? '';
-  const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: QR_KEY(uid, childId),

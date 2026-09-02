@@ -70,7 +70,7 @@ const BottomSheetComponent = forwardRef<BottomSheetMethods, BottomSheetProps>(
       backgroundColor = '#FFFFFF',
       borderRadius = 24,
       contentContainerStyle,
-      enableDynamicSizing = false,
+      enableDynamicSizing: _enableDynamicSizing = false,
     },
     ref
   ) => {

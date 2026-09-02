@@ -74,7 +74,6 @@ const getSchema = (role: string, isLogin: boolean) => {
 
 export const PremiumAuthForm: React.FC<Props> = memo(
   ({ role, isLogin, onSubmit, isLoading, error }) => {
-    const [showPassword, setShowPassword] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState<
       'weak' | 'medium' | 'strong'
     >('weak');

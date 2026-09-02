@@ -49,7 +49,6 @@ export function useActiveQrCodes(childId?: string) {
 export function useRecentScans(childId?: string) {
   const session = useSession();
   const parentId = session?.user.id ?? '';
-  const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: SCANS_KEY(parentId, childId),

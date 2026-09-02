@@ -18,7 +18,7 @@ interface Props {
 }
 
 export const RoleCard: React.FC<Props> = memo(
-  ({ role, title, description, icon, color, onPress, delay = 0 }) => {
+  ({ role: _role, title, description, icon, color, onPress, delay = 0 }) => {
     const scaleAnim = useSharedValue(0.8);
     const opacityAnim = useSharedValue(0);
 

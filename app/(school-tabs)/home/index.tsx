@@ -442,7 +442,6 @@ const StatCard = memo(function StatCard({
   label,
   value,
   bg,
-  color,
 }: {
   icon: React.ReactNode;
   label: string;

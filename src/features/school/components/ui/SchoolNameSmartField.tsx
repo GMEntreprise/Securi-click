@@ -242,7 +242,7 @@ export const SchoolNameSmartField = memo(function SchoolNameSmartField({
 }: Props) {
   const theme = useTheme();
   const inputRef = useRef<TextInput>(null);
-  const { query, setQuery, results, isSearching, clear } = useSchoolSearch();
+  const { setQuery, results, isSearching, clear } = useSchoolSearch();
   const [dismissedId, setDismissedId] = useState<string | null>(null);
   const [prefillApplied, setPrefillApplied] = useState(false);
 
