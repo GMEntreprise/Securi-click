@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
+import { signStorageFields } from '@/shared/storage';
 import type {
   AddGuardianPayload,
   AddChildPayload,
@@ -9,6 +10,10 @@ import type {
   UpdateGuardianPayload,
   UpdateProfilePayload,
 } from '../types';
+
+async function signChildPhotos<T>(payload: T): Promise<T> {
+  return signStorageFields(payload, 'children-images', ['photo_url']);
+}
 
 export const parentService = {
   async getProfile(userId: string): Promise<ParentProfile> {
@@ -64,7 +69,7 @@ export const parentService = {
       .eq('parent_id', parentId)
       .order('created_at', { ascending: false });
     if (error) throw error;
-    return (data ?? []) as unknown as Child[];
+    return signChildPhotos((data ?? []) as unknown as Child[]);
   },
 
   async getChild(childId: string): Promise<Child> {
@@ -76,7 +81,7 @@ export const parentService = {
       .eq('id', childId)
       .single();
     if (error) throw error;
-    return data as unknown as Child;
+    return signChildPhotos(data as unknown as Child);
   },
 
   async addChild(parentId: string, payload: AddChildPayload): Promise<Child> {
@@ -97,7 +102,7 @@ export const parentService = {
       )
       .single();
     if (error) throw error;
-    return data as unknown as Child;
+    return signChildPhotos(data as unknown as Child);
   },
 
   async updateChild(
@@ -117,7 +122,7 @@ export const parentService = {
       .eq('id', childId)
       .single();
     if (fetchError) throw fetchError;
-    return data as unknown as Child;
+    return signChildPhotos(data as unknown as Child);
   },
 
   async deleteChild(childId: string): Promise<void> {

@@ -1,4 +1,9 @@
 import { supabase } from '@/lib/supabase/client';
+import { signStorageFields } from '@/shared/storage';
+
+async function signChildPhotos<T>(payload: T): Promise<T> {
+  return signStorageFields(payload, 'children-images', ['photo_url']);
+}
 
 export type HistoryStatus = 'completed' | 'denied' | 'cancelled';
 
@@ -150,7 +155,7 @@ export const historyService = {
       .eq('id', entryId)
       .single();
     if (error) throw error;
-    return data as unknown as HistoryDetail;
+    return signChildPhotos(data as unknown as HistoryDetail);
   },
 
   async fetchMonthlyCounts(
@@ -220,6 +225,6 @@ export const historyService = {
       p_limit: limit,
     });
     if (error) throw error;
-    return (data ?? []) as unknown as HistoryEntry[];
+    return signChildPhotos((data ?? []) as unknown as HistoryEntry[]);
   },
 };

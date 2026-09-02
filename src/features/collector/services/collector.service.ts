@@ -1,11 +1,16 @@
 import { supabase } from '@/lib/supabase/client';
 import { toUserFacingError } from '@/shared/errors/supabaseError';
+import { signStorageFields } from '@/shared/storage';
 import type {
   CollectorGuardian,
   CollectorIdentity,
   CollectorPickupLog,
   DocumentType,
 } from '../types';
+
+async function signChildPhotos<T>(payload: T): Promise<T> {
+  return signStorageFields(payload, 'children-images', ['photo_url']);
+}
 
 export interface CollectorQrCode {
   id: string;
@@ -81,7 +86,7 @@ export const collectorService = {
       .eq('collector_user_id', collectorUserId)
       .order('updated_at', { ascending: false });
     if (error) throw toUserFacingError(error);
-    return (data ?? []) as unknown as CollectorGuardian[];
+    return signChildPhotos((data ?? []) as unknown as CollectorGuardian[]);
   },
 
   async getMyIdentity(
@@ -117,7 +122,7 @@ export const collectorService = {
       .order('pickup_time', { ascending: false })
       .limit(limit);
     if (error) throw toUserFacingError(error);
-    return (data ?? []) as unknown as CollectorPickupLog[];
+    return signChildPhotos((data ?? []) as unknown as CollectorPickupLog[]);
   },
 
   async upsertIdentity(
@@ -289,7 +294,7 @@ export const collectorService = {
       .limit(1)
       .maybeSingle();
     if (error) throw toUserFacingError(error);
-    return data as unknown as CollectorQrCode | null;
+    return signChildPhotos(data as unknown as CollectorQrCode | null);
   },
 
   async getCollectorRecentScans(
@@ -319,7 +324,7 @@ export const collectorService = {
 
     const { data, error } = await q;
     if (error) throw toUserFacingError(error);
-    return (data ?? []) as unknown as CollectorRecentScan[];
+    return signChildPhotos((data ?? []) as unknown as CollectorRecentScan[]);
   },
 
   async generateCollectorQrCode(
@@ -357,6 +362,6 @@ export const collectorService = {
       throw new Error(
         'QR introuvable après génération — policy RLS manquante ?'
       );
-    return qr as unknown as CollectorQrCode;
+    return signChildPhotos(qr as unknown as CollectorQrCode);
   },
 };

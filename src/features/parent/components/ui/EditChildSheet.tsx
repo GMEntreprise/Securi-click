@@ -170,6 +170,7 @@ export const EditChildSheet = memo(function EditChildSheet({
     medicalNotes: resolvedChild.medical_notes ?? '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [photoPath, setPhotoPath] = useState<string | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(
     resolvedChild.photo_url
   );
@@ -219,14 +220,20 @@ export const EditChildSheet = memo(function EditChildSheet({
           text: i18nCommon('photo_camera'),
           onPress: async () => {
             const result = await takePhoto();
-            if (result) setPhotoUri(result.signedUrl);
+            if (result) {
+              setPhotoUri(result.signedUrl);
+              setPhotoPath(result.filePath);
+            }
           },
         },
         {
           text: i18nCommon('photo_library'),
           onPress: async () => {
             const result = await pickFromGallery();
-            if (result) setPhotoUri(result.signedUrl);
+            if (result) {
+              setPhotoUri(result.signedUrl);
+              setPhotoPath(result.filePath);
+            }
           },
         },
         { text: i18nCommon('cancel'), style: 'cancel' },
@@ -255,7 +262,7 @@ export const EditChildSheet = memo(function EditChildSheet({
           last_name: form.lastName.trim(),
           class_name: form.className.trim(),
           medical_notes: form.medicalNotes.trim() || null,
-          photo_url: photoUri,
+          ...(photoPath === null ? {} : { photo_url: photoPath }),
           school_id: selectedSchool?.id ?? null,
         },
       });
@@ -277,7 +284,7 @@ export const EditChildSheet = memo(function EditChildSheet({
     updateChild,
     child.id,
     form,
-    photoUri,
+    photoPath,
     selectedSchool,
     onClose,
   ]);

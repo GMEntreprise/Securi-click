@@ -1,4 +1,9 @@
 import { supabase } from '@/lib/supabase/client';
+import { signStorageFields } from '@/shared/storage';
+
+async function signChildPhotos<T>(payload: T): Promise<T> {
+  return signStorageFields(payload, 'children-images', ['photo_url']);
+}
 
 export interface QrCode {
   id: string;
@@ -53,7 +58,7 @@ export const qrService = {
       .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false });
     if (error) throw error;
-    return (data ?? []) as unknown as QrCode[];
+    return signChildPhotos((data ?? []) as unknown as QrCode[]);
   },
 
   async getQrCodesForChild(
@@ -70,7 +75,7 @@ export const qrService = {
       .order('created_at', { ascending: false })
       .limit(1);
     if (error) throw error;
-    return (data ?? []) as unknown as QrCode[];
+    return signChildPhotos((data ?? []) as unknown as QrCode[]);
   },
 
   async generateQrCode(
@@ -94,7 +99,7 @@ export const qrService = {
       .eq('id', qrId)
       .single();
     if (fetchErr) throw fetchErr;
-    return qr as unknown as QrCode;
+    return signChildPhotos(qr as unknown as QrCode);
   },
 
   async getRecentScans(
@@ -110,7 +115,7 @@ export const qrService = {
         .order('pickup_time', { ascending: false })
         .limit(limit);
       if (error) throw error;
-      return (data ?? []) as unknown as RecentScan[];
+      return signChildPhotos((data ?? []) as unknown as RecentScan[]);
     }
 
     const { data: childRows, error: childErr } = await supabase
@@ -129,6 +134,6 @@ export const qrService = {
       .order('pickup_time', { ascending: false })
       .limit(limit);
     if (error) throw error;
-    return (data ?? []) as unknown as RecentScan[];
+    return signChildPhotos((data ?? []) as unknown as RecentScan[]);
   },
 };

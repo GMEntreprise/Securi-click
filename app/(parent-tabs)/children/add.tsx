@@ -167,7 +167,7 @@ export default function AddChild() {
             const result = await takePhoto();
             if (result) {
               setPhotoUri(result.signedUrl);
-              setPhotoUrl(result.signedUrl);
+              setPhotoUrl(result.filePath);
             }
           },
         },
@@ -177,7 +177,7 @@ export default function AddChild() {
             const result = await pickFromGallery();
             if (result) {
               setPhotoUri(result.signedUrl);
-              setPhotoUrl(result.signedUrl);
+              setPhotoUrl(result.filePath);
             }
           },
         },

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client';
+import { signStorageFields } from '@/shared/storage';
 import type {
   SchoolProfile,
   SchoolChild,
@@ -7,6 +8,10 @@ import type {
   UpdateSchoolPayload,
   DashboardStats,
 } from '../types';
+
+async function signChildPhotos<T>(payload: T): Promise<T> {
+  return signStorageFields(payload, 'children-images', ['photo_url']);
+}
 
 const SCHOOL_SELECT =
   'id, name, type, email, phone, address, city, postal_code, manager_first_name, manager_last_name, manager_function, admin_user_id, logo_url, opening_hours, slug, is_active, verified, external_id, education_establishment_id, education_link_status, created_at, updated_at';
@@ -68,7 +73,7 @@ export const schoolService = {
       .eq('is_active', true)
       .order('last_name', { ascending: true });
     if (error) throw error;
-    return (data ?? []) as unknown as SchoolChild[];
+    return signChildPhotos((data ?? []) as unknown as SchoolChild[]);
   },
 
   async getPickupValidations(schoolId: string): Promise<PickupValidation[]> {
@@ -83,7 +88,7 @@ export const schoolService = {
       .order('scanned_at', { ascending: false })
       .limit(500);
     if (error) throw error;
-    return (data ?? []) as unknown as PickupValidation[];
+    return signChildPhotos((data ?? []) as unknown as PickupValidation[]);
   },
 
   async getTodayValidations(schoolId: string): Promise<PickupValidation[]> {
@@ -97,7 +102,7 @@ export const schoolService = {
       .gte('scanned_at', start.toISOString())
       .order('scanned_at', { ascending: false });
     if (error) throw error;
-    return (data ?? []) as unknown as PickupValidation[];
+    return signChildPhotos((data ?? []) as unknown as PickupValidation[]);
   },
 
   async getDashboardStats(schoolId: string): Promise<DashboardStats> {
@@ -152,6 +157,6 @@ export const schoolService = {
       }
     );
     if (error) throw error;
-    return data as QrScanResult;
+    return signChildPhotos(data as QrScanResult);
   },
 };
