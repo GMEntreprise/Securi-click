@@ -8,6 +8,10 @@ import { mapSupabaseSessionToAuthSession } from '../utils/mapAuthSession';
 import { directoryService } from '@/features/school/directory';
 import { resolveSignUpOutcome } from '../utils/signUpOutcome';
 import { toAuthError } from '../utils/authError';
+import {
+  ACCOUNT_OWNED_BUCKETS,
+  collectIdentityDocumentPaths,
+} from '../utils/accountStorage';
 
 /**
  * Traduit une erreur Supabase signUp en message clair et actionnable.
@@ -223,7 +227,41 @@ async function signOut(): Promise<void> {
   await supabase.auth.signOut();
 }
 
+async function purgeOwnStorage(userId: string): Promise<void> {
+  const { data: identities } = await supabase
+    .from('collector_identities')
+    .select('front_path, back_path, selfie_path')
+    .eq('collector_user_id', userId);
+
+  const documentPaths = collectIdentityDocumentPaths(identities);
+  if (documentPaths.length > 0) {
+    await supabase.storage.from('identity-documents').remove(documentPaths);
+  }
+
+  for (const bucket of ACCOUNT_OWNED_BUCKETS) {
+    const { data: objects } = await supabase.storage
+      .from(bucket)
+      .list(userId, { limit: 100 });
+    const paths = (objects ?? [])
+      .filter(object => object.name)
+      .map(object => `${userId}/${object.name}`);
+    if (paths.length > 0) await supabase.storage.from(bucket).remove(paths);
+  }
+}
+
 async function deleteAccount(): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    try {
+      await purgeOwnStorage(user.id);
+    } catch {
+      /* empty */
+    }
+  }
+
   const { error } = await supabase.rpc('delete_own_account');
   if (error) throw toAuthError(error);
 }
