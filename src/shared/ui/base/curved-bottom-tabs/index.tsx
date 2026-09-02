@@ -1,5 +1,5 @@
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import {
   Keyboard,
   Platform,
@@ -7,13 +7,13 @@ import {
   Text,
   TouchableOpacity,
   View,
+  StyleProp,
   ViewStyle,
 } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  type SharedValue,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, {
@@ -195,6 +195,38 @@ const BackgroundCurve: React.FC<BackgroundCurveProps> =
       );
     }
   );
+interface CurvedTabProps {
+  isActive: boolean;
+  lift: number;
+  style: StyleProp<ViewStyle>;
+  children: React.ReactNode;
+}
+
+const CurvedTab = memo(function CurvedTab({
+  isActive,
+  lift,
+  style,
+  children,
+}: CurvedTabProps) {
+  const translateY = useSharedValue<number>(isActive ? lift : 0);
+
+  useEffect(() => {
+    translateY.value = withSpring<number>(isActive ? lift : 0, {
+      damping: 10,
+      stiffness: 100,
+      mass: 0.5,
+    });
+  }, [isActive, lift, translateY]);
+
+  const animatedStyle = useAnimatedStyle<ViewStyle>(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
+  );
+});
+
 const CurvedBottomTabsCore: React.FC<CurvedBottomTabsProps> =
   memo<CurvedBottomTabsProps>(
     ({
@@ -223,9 +255,6 @@ const CurvedBottomTabsCore: React.FC<CurvedBottomTabsProps> =
       const insets = useSafeAreaInsets();
 
       const curvePosition = useSharedValue<number>(0);
-      const floatingAnimations = useRef<SharedValue<number>[]>(
-        tabs.map(() => useSharedValue<number>(0))
-      ).current;
 
       const processedGradient = processGradient<string[]>(gradient);
 
@@ -256,19 +285,6 @@ const CurvedBottomTabsCore: React.FC<CurvedBottomTabsProps> =
           stiffness: animation.stiffness,
           mass: animation.mass,
         });
-
-        floatingAnimations.forEach(
-          (anim: SharedValue<number>, index: number) => {
-            anim.value = withSpring<number>(
-              index === targetIndex ? -VIEWPORT_HEIGHT * 4.2 : 0,
-              {
-                damping: 10,
-                stiffness: 100,
-                mass: 0.5,
-              }
-            );
-          }
-        );
       };
 
       useEffect(() => {
@@ -316,14 +332,12 @@ const CurvedBottomTabsCore: React.FC<CurvedBottomTabsProps> =
               onPress(index, tab);
             };
 
-            const animatedTabStyle = useAnimatedStyle<ViewStyle>(() => ({
-              transform: [{ translateY: floatingAnimations[index].value }],
-            }));
-
             return (
-              <Animated.View
+              <CurvedTab
                 key={tab.id}
-                style={[styles.tabWrapper, animatedTabStyle]}
+                isActive={isActive}
+                lift={-VIEWPORT_HEIGHT * 4.2}
+                style={styles.tabWrapper}
               >
                 <TouchableOpacity
                   onPress={handlePress}
@@ -357,7 +371,7 @@ const CurvedBottomTabsCore: React.FC<CurvedBottomTabsProps> =
                     </>
                   )}
                 </TouchableOpacity>
-              </Animated.View>
+              </CurvedTab>
             );
           })}
         </View>
