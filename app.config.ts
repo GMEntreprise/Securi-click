@@ -14,7 +14,7 @@ const EAS_PROJECT_ID = '858bf27d-7dbe-4355-bb8c-13fc80bb2b24';
 const config: ExpoConfig = {
   name: 'SecuriClick',
   slug: 'securiclick',
-  version: '1.0.0',
+  version: '1.1.0',
   orientation: 'portrait',
   scheme: 'securiclick',
   userInterfaceStyle: 'automatic',
@@ -44,7 +44,7 @@ const config: ExpoConfig = {
       tinted: './assets/icons/ios-tinted.png',
     },
     supportsTablet: true,
-    buildNumber: '1.0.0',
+    buildNumber: '1.1.0',
     infoPlist: {
       NSCameraUsageDescription:
         "SecuriClick a besoin d'accéder à votre caméra pour scanner les QR codes et prendre des photos des enfants.",

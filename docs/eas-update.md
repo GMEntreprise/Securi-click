@@ -43,6 +43,21 @@ bunx expo-updates fingerprint:generate --platform ios
 Empreinte identique à celle de la build en production : l'update passera.
 Différente : elle n'atteindra personne, il faut rebuilder.
 
+## 3. Changer la version de l'application
+
+`version` dans `app.config.ts` fait partie de l'empreinte. La faire passer de
+`1.0.0` à `1.1.0` change donc le `runtimeVersion` : les builds de la version
+précédente ne recevront plus aucune update, ce qui est le comportement voulu —
+une nouvelle version publique implique une nouvelle build.
+
+Conséquence pratique : **monter la version impose de produire une nouvelle
+build avant de pouvoir publier la moindre update.**
+
+`buildNumber` et `versionCode` sont gérés par EAS (`appVersionSource: "remote"`
+et `autoIncrement` en production) et sont **exclus** du calcul d'empreinte. La
+valeur écrite dans `app.config.ts` n'est pas celle utilisée par EAS ;
+`autoIncrement` ne change donc jamais le `runtimeVersion`.
+
 ## 3. Canaux
 
 Un canal par public. Un profil de build est lié à un canal dans `eas.json`,
