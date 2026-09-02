@@ -1,13 +1,18 @@
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '@/lib/supabase/client';
+import { resolveStorageUrl } from '@/shared/storage';
 
 function randomId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 import { Toast } from '@/shared/ui/molecules/Toast';
 
-type Bucket = 'profile-images' | 'children-images' | 'collector-avatars';
+type Bucket =
+  | 'profile-images'
+  | 'children-images'
+  | 'collector-avatars'
+  | 'school-logos';
 
 interface UseImagePickerOptions {
   bucket: Bucket;
@@ -77,13 +82,18 @@ export function useImagePicker({ bucket, userId }: UseImagePickerOptions) {
         });
       if (uploadError) throw uploadError;
 
-      const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-      return { signedUrl: data.publicUrl, filePath };
-    } catch (e: any) {
+      const signedUrl = await resolveStorageUrl(bucket, filePath);
+      if (!signedUrl) throw new Error('unresolved_upload');
+      return { signedUrl, filePath };
+    } catch (error) {
       const msg = "Échec de l'envoi. Réessayez.";
       setError(msg);
       Toast.show(msg, { type: 'error', duration: 3000 });
-      if (__DEV__) console.error('[useImagePicker] upload error:', e?.message ?? e);
+      if (__DEV__)
+        console.error(
+          '[useImagePicker] upload error:',
+          error instanceof Error ? error.message : error
+        );
       return null;
     } finally {
       setIsUploading(false);

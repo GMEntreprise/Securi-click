@@ -44,7 +44,7 @@ export default function SchoolProfileScreen() {
   const [showEditSheet, setShowEditSheet] = useState(false);
 
   const { pickFromGallery, takePhoto, isUploading } = useImagePicker({
-    bucket: 'school-logos' as any,
+    bucket: 'school-logos',
     userId,
   });
 
