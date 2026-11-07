@@ -11,49 +11,44 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useLocalSecurity } from '../hooks/useLocalSecurity';
 
-const TYPE_LABEL: Record<string, string> = {
-  facial: 'Face ID',
-  fingerprint: 'Empreinte digitale',
-  iris: 'Iris',
-  none: 'Biométrie',
+const TYPE_LABEL_KEY: Record<string, string> = {
+  facial: 'security_type_facial',
+  fingerprint: 'security_type_fingerprint',
+  iris: 'security_type_iris',
+  none: 'security_type_none',
 };
 
 export function SecurityScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t } = useTranslation('auth');
   const nav = useAppNavigation();
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteAccount = useCallback(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    Alert.alert(
-      'Supprimer mon compte',
-      'Cette action est irréversible. Toutes vos données (enfants, autorisations, historiques) seront définitivement supprimées.\n\nVoulez-vous vraiment supprimer votre compte ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer définitivement',
-          style: 'destructive',
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await nav.deleteAccount();
-            } catch {
-              setIsDeleting(false);
-              Alert.alert(
-                'Erreur',
-                'Impossible de supprimer votre compte. Réessayez dans quelques instants.'
-              );
-            }
-          },
+    Alert.alert(t('security_delete_title'), t('security_delete_parent_body'), [
+      { text: t('common:cancel'), style: 'cancel' },
+      {
+        text: t('security_delete_confirm'),
+        style: 'destructive',
+        onPress: async () => {
+          setIsDeleting(true);
+          try {
+            await nav.deleteAccount();
+          } catch {
+            setIsDeleting(false);
+            Alert.alert(t('common:error'), t('security_delete_error'));
+          }
         },
-      ]
-    );
-  }, [nav]);
+      },
+    ]);
+  }, [nav, t]);
 
   const {
     capability,
@@ -69,7 +64,9 @@ export function SecurityScreen() {
     'idle'
   );
 
-  const biometricLabel = TYPE_LABEL[capability?.type ?? 'none'];
+  const biometricLabel = t(
+    TYPE_LABEL_KEY[capability?.type ?? 'none'] ?? TYPE_LABEL_KEY.none
+  );
 
   const handleEnable = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -78,34 +75,28 @@ export function SecurityScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else if (result === 'unavailable') {
       Alert.alert(
-        'Non disponible',
-        "Votre appareil ne prend pas en charge la biométrie ou aucun moyen biométrique n'est enregistré."
+        t('security_unavailable_title'),
+        t('security_unavailable_body')
       );
     }
-  }, [enable]);
+  }, [enable, t]);
 
   const handleDisable = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      'Désactiver la protection',
-      'Voulez-vous vraiment désactiver la protection biométrique ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Désactiver',
-          style: 'destructive',
-          onPress: async () => {
-            const result = await disable();
-            if (result === 'success') {
-              Haptics.notificationAsync(
-                Haptics.NotificationFeedbackType.Success
-              );
-            }
-          },
+    Alert.alert(t('security_disable_title'), t('security_disable_body'), [
+      { text: t('common:cancel'), style: 'cancel' },
+      {
+        text: t('security_disable_confirm'),
+        style: 'destructive',
+        onPress: async () => {
+          const result = await disable();
+          if (result === 'success') {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          }
         },
-      ]
-    );
-  }, [disable]);
+      },
+    ]);
+  }, [disable, t]);
 
   const handleTest = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -189,7 +180,9 @@ export function SecurityScreen() {
               marginBottom: 6,
             }}
           >
-            {isEnabled ? 'Accès sécurisé activé' : 'Protection désactivée'}
+            {isEnabled
+              ? t('security_enabled_title')
+              : t('security_disabled_title')}
           </Text>
           <Text
             style={{
@@ -200,8 +193,10 @@ export function SecurityScreen() {
             }}
           >
             {isEnabled
-              ? `Votre compte est protégé par ${biometricLabel.toLowerCase()}.`
-              : "Activez la biométrie pour protéger l'accès à votre compte."}
+              ? t('security_enabled_body', {
+                  method: biometricLabel.toLowerCase(),
+                })
+              : t('security_disabled_body')}
           </Text>
         </View>
       </Animated.View>
@@ -221,7 +216,7 @@ export function SecurityScreen() {
             letterSpacing: 0.8,
           }}
         >
-          Votre appareil
+          {t('security_device')}
         </Text>
         <View
           style={{
@@ -268,16 +263,16 @@ export function SecurityScreen() {
               <Text
                 style={{ fontSize: 15, fontWeight: '700', color: theme.text }}
               >
-                {canUseBiometric ? biometricLabel : 'Biométrie'}
+                {canUseBiometric ? biometricLabel : t('security_type_none')}
               </Text>
               <Text
                 style={{ fontSize: 12, color: theme.textMuted, marginTop: 2 }}
               >
                 {!capability?.isAvailable
-                  ? 'Non pris en charge par cet appareil'
+                  ? t('security_not_supported')
                   : !capability.isEnrolled
-                    ? 'Aucun moyen biométrique enregistré dans les réglages'
-                    : "Disponible et prêt à l'emploi"}
+                    ? t('security_not_enrolled')
+                    : t('security_ready')}
               </Text>
             </View>
             <View
@@ -309,7 +304,7 @@ export function SecurityScreen() {
             letterSpacing: 0.8,
           }}
         >
-          Actions
+          {t('security_actions')}
         </Text>
 
         {/* Toggle activation */}
@@ -344,7 +339,7 @@ export function SecurityScreen() {
                   color: canUseBiometric ? '#fff' : theme.textMuted,
                 }}
               >
-                Activer la biométrie
+                {t('security_enable')}
               </Text>
               <Text
                 style={{
@@ -356,8 +351,8 @@ export function SecurityScreen() {
                 }}
               >
                 {canUseBiometric
-                  ? 'Une confirmation biométrique sera demandée'
-                  : 'Disponible uniquement si la biométrie est configurée dans les réglages'}
+                  ? t('security_enable_hint')
+                  : t('security_enable_unavailable')}
               </Text>
             </View>
           </TouchableOpacity>
@@ -397,7 +392,7 @@ export function SecurityScreen() {
                 <Text
                   style={{ fontSize: 15, fontWeight: '700', color: theme.text }}
                 >
-                  Tester la protection
+                  {t('security_test')}
                 </Text>
                 <Text
                   style={{
@@ -412,10 +407,10 @@ export function SecurityScreen() {
                   }}
                 >
                   {testResult === 'success'
-                    ? 'Authentification réussie'
+                    ? t('security_test_success')
                     : testResult === 'failed'
-                      ? 'Authentification échouée'
-                      : 'Vérifier que votre biométrie fonctionne'}
+                      ? t('security_test_failed')
+                      : t('security_test_hint')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -445,7 +440,7 @@ export function SecurityScreen() {
                 <Text
                   style={{ fontSize: 15, fontWeight: '700', color: theme.red }}
                 >
-                  Désactiver la biométrie
+                  {t('security_disable')}
                 </Text>
                 <Text
                   style={{
@@ -455,7 +450,7 @@ export function SecurityScreen() {
                     marginTop: 2,
                   }}
                 >
-                  Vous pouvez la réactiver à tout moment
+                  {t('security_disable_hint')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -492,8 +487,7 @@ export function SecurityScreen() {
               lineHeight: 18,
             }}
           >
-            La biométrie ne remplace pas votre mot de passe. Votre session reste
-            active — seul l'accès local à l'app est protégé.
+            {t('security_note')}
           </Text>
         </View>
       </Animated.View>
@@ -513,7 +507,7 @@ export function SecurityScreen() {
             letterSpacing: 0.8,
           }}
         >
-          Zone de danger
+          {t('security_danger_zone')}
         </Text>
         <TouchableOpacity
           onPress={handleDeleteAccount}
@@ -538,7 +532,7 @@ export function SecurityScreen() {
           )}
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 15, fontWeight: '700', color: theme.red }}>
-              Supprimer mon compte
+              {t('security_delete_title')}
             </Text>
             <Text
               style={{
@@ -549,7 +543,7 @@ export function SecurityScreen() {
                 lineHeight: 16,
               }}
             >
-              Action irréversible · Toutes les données seront effacées
+              {t('security_delete_hint')}
             </Text>
           </View>
         </TouchableOpacity>

@@ -1,16 +1,17 @@
 import React, { memo } from 'react';
 import { Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 
 type Strength = 'weak' | 'medium' | 'strong';
 
 const STRENGTH_CONFIG: Record<
   Strength,
-  { label: string; color: string; bars: number }
+  { labelKey: string; color: string; bars: number }
 > = {
-  weak: { label: 'Faible', color: '#ef4444', bars: 1 },
-  medium: { label: 'Moyen', color: '#f97316', bars: 2 },
-  strong: { label: 'Fort', color: '#10b981', bars: 3 },
+  weak: { labelKey: 'password_weak', color: '#ef4444', bars: 1 },
+  medium: { labelKey: 'password_medium', color: '#f97316', bars: 2 },
+  strong: { labelKey: 'password_strong', color: '#10b981', bars: 3 },
 };
 
 interface PasswordStrengthBarProps {
@@ -20,6 +21,7 @@ interface PasswordStrengthBarProps {
 export const PasswordStrengthBar: React.FC<PasswordStrengthBarProps> = memo(
   ({ strength }) => {
     const t = useTheme();
+    const { t: i18n } = useTranslation('auth');
     const config = STRENGTH_CONFIG[strength];
 
     return (
@@ -39,9 +41,9 @@ export const PasswordStrengthBar: React.FC<PasswordStrengthBarProps> = memo(
           ))}
         </View>
         <Text style={{ fontSize: 12, fontWeight: '600', color: config.color }}>
-          Force du mot de passe :{' '}
+          {i18n('password_strength')}{' '}
           <Text style={{ fontWeight: '800', color: config.color }}>
-            {config.label}
+            {i18n(config.labelKey)}
           </Text>
         </Text>
       </View>

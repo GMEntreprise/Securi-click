@@ -14,7 +14,9 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { RateAppRow } from '@/features/settings/components/RateAppRow';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { appLocale } from '@/i18n/locale';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
@@ -34,40 +36,40 @@ import { Avatar } from '@/shared/ui/base/avatar';
 
 const IDENTITY_CFG = {
   verified: {
-    label: 'Identité vérifiée',
-    sub: 'Vous êtes autorisé à récupérer des enfants',
+    labelKey: 'identity_badge_verified',
+    subKey: 'identity_sub_verified',
     color: '#10b981',
     bg: 'rgba(16,185,129,0.14)',
     border: 'rgba(16,185,129,0.28)',
     iconName: 'shield-checkmark' as const,
   },
   pending: {
-    label: 'Vérification en attente',
-    sub: "Votre dossier est en cours d'examen",
+    labelKey: 'identity_badge_pending',
+    subKey: 'identity_sub_pending',
     color: '#f59e0b',
     bg: 'rgba(245,158,11,0.14)',
     border: 'rgba(245,158,11,0.28)',
     iconName: 'time' as const,
   },
   refused: {
-    label: 'Vérification refusée',
-    sub: 'Soumettez un nouveau document',
+    labelKey: 'identity_badge_refused',
+    subKey: 'identity_sub_refused',
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.14)',
     border: 'rgba(239,68,68,0.28)',
     iconName: 'shield-outline' as const,
   },
   expired: {
-    label: 'Identité expirée',
-    sub: "Renouvelez votre pièce d'identité",
+    labelKey: 'identity_badge_expired',
+    subKey: 'identity_sub_expired',
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.14)',
     border: 'rgba(239,68,68,0.28)',
     iconName: 'shield-outline' as const,
   },
   none: {
-    label: 'Identité non vérifiée',
-    sub: "Soumettez votre pièce d'identité",
+    labelKey: 'identity_badge_none',
+    subKey: 'identity_sub_none',
     color: '#f59e0b',
     bg: 'rgba(245,158,11,0.14)',
     border: 'rgba(245,158,11,0.28)',
@@ -78,6 +80,7 @@ const IDENTITY_CFG = {
 export default function CollectorProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const nav = useAppNavigation();
   const unreadCount = useUnreadCount();
 
@@ -127,13 +130,13 @@ export default function CollectorProfileScreen() {
       try {
         await updateAvatarUrl.mutateAsync(result.signedUrl);
       } catch {
-        Toast.show('Impossible de sauvegarder la photo. Réessayez.', {
+        Toast.show(t('profile_photo_save_error'), {
           type: 'error',
           duration: 3000,
         });
       }
     },
-    [updateAvatarUrl]
+    [updateAvatarUrl, t]
   );
 
   const handleRemoveAvatar = useCallback(async () => {
@@ -141,54 +144,47 @@ export default function CollectorProfileScreen() {
     try {
       await updateAvatarUrl.mutateAsync('');
     } catch {
-      Toast.show('Impossible de supprimer la photo. Réessayez.', {
+      Toast.show(t('profile_photo_remove_error'), {
         type: 'error',
         duration: 3000,
       });
     }
-  }, [updateAvatarUrl]);
+  }, [updateAvatarUrl, t]);
 
   const handleLogout = useCallback(() => {
-    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(t('profile_logout_title'), t('profile_logout_body'), [
+      { text: t('common:cancel'), style: 'cancel' },
       {
-        text: 'Déconnecter',
+        text: t('profile_logout_confirm'),
         style: 'destructive',
         onPress: async () => {
           await nav.logout();
         },
       },
     ]);
-  }, [nav]);
+  }, [nav, t]);
 
   const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteAccount = useCallback(() => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    Alert.alert(
-      'Supprimer mon compte',
-      'Cette action est irréversible. Toutes vos données (autorisations, historiques) seront définitivement supprimées.\n\nVoulez-vous vraiment supprimer votre compte ?',
-      [
-        { text: 'Annuler', style: 'cancel' },
-        {
-          text: 'Supprimer définitivement',
-          style: 'destructive',
-          onPress: async () => {
-            setIsDeleting(true);
-            try {
-              await nav.deleteAccount();
-            } catch {
-              setIsDeleting(false);
-              Alert.alert(
-                'Erreur',
-                'Impossible de supprimer votre compte. Réessayez dans quelques instants.'
-              );
-            }
-          },
+    Alert.alert(t('auth:security_delete_title'), t('profile_delete_body'), [
+      { text: t('common:cancel'), style: 'cancel' },
+      {
+        text: t('auth:security_delete_confirm'),
+        style: 'destructive',
+        onPress: async () => {
+          setIsDeleting(true);
+          try {
+            await nav.deleteAccount();
+          } catch {
+            setIsDeleting(false);
+            Alert.alert(t('common:error'), t('auth:security_delete_error'));
+          }
         },
-      ]
-    );
-  }, [nav]);
+      },
+    ]);
+  }, [nav, t]);
 
   const status = identity?.verification_status ?? 'none';
   const idCfg =
@@ -321,7 +317,7 @@ export default function CollectorProfileScreen() {
               <Text
                 style={{ color: theme.accent, fontSize: 12, fontWeight: '700' }}
               >
-                Collecteur autorisé
+                {t('profile_role')}
               </Text>
             </View>
 
@@ -352,7 +348,7 @@ export default function CollectorProfileScreen() {
               <Text
                 style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
               >
-                Modifier le profil
+                {t('profile_edit')}
               </Text>
             </TouchableOpacity>
           </LinearGradient>
@@ -395,7 +391,7 @@ export default function CollectorProfileScreen() {
                     fontWeight: '800',
                   }}
                 >
-                  {idCfg.label}
+                  {t(idCfg.labelKey)}
                 </Text>
                 <Text
                   style={{
@@ -406,8 +402,12 @@ export default function CollectorProfileScreen() {
                   }}
                 >
                   {identity?.verified_at
-                    ? `Vérifié le ${new Date(identity.verified_at).toLocaleDateString('fr-FR')}`
-                    : idCfg.sub}
+                    ? t('identity_verified_on', {
+                        date: new Date(identity.verified_at).toLocaleDateString(
+                          appLocale()
+                        ),
+                      })
+                    : t(idCfg.subKey)}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={idCfg.color} />
@@ -416,7 +416,7 @@ export default function CollectorProfileScreen() {
 
           {/* Infos profil */}
           <Animated.View entering={FadeInDown.delay(130).duration(350)}>
-            <SectionLabel label="Informations" />
+            <SectionLabel label={t('profile_info')} />
             <View
               style={{
                 backgroundColor: theme.card,
@@ -428,17 +428,17 @@ export default function CollectorProfileScreen() {
             >
               <InfoRow
                 iconName="person-outline"
-                label="Prénom"
+                label={t('common:first_name')}
                 value={profile?.first_name ?? '—'}
               />
               <InfoRow
                 iconName="person-outline"
-                label="Nom"
+                label={t('common:last_name')}
                 value={profile?.last_name ?? '—'}
               />
               <InfoRow
                 iconName="call-outline"
-                label="Téléphone"
+                label={t('common:phone')}
                 value={profile?.phone ?? '—'}
                 isLast
               />
@@ -477,14 +477,14 @@ export default function CollectorProfileScreen() {
                 <Text
                   style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
                 >
-                  Pièce d'identité
+                  {t('profile_id_document')}
                 </Text>
                 <Text
                   style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
                 >
                   {status === 'verified'
-                    ? 'Validée · Appuyez pour les détails'
-                    : 'Soumettre pour vérification'}
+                    ? t('profile_id_verified_hint')
+                    : t('identity_submit_review')}
                 </Text>
               </View>
               <Ionicons
@@ -497,7 +497,7 @@ export default function CollectorProfileScreen() {
 
           {/* Paramètres */}
           <Animated.View entering={FadeInDown.delay(190).duration(350)}>
-            <SectionLabel label="Paramètres" />
+            <SectionLabel label={t('profile_settings')} />
             <View
               style={{
                 backgroundColor: theme.card,
@@ -545,7 +545,7 @@ export default function CollectorProfileScreen() {
                       fontSize: 15,
                     }}
                   >
-                    Mode sombre
+                    {t('profile_dark_mode')}
                   </Text>
                   <Text
                     style={{
@@ -554,7 +554,7 @@ export default function CollectorProfileScreen() {
                       marginTop: 1,
                     }}
                   >
-                    {isDark ? 'Activé' : 'Désactivé'}
+                    {isDark ? t('profile_on') : t('profile_off')}
                   </Text>
                 </View>
                 {darkModeSwitch}
@@ -595,7 +595,7 @@ export default function CollectorProfileScreen() {
                       fontSize: 15,
                     }}
                   >
-                    Notifications
+                    {t('profile_notifications')}
                   </Text>
                   <Text
                     style={{
@@ -605,8 +605,8 @@ export default function CollectorProfileScreen() {
                     }}
                   >
                     {unreadCount > 0
-                      ? `${unreadCount} non lue${unreadCount > 1 ? 's' : ''}`
-                      : 'Aucune nouvelle notification'}
+                      ? t('profile_unread', { count: unreadCount })
+                      : t('profile_no_unread')}
                   </Text>
                 </View>
                 {unreadCount > 0 && (
@@ -639,7 +639,7 @@ export default function CollectorProfileScreen() {
 
           {/* Support & Légal */}
           <Animated.View entering={FadeInDown.delay(220).duration(350)}>
-            <SectionLabel label="Support & Légal" />
+            <SectionLabel label={t('profile_support')} />
             <View
               style={{
                 backgroundColor: theme.card,
@@ -653,21 +653,21 @@ export default function CollectorProfileScreen() {
                 iconName="help-circle-outline"
                 iconBg={theme.amberBg}
                 iconColor={theme.amber}
-                label="Aide & FAQ"
+                label={t('common:screen_faq')}
                 onPress={() => nav.goToCollectorFaq()}
               />
               <NavRow
                 iconName="document-text-outline"
                 iconBg={theme.iconBg}
                 iconColor={theme.textMuted}
-                label="Mentions légales"
+                label={t('common:screen_legal')}
                 onPress={() => nav.goToCollectorLegalMentions()}
               />
               <NavRow
                 iconName="lock-closed-outline"
                 iconBg={theme.iconBg}
                 iconColor={theme.textMuted}
-                label="Politique de confidentialité"
+                label={t('common:privacy')}
                 onPress={() => nav.goToCollectorPrivacyPolicy()}
                 isLast
               />
@@ -676,7 +676,7 @@ export default function CollectorProfileScreen() {
 
           {/* Application */}
           <Animated.View entering={FadeInDown.delay(250).duration(350)}>
-            <SectionLabel label="Application" />
+            <SectionLabel label={t('profile_app')} />
             <View
               style={{
                 backgroundColor: theme.card,
@@ -714,7 +714,7 @@ export default function CollectorProfileScreen() {
               <Text
                 style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}
               >
-                Se déconnecter
+                {t('profile_logout')}
               </Text>
             </TouchableOpacity>
           </Animated.View>
@@ -755,7 +755,7 @@ export default function CollectorProfileScreen() {
                   textDecorationLine: 'underline',
                 }}
               >
-                Supprimer mon compte
+                {t('auth:security_delete_title')}
               </Text>
             </TouchableOpacity>
           </Animated.View>

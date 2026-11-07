@@ -3,12 +3,11 @@ import type {
   QrService,
   RecentScan,
 } from '@/features/parent/services/qr.service';
+import { demoLiveCodeFor } from '../domain/engine';
 import { buildDemoLiveToken } from '../domain/qrScenarios';
 import type { DemoWorld } from '../domain/types';
 import { DEMO_USER_IDS } from '../session';
 import { demoId, demoUnavailable, readWorld, writeWorld } from './world';
-
-const VALIDITY_MS = 24 * 60 * 60 * 1000;
 
 function isUsable(code: QrCode, now: number): boolean {
   return !code.is_used && new Date(code.expires_at).getTime() > now;
@@ -18,16 +17,19 @@ export function issueDemoQrCode(
   childId: string,
   guardianId: string | null
 ): QrCode {
-  const child = readWorld().children.find(c => c.id === childId);
-  if (!child) throw demoUnavailable();
+  const world = readWorld();
+  const child = world.children.find(c => c.id === childId);
   const createdAt = new Date();
+  const id = demoId('qr');
+  const live = demoLiveCodeFor(world, childId, guardianId, createdAt, id);
+  if (!child || !live) throw demoUnavailable();
   const code: QrCode = {
-    id: demoId('qr'),
+    id,
     parent_id: child.parent_id,
     child_id: childId,
     guardian_id: guardianId,
-    token: buildDemoLiveToken(childId, guardianId),
-    expires_at: new Date(createdAt.getTime() + VALIDITY_MS).toISOString(),
+    token: buildDemoLiveToken(live),
+    expires_at: new Date(live.expiresAt).toISOString(),
     is_used: false,
     used_at: null,
     created_at: createdAt.toISOString(),

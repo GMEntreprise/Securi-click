@@ -46,20 +46,10 @@ import {
   type EducationEstablishment,
 } from '@/features/school/directory';
 import { useTranslation } from 'react-i18next';
+import { MANAGER_FUNCTION_KEYS } from '@/features/school/constants/managerFunctions';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.3;
-
-const MANAGER_FUNCTIONS = [
-  'Directeur / Directrice',
-  'Directeur adjoint',
-  'Principal',
-  'Principal adjoint',
-  'Enseignant',
-  'Enseignant référent',
-  'Responsable administratif',
-  'Autre',
-];
 
 const SchoolLoginForm: React.FC<{
   onSubmit: (d: LoginValues) => void;
@@ -323,11 +313,11 @@ const SchoolRegisterForm: React.FC<{
           control={control}
           name="manager_function"
           label={i18n('school_director_role')}
-          options={MANAGER_FUNCTIONS}
+          options={MANAGER_FUNCTION_KEYS.map(key => i18n(key))}
           icon={
             <Ionicons name="briefcase-outline" size={18} color={t.textMuted} />
           }
-          placeholder="Sélectionnez votre fonction"
+          placeholder={i18n('manager_placeholder')}
           error={errors.manager_function?.message}
         />
         <AuthInputField

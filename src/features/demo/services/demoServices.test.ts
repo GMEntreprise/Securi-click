@@ -200,6 +200,52 @@ describe('simulated services', () => {
     ).resolves.toMatchObject({ id: collectorCode.id });
   });
 
+  it('lets the stand validate, once, a code shown on a visitor phone', async () => {
+    await parentService.inviteGuardian({
+      p_child_id: DEMO_IDS.lucas,
+      p_first_name: 'Nina',
+      p_last_name: 'Roux',
+      p_phone: null,
+      p_relationship: 'Tante',
+      p_access_code_hash: '123456',
+      p_email: 'nina.roux@demo.invalid',
+    });
+    const nina = (await parentService.getGuardians(DEMO_IDS.lucas)).find(
+      g => g.first_name === 'Nina'
+    );
+    const visitorCode = await qrService.generateQrCode(
+      DEMO_USER_IDS.parent,
+      DEMO_IDS.lucas,
+      nina?.id ?? null
+    );
+
+    store().exit();
+    store().enter('establishment');
+    const first = await schoolService.validateQr(
+      visitorCode.token,
+      schoolId(),
+      DEMO_USER_IDS.establishment
+    );
+    expect(first).toMatchObject({
+      success: true,
+      child: { first_name: 'Lucas' },
+      guardian: { first_name: 'Nina', relationship: 'Tante' },
+    });
+    const second = await schoolService.validateQr(
+      visitorCode.token,
+      schoolId(),
+      DEMO_USER_IDS.establishment
+    );
+    expect(second.success).toBe(false);
+    expect(second.refusal_reason).toBeTruthy();
+    const validations = await schoolService.getPickupValidations(schoolId());
+    expect(validations[1]).toMatchObject({
+      status: 'validated',
+      child: { first_name: 'Lucas' },
+    });
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
+
   it('shows the collector their children, including a suspended access', async () => {
     store().enter('collector');
     const guardians = await collectorService.getMyGuardians(
@@ -234,6 +280,87 @@ describe('simulated services', () => {
     await expect(fetchUnreadCount(DEMO_USER_IDS.parent)).resolves.toBe(0);
     expect(mockFrom).not.toHaveBeenCalled();
     expect(mockRpc).not.toHaveBeenCalled();
+  });
+
+  it('keeps a photo chosen by a visitor on the device only', async () => {
+    const photo = 'file:///var/mobile/tmp/visitor.jpg';
+    await parentService.updateAvatar(DEMO_USER_IDS.parent, photo);
+    await expect(
+      parentService.getProfile(DEMO_USER_IDS.parent)
+    ).resolves.toMatchObject({ avatar_url: photo });
+
+    store().enter('collector');
+    const stored = await collectorService.uploadAvatar(
+      DEMO_USER_IDS.collector,
+      photo
+    );
+    await collectorService.updateAvatarUrl(DEMO_USER_IDS.collector, stored);
+    await expect(
+      collectorService.getCollectorProfile(DEMO_USER_IDS.collector)
+    ).resolves.toMatchObject({ avatar_url: photo });
+
+    store().enter('establishment');
+    await schoolService.updateSchoolLogo(schoolId(), photo);
+    await expect(
+      schoolService.getSchoolById(schoolId())
+    ).resolves.toMatchObject({ logo_url: photo });
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it('lets a collector submit an identity document for review', async () => {
+    store().enter('collector');
+    const front = await collectorService.uploadIdentityDocument(
+      DEMO_USER_IDS.collector,
+      DEMO_USER_IDS.parent,
+      'front',
+      'file:///var/mobile/tmp/front.jpg'
+    );
+    await collectorService.upsertIdentity(
+      DEMO_USER_IDS.collector,
+      DEMO_USER_IDS.parent,
+      'id_card',
+      front,
+      null,
+      null
+    );
+    await expect(
+      collectorService.getMyIdentity(DEMO_USER_IDS.collector)
+    ).resolves.toMatchObject({
+      verification_status: 'pending',
+      front_path: front,
+    });
+    await expect(collectorService.getSignedIdentityUrl(front)).resolves.toBe(
+      front
+    );
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it('archives and restores a month of history', async () => {
+    const page = await historyService.fetchPage(DEMO_USER_IDS.parent, {}, null);
+    const first = new Date(page.items[0].scanned_at);
+    const year = first.getFullYear();
+    const month = first.getMonth() + 1;
+    const archived = await historyService.archiveMonth(
+      DEMO_USER_IDS.parent,
+      year,
+      month
+    );
+    expect(archived).toBeGreaterThan(0);
+    const visible = await historyService.fetchPage(
+      DEMO_USER_IDS.parent,
+      {},
+      null
+    );
+    expect(visible.total).toBe(page.total - archived);
+    await expect(
+      historyService.restoreMonth(DEMO_USER_IDS.parent, year, month)
+    ).resolves.toBe(archived);
+    const restored = await historyService.fetchPage(
+      DEMO_USER_IDS.parent,
+      {},
+      null
+    );
+    expect(restored.total).toBe(page.total);
   });
 
   it('keeps writes on the account out of production', async () => {

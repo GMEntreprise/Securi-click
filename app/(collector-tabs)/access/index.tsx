@@ -11,7 +11,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { appLocale } from '@/i18n/locale';
 import { useMyGuardians } from '@/features/collector/hooks/useCollector';
 import { AccessDetailSheet } from '@/features/collector/components/ui/AccessDetailSheet';
 import type { CollectorGuardian } from '@/features/collector/types';
@@ -19,6 +21,7 @@ import type { CollectorGuardian } from '@/features/collector/types';
 export default function CollectorAccessScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const { data: guardians, isLoading } = useMyGuardians();
   const [selected, setSelected] = useState<CollectorGuardian | null>(null);
 
@@ -62,7 +65,7 @@ export default function CollectorAccessScreen() {
             marginBottom: 2,
           }}
         >
-          Autorisations
+          {t('access_eyebrow')}
         </Text>
         <Text
           style={{
@@ -72,7 +75,7 @@ export default function CollectorAccessScreen() {
             letterSpacing: -0.5,
           }}
         >
-          Mes accès
+          {t('access_title')}
         </Text>
       </Animated.View>
 
@@ -96,8 +99,7 @@ export default function CollectorAccessScreen() {
                 textAlign: 'center',
               }}
             >
-              Aucune autorisation reçue.{'\n'}Demandez au parent de vous
-              inviter.
+              {t('access_empty')}
             </Text>
           </View>
         ) : (
@@ -115,7 +117,7 @@ export default function CollectorAccessScreen() {
                     paddingHorizontal: 4,
                   }}
                 >
-                  Accès actifs
+                  {t('access_active')}
                 </Text>
                 <View style={{ gap: 10, marginBottom: 20 }}>
                   {grouped.active.map((g, i) => (
@@ -142,7 +144,7 @@ export default function CollectorAccessScreen() {
                     paddingHorizontal: 4,
                   }}
                 >
-                  Accès suspendus
+                  {t('access_suspended')}
                 </Text>
                 <View style={{ gap: 10 }}>
                   {grouped.inactive.map((g, i) => (
@@ -176,6 +178,7 @@ const AccessCard = memo(function AccessCard({
   onPress: (g: CollectorGuardian) => void;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const child = guardian.child;
   const childName = child
     ? `${child.first_name ?? ''} ${child.last_name ?? ''}`.trim()
@@ -325,12 +328,15 @@ const AccessCard = memo(function AccessCard({
                   color={theme.textMuted}
                 />
                 <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
-                  Depuis le{' '}
-                  {new Date(guardian.created_at).toLocaleDateString('fr-FR', {
-                    day: 'numeric',
-                    month: 'long',
-                    year: 'numeric',
-                  })}
+                  {t('access_since')}{' '}
+                  {new Date(guardian.created_at).toLocaleDateString(
+                    appLocale(),
+                    {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    }
+                  )}
                 </Text>
               </View>
             </View>
@@ -347,8 +353,7 @@ const AccessCard = memo(function AccessCard({
                 <Text
                   style={{ color: '#ef4444', fontSize: 12, fontWeight: '600' }}
                 >
-                  Votre accès a été suspendu par le parent. Contactez-le pour
-                  rétablir l'autorisation.
+                  {t('access_suspended_body')}
                 </Text>
               </View>
             )}

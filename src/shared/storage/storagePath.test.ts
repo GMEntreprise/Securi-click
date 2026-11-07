@@ -16,6 +16,13 @@ describe('storage reference discrimination', () => {
     expect(isStoragePath('http://example.test/x.png')).toBe(false);
   });
 
+  it('keeps a local image on the device instead of signing it', () => {
+    expect(isStoragePath('file:///var/mobile/tmp/photo.jpg')).toBe(false);
+    expect(isStoragePath('content://media/external/images/12')).toBe(false);
+    expect(isStoragePath('ph://ABCD-1234')).toBe(false);
+    expect(isStoragePath('data:image/png;base64,AAAA')).toBe(false);
+  });
+
   it('treats an empty or missing reference as neither', () => {
     expect(isStoragePath('')).toBe(false);
     expect(isStoragePath(null)).toBe(false);

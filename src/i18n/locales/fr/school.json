@@ -199,5 +199,9 @@
   "edit_school_official_readonly": "Les informations officielles sont en lecture seule.",
 
   "profile_language": "Langue",
-  "profile_language_subtitle": "Français, English"
+  "profile_language_subtitle": "Français, English",
+  "school_type_private_nursery": "École maternelle privée",
+  "school_type_public_nursery": "École maternelle publique",
+  "school_type_private_primary": "École primaire privée",
+  "school_type_public_primary": "École primaire publique"
 }

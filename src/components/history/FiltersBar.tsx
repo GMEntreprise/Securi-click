@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import type {
   HistoryFilters,
@@ -22,34 +23,21 @@ interface Props {
   onSearchChange: (v: string) => void;
 }
 
-const STATUS_CHIPS: { id: HistoryStatus | null; label: string }[] = [
-  { id: null, label: 'Tout' },
-  { id: 'completed', label: 'Validé' },
-  { id: 'denied', label: 'Refusé' },
-  { id: 'cancelled', label: 'Annulé' },
+const STATUS_CHIPS: { id: HistoryStatus | null; labelKey: string }[] = [
+  { id: null, labelKey: 'status_all' },
+  { id: 'completed', labelKey: 'status_completed' },
+  { id: 'denied', labelKey: 'status_denied' },
+  { id: 'cancelled', labelKey: 'status_cancelled' },
 ];
 
-const QUICK_RANGES: { id: string; label: string; days: number | null }[] = [
-  { id: 'today', label: 'Auj.', days: 0 },
-  { id: '7d', label: '7j', days: 7 },
-  { id: '30d', label: '30j', days: 30 },
-  { id: 'month', label: 'Ce mois', days: null },
+const QUICK_RANGES: { id: string; labelKey: string; days: number | null }[] = [
+  { id: 'today', labelKey: 'range_today', days: 0 },
+  { id: '7d', labelKey: 'range_7d', days: 7 },
+  { id: '30d', labelKey: 'range_30d', days: 30 },
+  { id: 'month', labelKey: 'range_month', days: null },
 ];
 
-const MONTHS_FR = [
-  'Janv',
-  'Févr',
-  'Mars',
-  'Avr',
-  'Mai',
-  'Juin',
-  'Juil',
-  'Août',
-  'Sept',
-  'Oct',
-  'Nov',
-  'Déc',
-];
+const MONTH_INDEXES = Array.from({ length: 12 }, (_, index) => index);
 
 export const FiltersBar = memo(function FiltersBar({
   filters,
@@ -59,6 +47,7 @@ export const FiltersBar = memo(function FiltersBar({
   onSearchChange,
 }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation('common');
   const [showMonths, setShowMonths] = useState(false);
 
   const setStatus = useCallback(
@@ -163,7 +152,7 @@ export const FiltersBar = memo(function FiltersBar({
         <TextInput
           value={searchValue}
           onChangeText={onSearchChange}
-          placeholder="Rechercher un enfant, collecteur…"
+          placeholder={t('history_search_placeholder')}
           placeholderTextColor={theme.placeholder}
           style={{ flex: 1, color: theme.text, fontSize: 14 }}
           returnKeyType="search"
@@ -206,7 +195,7 @@ export const FiltersBar = memo(function FiltersBar({
                   fontWeight: '600',
                 }}
               >
-                {r.label}
+                {t(r.labelKey)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -269,7 +258,7 @@ export const FiltersBar = memo(function FiltersBar({
               <Text
                 style={{ color: theme.red, fontSize: 12, fontWeight: '600' }}
               >
-                Effacer
+                {t('clear')}
               </Text>
             </TouchableOpacity>
           )}
@@ -280,12 +269,12 @@ export const FiltersBar = memo(function FiltersBar({
       {showMonths && filters.year ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: 'row', gap: 6 }}>
-            {MONTHS_FR.map((m, i) => {
+            {MONTH_INDEXES.map(i => {
               const monthNum = i + 1;
               const active = filters.month === monthNum;
               return (
                 <TouchableOpacity
-                  key={m}
+                  key={i}
                   onPress={() => setMonth(active ? null : monthNum)}
                   style={{
                     paddingHorizontal: 12,
@@ -303,7 +292,7 @@ export const FiltersBar = memo(function FiltersBar({
                       fontWeight: '600',
                     }}
                   >
-                    {m}
+                    {t(`month_short_${i}`)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -337,7 +326,7 @@ export const FiltersBar = memo(function FiltersBar({
                     fontWeight: '700',
                   }}
                 >
-                  {s.label}
+                  {t(s.labelKey)}
                 </Text>
               </TouchableOpacity>
             );

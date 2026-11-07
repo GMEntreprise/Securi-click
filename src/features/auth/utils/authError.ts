@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import {
   classifySupabaseError,
   type SupabaseErrorKind,
@@ -6,15 +7,14 @@ import {
 
 export type AuthErrorKind = SupabaseErrorKind;
 
-const AUTH_MESSAGES: Record<AuthErrorKind, string> = {
-  rate_limit:
-    'Trop de demandes en peu de temps. Réessayez dans quelques minutes.',
-  network: 'Connexion impossible. Vérifiez votre réseau et réessayez.',
-  weak_password: 'Le mot de passe ne respecte pas les exigences de sécurité.',
-  invalid_email: "L'adresse email saisie n'est pas valide.",
-  not_found: 'Aucun compte ne correspond à ces informations.',
-  permission_denied: "Cette action n'est pas autorisée.",
-  unknown: 'Une erreur est survenue. Réessayez dans quelques instants.',
+const AUTH_KEYS: Record<AuthErrorKind, string> = {
+  rate_limit: 'errors:supabase_rate_limit',
+  network: 'errors:supabase_network',
+  weak_password: 'errors:supabase_weak_password',
+  invalid_email: 'errors:supabase_invalid_email',
+  not_found: 'errors:auth_not_found',
+  permission_denied: 'errors:auth_permission_denied',
+  unknown: 'errors:supabase_unknown',
 };
 
 export function classifyAuthError(
@@ -24,7 +24,7 @@ export function classifyAuthError(
 }
 
 export function authErrorMessage(kind: AuthErrorKind): string {
-  return AUTH_MESSAGES[kind];
+  return i18n.t(AUTH_KEYS[kind]);
 }
 
 export function toAuthError(

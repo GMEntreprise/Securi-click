@@ -14,6 +14,7 @@ import type {
   SchoolProfile,
 } from '@/features/school/types';
 import type { Notification } from '@/features/notifications/types';
+import type { CollectorIdentity } from '@/features/collector/types';
 
 export type DemoRole = 'parent' | 'collector' | 'establishment';
 
@@ -35,6 +36,7 @@ export interface DemoWorld {
   school: SchoolProfile;
   parentProfile: ParentProfile;
   collectorProfile: DemoCollectorProfile;
+  collectorIdentity: CollectorIdentity | null;
   children: SchoolChild[];
   guardians: DemoGuardian[];
   authorizations: PickupAuthorization[];
@@ -42,6 +44,7 @@ export interface DemoWorld {
   history: HistoryEntry[];
   pickupLogs: PickupLog[];
   qrCodes: QrCode[];
+  usedQrTokens: string[];
   notifications: Notification[];
 }
 

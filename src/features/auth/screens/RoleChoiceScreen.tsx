@@ -186,6 +186,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
   const language = useLanguageStore(s => s.language);
   const [selectedId, setSelectedId] = useState<RoleItem['id'] | null>(null);
   const [showCompliance, setShowCompliance] = useState(false);
+  const [footerHeight, setFooterHeight] = useState(0);
 
   const hasSeenWelcome = useHasSeenWelcome();
   const acceptWelcome = useComplianceStore(s => s.acceptWelcome);
@@ -228,7 +229,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
       />
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
+        contentContainerStyle={{ paddingBottom: footerHeight + 24 }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -278,6 +279,74 @@ export const RoleChoiceScreen: React.FC = memo(() => {
             </Text>
           </Animated.View>
 
+          <Pressable
+            cssInterop={false}
+            onPress={() => nav.pushRoute('/demo')}
+            accessibilityRole="button"
+            accessibilityLabel={i18nDemo('entry_title')}
+            accessibilityHint={i18nDemo('entry_subtitle')}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 16,
+              padding: 18,
+              marginBottom: 16,
+              borderRadius: 22,
+              backgroundColor: t.card,
+              borderWidth: 1.5,
+              borderColor: pressed ? t.accent : t.cardBorder,
+              transform: [{ scale: pressed ? 0.985 : 1 }],
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: t.isDark ? 0 : 0.05,
+              shadowRadius: 8,
+              elevation: 1,
+            })}
+          >
+            <View
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 18,
+                backgroundColor: t.accentBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MaterialCommunityIcons
+                name="play-circle-outline"
+                size={28}
+                color={t.accent}
+              />
+            </View>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={{ fontSize: 17, fontWeight: '800', color: t.text }}>
+                {i18nDemo('entry_title')}
+              </Text>
+              <Text
+                style={{ fontSize: 14, lineHeight: 20, color: t.textSecondary }}
+              >
+                {i18nDemo('entry_subtitle')}
+              </Text>
+            </View>
+            <View
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: t.iconBg,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={18}
+                color={t.text}
+              />
+            </View>
+          </Pressable>
+
           {roles.map((role, index) => (
             <RoleCard
               key={role.id}
@@ -292,6 +361,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
 
       <Animated.View
         entering={FadeInUp.delay(400).duration(500)}
+        onLayout={event => setFooterHeight(event.nativeEvent.layout.height)}
         style={{
           position: 'absolute',
           bottom: 0,
@@ -310,29 +380,8 @@ export const RoleChoiceScreen: React.FC = memo(() => {
           disabled={!selectedId}
           variant="primary"
         >
-          Continuer
+          {i18nCommon('continue')}
         </AuthPrimaryButton>
-        <Pressable
-          onPress={() => nav.pushRoute('/demo')}
-          accessibilityRole="button"
-          accessibilityHint={i18nDemo('entry_subtitle')}
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: 48,
-            marginTop: 8,
-            borderRadius: 14,
-            borderWidth: 1.5,
-            borderColor: t.primary,
-          }}
-        >
-          <Text style={{ color: t.primary, fontSize: 15, fontWeight: '800' }}>
-            {i18nDemo('entry_title')}
-          </Text>
-          <Text style={{ color: t.textSecondary, fontSize: 12, marginTop: 1 }}>
-            {i18nDemo('entry_subtitle')}
-          </Text>
-        </Pressable>
         <View style={{ alignItems: 'center', marginTop: 14, gap: 2 }}>
           <Text
             style={{

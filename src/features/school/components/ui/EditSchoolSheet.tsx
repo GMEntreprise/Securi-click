@@ -21,24 +21,11 @@ import type { SchoolProfile } from '../../types';
 import { SchoolPickerSheet } from '@/features/parent/components/ui/SchoolPickerSheet';
 import type { SchoolSearchResult } from '@/features/school/services/schoolSearch.service';
 import { useTranslation } from 'react-i18next';
-
-const MANAGER_FUNCTIONS = [
-  'Directeur / Directrice',
-  'Directeur adjoint',
-  'Principal',
-  'Principal adjoint',
-  'Enseignant',
-  'Enseignant référent',
-  'Responsable administratif',
-  'Autre',
-];
-
-const SCHOOL_TYPES = [
-  'École maternelle privée',
-  'École maternelle publique',
-  'École primaire privée',
-  'École primaire publique',
-];
+import { MANAGER_FUNCTION_KEYS } from '../../constants/managerFunctions';
+import {
+  SCHOOL_TYPE_OPTIONS,
+  schoolTypeLabel,
+} from '../../constants/schoolTypes';
 
 interface EditSchoolSheetProps {
   school: SchoolProfile;
@@ -450,7 +437,8 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                     }}
                     numberOfLines={1}
                   >
-                    {form.type || i18n('edit_school_type_placeholder')}
+                    {schoolTypeLabel(form.type, i18n) ||
+                      i18n('edit_school_type_placeholder')}
                   </Text>
                   <Ionicons
                     name="chevron-down"
@@ -511,16 +499,16 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                       paddingBottom: 8,
                     }}
                   >
-                    {SCHOOL_TYPES.map(opt => {
-                      const selected = form.type === opt;
+                    {SCHOOL_TYPE_OPTIONS.map(({ value, labelKey }) => {
+                      const selected = form.type === value;
                       return (
                         <TouchableOpacity
-                          key={opt}
+                          key={value}
                           onPress={() => {
                             Haptics.impactAsync(
                               Haptics.ImpactFeedbackStyle.Light
                             );
-                            setField('type')(opt);
+                            setField('type')(value);
                             setTypePickerOpen(false);
                           }}
                           activeOpacity={0.75}
@@ -549,7 +537,7 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                               color: selected ? theme.accent : theme.text,
                             }}
                           >
-                            {opt}
+                            {i18n(labelKey)}
                           </Text>
                           {selected && (
                             <Ionicons
@@ -812,7 +800,8 @@ export const EditSchoolSheet = memo(function EditSchoolSheet({
                       paddingBottom: 8,
                     }}
                   >
-                    {MANAGER_FUNCTIONS.map(opt => {
+                    {MANAGER_FUNCTION_KEYS.map(key => {
+                      const opt = i18n(key);
                       const selected = form.manager_function === opt;
                       return (
                         <TouchableOpacity

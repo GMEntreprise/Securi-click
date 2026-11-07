@@ -12,7 +12,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { appLocale } from '@/i18n/locale';
 import {
   useMyGuardians,
   useMyPickupLogs,
@@ -37,17 +39,17 @@ const STATUS_CFG = {
   completed: {
     iconName: 'checkmark-circle' as const,
     color: '#10b981',
-    label: 'Validé',
+    labelKey: 'common:status_completed',
   },
   denied: {
     iconName: 'close-circle' as const,
     color: '#ef4444',
-    label: 'Refusé',
+    labelKey: 'common:status_denied',
   },
   cancelled: {
     iconName: 'remove-circle' as const,
     color: '#f59e0b',
-    label: 'Annulé',
+    labelKey: 'common:status_cancelled',
   },
 } as const;
 
@@ -123,6 +125,7 @@ export default function CollectorHomeScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useTabBarHeight();
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const nav = useAppNavigation();
   const { data: profile } = useCollectorProfile();
   const {
@@ -173,31 +176,31 @@ export default function CollectorHomeScreen() {
 
   const identityBadge = {
     verified: {
-      label: 'Identité vérifiée',
+      labelKey: 'identity_badge_verified',
       color: '#10b981',
       bg: 'rgba(16,185,129,0.12)',
       iconName: 'shield-checkmark' as const,
     },
     pending: {
-      label: 'Vérification en attente',
+      labelKey: 'identity_badge_pending',
       color: '#f59e0b',
       bg: 'rgba(245,158,11,0.12)',
       iconName: 'time' as const,
     },
     refused: {
-      label: 'Vérification refusée',
+      labelKey: 'identity_badge_refused',
       color: '#ef4444',
       bg: 'rgba(239,68,68,0.12)',
       iconName: 'shield-outline' as const,
     },
     expired: {
-      label: 'Identité expirée',
+      labelKey: 'identity_badge_expired',
       color: '#ef4444',
       bg: 'rgba(239,68,68,0.12)',
       iconName: 'shield-outline' as const,
     },
     none: {
-      label: 'Identité non vérifiée',
+      labelKey: 'identity_badge_none',
       color: '#f59e0b',
       bg: 'rgba(245,158,11,0.12)',
       iconName: 'warning' as const,
@@ -262,7 +265,7 @@ export default function CollectorHomeScreen() {
                   marginBottom: 4,
                 }}
               >
-                Tableau de bord
+                {t('home_eyebrow')}
               </Text>
               <Text
                 style={{
@@ -272,7 +275,9 @@ export default function CollectorHomeScreen() {
                   letterSpacing: -0.5,
                 }}
               >
-                Bonjour{profile ? `, ${profile.first_name}` : ''} 👋
+                {profile
+                  ? t('home_greeting_name', { name: profile.first_name })
+                  : t('home_greeting')}
               </Text>
             </View>
             <NotificationBell />
@@ -286,7 +291,7 @@ export default function CollectorHomeScreen() {
         >
           <View style={{ flexDirection: 'row', gap: 10, marginBottom: 10 }}>
             <StatCard
-              label={'Récupérations\ntotales'}
+              label={t('home_stat_total')}
               value={stats.total}
               iconName="trending-up"
               color="#10b981"
@@ -294,7 +299,7 @@ export default function CollectorHomeScreen() {
               delay={50}
             />
             <StatCard
-              label={'Cette\nsemaine'}
+              label={t('home_stat_week')}
               value={stats.thisWeek}
               iconName="calendar-outline"
               color="#3b82f6"
@@ -304,7 +309,7 @@ export default function CollectorHomeScreen() {
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <StatCard
-              label={'Accès\nactifs'}
+              label={t('home_stat_active')}
               value={stats.activeAccess}
               iconName="qr-code-outline"
               color={theme.accent}
@@ -312,7 +317,7 @@ export default function CollectorHomeScreen() {
               delay={130}
             />
             <StatCard
-              label={'Incidents\n(refus/annul.)'}
+              label={t('home_stat_incidents')}
               value={stats.incidents}
               iconName="warning-outline"
               color={stats.incidents > 0 ? '#ef4444' : theme.textMuted}
@@ -336,7 +341,7 @@ export default function CollectorHomeScreen() {
                 marginBottom: 10,
               }}
             >
-              Récupérations prévues
+              {t('home_scheduled')}
             </Text>
             <View style={{ gap: 10 }}>
               {schedules.slice(0, 3).map(auth => {
@@ -409,7 +414,7 @@ export default function CollectorHomeScreen() {
                                   fontWeight: '700',
                                 }}
                               >
-                                Aujourd'hui
+                                {t('home_today')}
                               </Text>
                             </View>
                           )}
@@ -531,9 +536,7 @@ export default function CollectorHomeScreen() {
                 <Text
                   style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}
                 >
-                  {(pendingInvites?.length ?? 0) > 1
-                    ? `${pendingInvites!.length} nouvelles autorisations`
-                    : 'Nouvelle autorisation disponible'}
+                  {t('home_invites', { count: pendingInvites?.length ?? 1 })}
                 </Text>
                 <Text
                   style={{
@@ -542,7 +545,7 @@ export default function CollectorHomeScreen() {
                     marginTop: 1,
                   }}
                 >
-                  Appuyez pour activer votre accès
+                  {t('home_invites_hint')}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -596,7 +599,9 @@ export default function CollectorHomeScreen() {
                   color: hasAnyAccess ? '#10b981' : '#ef4444',
                 }}
               >
-                {hasAnyAccess ? 'Accès actif' : 'Accès suspendu'}
+                {hasAnyAccess
+                  ? t('home_access_active')
+                  : t('home_access_suspended')}
               </Text>
               <Text
                 style={{
@@ -606,8 +611,10 @@ export default function CollectorHomeScreen() {
                 }}
               >
                 {hasAnyAccess
-                  ? `${activeGuardians.length} enfant${activeGuardians.length > 1 ? 's' : ''} autorisé${activeGuardians.length > 1 ? 's' : ''}`
-                  : 'Aucune autorisation active'}
+                  ? t('home_children_authorized', {
+                      count: activeGuardians.length,
+                    })
+                  : t('home_no_active_authorization')}
               </Text>
             </View>
           </View>
@@ -637,7 +644,7 @@ export default function CollectorHomeScreen() {
                 flex: 1,
               }}
             >
-              {badge.label}
+              {t(badge.labelKey)}
             </Text>
             {identityStatus !== 'verified' && (
               <Text
@@ -649,7 +656,7 @@ export default function CollectorHomeScreen() {
                   textDecorationLine: 'underline',
                 }}
               >
-                Vérifier
+                {t('home_verify')}
               </Text>
             )}
           </View>
@@ -671,7 +678,7 @@ export default function CollectorHomeScreen() {
                 marginBottom: 12,
               }}
             >
-              Enfants autorisés
+              {t('home_authorized_children')}
             </Text>
             <View style={{ gap: 10 }}>
               {activeGuardians.map(g => (
@@ -738,7 +745,7 @@ export default function CollectorHomeScreen() {
                         fontWeight: '700',
                       }}
                     >
-                      Autorisé
+                      {t('home_authorized')}
                     </Text>
                   </View>
                 </TouchableOpacity>
@@ -757,7 +764,7 @@ export default function CollectorHomeScreen() {
               marginBottom: 12,
             }}
           >
-            Récupérations récentes
+            {t('home_recent')}
           </Text>
           <View
             style={{
@@ -784,7 +791,7 @@ export default function CollectorHomeScreen() {
                     fontWeight: '500',
                   }}
                 >
-                  Aucune récupération
+                  {t('home_no_pickup')}
                 </Text>
               </View>
             ) : (
@@ -836,10 +843,12 @@ export default function CollectorHomeScreen() {
                           marginTop: 1,
                         }}
                       >
-                        {d.toLocaleDateString('fr-FR')} à{' '}
-                        {d.toLocaleTimeString('fr-FR', {
-                          hour: '2-digit',
-                          minute: '2-digit',
+                        {t('home_date_at_time', {
+                          date: d.toLocaleDateString(appLocale()),
+                          time: d.toLocaleTimeString(appLocale(), {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          }),
                         })}
                       </Text>
                     </View>
@@ -858,7 +867,7 @@ export default function CollectorHomeScreen() {
                           fontWeight: '700',
                         }}
                       >
-                        {cfg.label}
+                        {t(cfg.labelKey)}
                       </Text>
                     </View>
                   </View>

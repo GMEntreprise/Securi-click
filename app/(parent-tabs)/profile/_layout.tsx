@@ -1,7 +1,9 @@
 import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 
 export default function ParentProfileLayout() {
+  const { t } = useTranslation('common');
   const theme = useTheme();
   return (
     <Stack
@@ -22,23 +24,23 @@ export default function ParentProfileLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
         name="notifications"
-        options={{ title: 'Notifications', headerBackTitle: '' }}
+        options={{ title: t('screen_notifications'), headerBackTitle: '' }}
       />
       <Stack.Screen
         name="legal-mentions"
-        options={{ title: 'Mentions légales', headerBackTitle: '' }}
+        options={{ title: t('screen_legal'), headerBackTitle: '' }}
       />
       <Stack.Screen
         name="privacy-policy"
-        options={{ title: 'Confidentialité', headerBackTitle: '' }}
+        options={{ title: t('screen_privacy'), headerBackTitle: '' }}
       />
       <Stack.Screen
         name="faq"
-        options={{ title: 'Aide & FAQ', headerBackTitle: '' }}
+        options={{ title: t('screen_faq'), headerBackTitle: '' }}
       />
       <Stack.Screen
         name="security"
-        options={{ title: 'Sécurité', headerBackTitle: '' }}
+        options={{ title: t('screen_security'), headerBackTitle: '' }}
       />
     </Stack>
   );

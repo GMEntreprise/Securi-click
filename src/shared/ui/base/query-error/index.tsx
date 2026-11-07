@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 
 interface Props {
@@ -8,11 +9,9 @@ interface Props {
   message?: string;
 }
 
-export function QueryError({
-  onRetry,
-  message = 'Impossible de charger les données.',
-}: Props) {
+export function QueryError({ onRetry, message }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation('common');
 
   return (
     <View
@@ -45,7 +44,7 @@ export function QueryError({
             textAlign: 'center',
           }}
         >
-          Erreur de chargement
+          {t('load_error_title')}
         </Text>
         <Text
           style={{
@@ -55,7 +54,7 @@ export function QueryError({
             lineHeight: 20,
           }}
         >
-          {message}
+          {message ?? t('load_error_message')}
         </Text>
       </View>
       {onRetry && (
@@ -69,7 +68,7 @@ export function QueryError({
           }}
         >
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 14 }}>
-            Réessayer
+            {t('retry')}
           </Text>
         </TouchableOpacity>
       )}

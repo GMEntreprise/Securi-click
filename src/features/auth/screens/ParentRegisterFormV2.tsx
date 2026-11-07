@@ -15,18 +15,21 @@ import {
 import type { RegisterParentData } from '../types';
 import { useTheme } from '@/theme';
 import { useTranslation } from 'react-i18next';
+import { message } from '@/i18n/validation';
 
 const step1Schema = z.object({
-  first_name: z.string().min(2, 'Prénom requis'),
-  last_name: z.string().min(2, 'Nom requis'),
-  email: z.string().email('Email invalide'),
-  phone: z.string().min(9, 'Téléphone invalide'),
+  first_name: z.string().min(2, message('errors:first_name_required')),
+  last_name: z.string().min(2, message('errors:last_name_required')),
+  email: z.string().email(message('errors:email_invalid')),
+  phone: z.string().min(9, message('errors:phone_invalid')),
   password: z
     .string()
-    .min(8, '8 caractères minimum')
-    .regex(/[A-Z]/, '1 majuscule requise'),
-  accept_terms: z.boolean().refine(v => v, 'Veuillez accepter les CGU'),
-  accept_privacy: z.boolean().refine(v => v, 'Veuillez accepter la politique'),
+    .min(8, message('errors:password_min'))
+    .regex(/[A-Z]/, message('errors:uppercase_required')),
+  accept_terms: z.boolean().refine(v => v, message('errors:terms_required')),
+  accept_privacy: z
+    .boolean()
+    .refine(v => v, message('errors:privacy_required')),
 });
 
 type Step1Values = z.infer<typeof step1Schema>;
@@ -142,7 +145,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
               control={control}
               name="first_name"
               label={i18n('first_name')}
-              placeholder="Jean"
+              placeholder={i18n('first_name_placeholder')}
               error={errors.first_name?.message}
               autoComplete="given-name"
             />
@@ -152,7 +155,7 @@ export const ParentRegisterFormV2: React.FC<ParentRegisterFormV2Props> = memo(
               control={control}
               name="last_name"
               label={i18n('last_name')}
-              placeholder="Dupont"
+              placeholder={i18n('last_name_placeholder')}
               error={errors.last_name?.message}
               autoComplete="family-name"
             />

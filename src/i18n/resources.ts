@@ -6,6 +6,7 @@ import frSchool from './locales/fr/school.json';
 import frNotifications from './locales/fr/notifications.json';
 import frErrors from './locales/fr/errors.json';
 import frDemo from './locales/fr/demo.json';
+import frLegal from './locales/fr/legal.json';
 
 import enCommon from './locales/en/common.json';
 import enAuth from './locales/en/auth.json';
@@ -15,6 +16,7 @@ import enSchool from './locales/en/school.json';
 import enNotifications from './locales/en/notifications.json';
 import enErrors from './locales/en/errors.json';
 import enDemo from './locales/en/demo.json';
+import enLegal from './locales/en/legal.json';
 
 export const resources = {
   fr: {
@@ -26,6 +28,7 @@ export const resources = {
     notifications: frNotifications,
     errors: frErrors,
     demo: frDemo,
+    legal: frLegal,
   },
   en: {
     common: enCommon,
@@ -36,6 +39,7 @@ export const resources = {
     notifications: enNotifications,
     errors: enErrors,
     demo: enDemo,
+    legal: enLegal,
   },
 } as const;
 

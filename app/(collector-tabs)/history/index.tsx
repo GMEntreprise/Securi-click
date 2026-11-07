@@ -5,7 +5,9 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/shared/ui/base/avatar';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { appLocale } from '@/i18n/locale';
 import { useMyPickupLogs } from '@/features/collector/hooks/useCollector';
 import type { CollectorPickupLog } from '@/features/collector/types';
 
@@ -14,24 +16,25 @@ const STATUS_CFG = {
     iconName: 'checkmark-circle' as const,
     color: '#10b981',
     bg: 'rgba(16,185,129,0.12)',
-    label: 'Validé',
+    labelKey: 'common:status_completed',
   },
   denied: {
     iconName: 'close-circle' as const,
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.12)',
-    label: 'Refusé',
+    labelKey: 'common:status_denied',
   },
   cancelled: {
     iconName: 'remove-circle' as const,
     color: '#f59e0b',
     bg: 'rgba(245,158,11,0.12)',
-    label: 'Annulé',
+    labelKey: 'common:status_cancelled',
   },
 } as const;
 
 function LogCard({ item, index }: { item: CollectorPickupLog; index: number }) {
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const cfg = STATUS_CFG[item.status] ?? STATUS_CFG.cancelled;
   const d = new Date(item.pickup_time);
 
@@ -92,11 +95,11 @@ function LogCard({ item, index }: { item: CollectorPickupLog; index: number }) {
                 <Text
                   style={{ color: cfg.color, fontSize: 11, fontWeight: '700' }}
                 >
-                  {cfg.label}
+                  {t(cfg.labelKey)}
                 </Text>
               </View>
               <Text style={{ color: theme.textMuted, fontSize: 12 }}>
-                {d.toLocaleTimeString('fr-FR', {
+                {d.toLocaleTimeString(appLocale(), {
                   hour: '2-digit',
                   minute: '2-digit',
                 })}
@@ -104,7 +107,7 @@ function LogCard({ item, index }: { item: CollectorPickupLog; index: number }) {
             </View>
           </View>
           <Text style={{ color: theme.textSecondary, fontSize: 12 }}>
-            {d.toLocaleDateString('fr-FR', {
+            {d.toLocaleDateString(appLocale(), {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
@@ -132,6 +135,7 @@ function LogCard({ item, index }: { item: CollectorPickupLog; index: number }) {
 export default function CollectorHistoryScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const { data: logs, isLoading, refetch, isRefetching } = useMyPickupLogs();
 
   return (
@@ -157,7 +161,7 @@ export default function CollectorHistoryScreen() {
             marginBottom: 2,
           }}
         >
-          Activité
+          {t('history_eyebrow')}
         </Text>
         <Text
           style={{
@@ -167,7 +171,7 @@ export default function CollectorHistoryScreen() {
             letterSpacing: -0.5,
           }}
         >
-          Historique
+          {t('history_title')}
         </Text>
       </Animated.View>
 
@@ -200,7 +204,7 @@ export default function CollectorHistoryScreen() {
                     fontWeight: '600',
                   }}
                 >
-                  Aucune récupération enregistrée.
+                  {t('history_empty')}
                 </Text>
               </>
             )}

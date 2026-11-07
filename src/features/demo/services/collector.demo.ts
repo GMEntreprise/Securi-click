@@ -3,10 +3,19 @@ import type {
   CollectorRecentScan,
   CollectorService,
 } from '@/features/collector/services/collector.service';
-import type { CollectorGuardian } from '@/features/collector/types';
+import type {
+  CollectorGuardian,
+  CollectorIdentity,
+} from '@/features/collector/types';
 import { DEMO_USER_IDS } from '../session';
 import { activeDemoQrCodes, issueDemoQrCode } from './qr.demo';
-import { demoUnavailable, readWorld, writeWorld } from './world';
+import {
+  demoId,
+  demoUnavailable,
+  nowIso,
+  readWorld,
+  writeWorld,
+} from './world';
 
 function myGuardians() {
   return readWorld().guardians.filter(
@@ -76,7 +85,7 @@ export const demoCollectorService: CollectorService = {
   },
 
   async getMyIdentity() {
-    return null;
+    return readWorld().collectorIdentity;
   },
 
   async getMyPickupLogs(_collectorUserId, limit = 20) {
@@ -95,16 +104,40 @@ export const demoCollectorService: CollectorService = {
       }));
   },
 
-  async upsertIdentity() {
-    throw demoUnavailable();
+  async upsertIdentity(
+    collectorUserId,
+    parentId,
+    documentType,
+    frontPath,
+    backPath,
+    selfiePath
+  ) {
+    const now = nowIso();
+    const identity: CollectorIdentity = {
+      id: readWorld().collectorIdentity?.id ?? demoId('identity'),
+      collector_user_id: collectorUserId,
+      parent_id: parentId,
+      document_type: documentType,
+      front_path: frontPath,
+      back_path: backPath,
+      selfie_path: selfiePath,
+      verification_status: 'pending',
+      verified_at: null,
+      verified_by: null,
+      refusal_reason: null,
+      created_at: readWorld().collectorIdentity?.created_at ?? now,
+      updated_at: now,
+    };
+    writeWorld(world => ({ ...world, collectorIdentity: identity }));
+    return identity;
   },
 
-  async uploadIdentityDocument() {
-    throw demoUnavailable();
+  async uploadIdentityDocument(_collectorUserId, _parentId, _slot, uri) {
+    return uri;
   },
 
-  async getSignedIdentityUrl() {
-    throw demoUnavailable();
+  async getSignedIdentityUrl(path) {
+    return path;
   },
 
   async getPendingInvitesByEmail() {
@@ -126,12 +159,18 @@ export const demoCollectorService: CollectorService = {
     }));
   },
 
-  async uploadAvatar() {
-    throw demoUnavailable();
+  async uploadAvatar(_userId, uri) {
+    return uri;
   },
 
-  async updateAvatarUrl() {
-    throw demoUnavailable();
+  async updateAvatarUrl(_userId, avatarUrl) {
+    writeWorld(world => ({
+      ...world,
+      collectorProfile: {
+        ...world.collectorProfile,
+        avatar_url: avatarUrl || null,
+      },
+    }));
   },
 
   async getCollectorQrCode(_collectorUserId, childId) {

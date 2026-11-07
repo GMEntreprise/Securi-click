@@ -1,25 +1,120 @@
 import React, { useCallback } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter, type Href } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@/theme';
+import { useTheme, type AppTheme } from '@/theme';
 import { leaveDemo } from '@/features/auth/store/auth.store';
 import { DEMO_ROLE_HOMES } from '../domain/resolveDemoEntry';
 import type { DemoRole } from '../domain/types';
 import { isDemoActive, useDemoStore } from '../store/demo.store';
 import { useHideSplash } from './useHideSplash';
 
-const ROLES: {
-  role: DemoRole;
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
-}[] = [
+type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+const ROLES: { role: DemoRole; icon: IconName }[] = [
   { role: 'parent', icon: 'account-group' },
-  { role: 'collector', icon: 'shield-check' },
+  { role: 'collector', icon: 'shield-account' },
   { role: 'establishment', icon: 'school' },
 ];
+
+function roleTint(role: DemoRole, theme: AppTheme) {
+  switch (role) {
+    case 'parent':
+      return { color: theme.amber, background: theme.amberBg };
+    case 'collector':
+      return { color: theme.green, background: theme.greenBg };
+    case 'establishment':
+      return theme.isDark
+        ? { color: theme.accent, background: theme.accentBg }
+        : { color: theme.primary, background: theme.primaryBg };
+  }
+}
+
+interface RoleCardProps {
+  role: DemoRole;
+  icon: IconName;
+  index: number;
+  onOpen: (role: DemoRole) => void;
+}
+
+function RoleCard({ role, icon, index, onOpen }: RoleCardProps) {
+  const theme = useTheme();
+  const { t } = useTranslation('demo');
+  const tint = roleTint(role, theme);
+
+  return (
+    <Animated.View entering={FadeInDown.delay(120 + index * 70).duration(380)}>
+      <Pressable
+        cssInterop={false}
+        onPress={() => onOpen(role)}
+        accessibilityRole="button"
+        accessibilityLabel={t(`role_${role}_title`)}
+        accessibilityHint={t(`role_${role}_desc`)}
+        style={({ pressed }) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 16,
+          padding: 18,
+          borderRadius: 22,
+          backgroundColor: theme.card,
+          borderWidth: 1.5,
+          borderColor: pressed ? tint.color : theme.cardBorder,
+          transform: [{ scale: pressed ? 0.985 : 1 }],
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: theme.isDark ? 0 : 0.05,
+          shadowRadius: 8,
+          elevation: 1,
+        })}
+      >
+        <View
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: 18,
+            backgroundColor: tint.background,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MaterialCommunityIcons name={icon} size={28} color={tint.color} />
+        </View>
+
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={{ fontSize: 17, fontWeight: '800', color: theme.text }}>
+            {t(`role_${role}_title`)}
+          </Text>
+          <Text
+            style={{
+              fontSize: 14,
+              lineHeight: 20,
+              color: theme.textSecondary,
+            }}
+          >
+            {t(`role_${role}_desc`)}
+          </Text>
+        </View>
+
+        <View
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: theme.iconBg,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Ionicons name="chevron-forward" size={18} color={theme.text} />
+        </View>
+      </Pressable>
+    </Animated.View>
+  );
+}
 
 export function DemoRolePicker() {
   const theme = useTheme();
@@ -47,142 +142,119 @@ export function DemoRolePicker() {
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.bg }}
       contentContainerStyle={{
-        paddingTop: insets.top + 12,
-        paddingBottom: insets.bottom + 24,
-        paddingHorizontal: 24,
-        gap: 14,
+        paddingTop: insets.top + 8,
+        paddingBottom: insets.bottom + 32,
+        paddingHorizontal: 20,
       }}
+      showsVerticalScrollIndicator={false}
     >
       <Pressable
         cssInterop={false}
         onPress={back}
         accessibilityRole="button"
-        hitSlop={10}
-        style={{
-          flexDirection: 'row',
+        accessibilityLabel={t('picker_back')}
+        hitSlop={8}
+        style={({ pressed }) => ({
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: theme.card,
+          borderWidth: 1,
+          borderColor: theme.cardBorder,
           alignItems: 'center',
-          gap: 6,
-          minHeight: 44,
-          alignSelf: 'flex-start',
-        }}
+          justifyContent: 'center',
+          opacity: pressed ? 0.6 : 1,
+        })}
       >
-        <Ionicons name="chevron-back" size={20} color={theme.textSecondary} />
-        <Text
-          style={{
-            color: theme.textSecondary,
-            fontSize: 15,
-            fontWeight: '600',
-          }}
-        >
-          {t('picker_back')}
-        </Text>
+        <Ionicons name="chevron-back" size={22} color={theme.text} />
       </Pressable>
 
-      <Text
-        accessibilityRole="header"
-        style={{ fontSize: 28, fontWeight: '800', color: theme.text }}
+      <Animated.View
+        entering={FadeInDown.duration(380)}
+        style={{ marginTop: 28, marginBottom: 28, gap: 12 }}
       >
-        {t('picker_title')}
-      </Text>
-      <Text
-        style={{ fontSize: 15, color: theme.textSecondary, marginBottom: 8 }}
-      >
-        {t('picker_subtitle')}
-      </Text>
-
-      {ROLES.map(({ role, icon }) => (
-        <Pressable
-          cssInterop={false}
-          key={role}
-          onPress={() => open(role)}
-          accessibilityRole="button"
-          accessibilityLabel={`${t(`role_${role}_cta`)}. ${t(`role_${role}_desc`)}`}
-          style={({ pressed }) => ({
-            padding: 18,
-            borderRadius: 24,
-            backgroundColor: theme.card,
-            borderWidth: 2,
-            borderColor: pressed ? theme.primary : theme.cardBorder,
-            gap: 12,
-          })}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
-            <View
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 18,
-                backgroundColor: theme.primaryBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <MaterialCommunityIcons
-                name={icon}
-                size={26}
-                color={theme.primary}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                style={{ fontSize: 17, fontWeight: '800', color: theme.text }}
-              >
-                {t(`role_${role}_title`)}
-              </Text>
-              <Text
-                style={{
-                  fontSize: 14,
-                  color: theme.textSecondary,
-                  marginTop: 2,
-                }}
-              >
-                {t(`role_${role}_desc`)}
-              </Text>
-            </View>
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              backgroundColor: theme.primary,
-              borderRadius: 14,
-              minHeight: 48,
-            }}
-          >
-            <Text style={{ color: '#fff', fontSize: 15, fontWeight: '800' }}>
-              {t(`role_${role}_cta`)}
-            </Text>
-            <Ionicons name="arrow-forward" size={18} color="#fff" />
-          </View>
-        </Pressable>
-      ))}
-
-      <View
-        style={{
-          flexDirection: 'row',
-          gap: 8,
-          alignItems: 'flex-start',
-          marginTop: 4,
-        }}
-      >
-        <Ionicons
-          name="information-circle-outline"
-          size={18}
-          color={theme.textMuted}
-        />
-        <Text
+        <View
           style={{
-            flex: 1,
-            color: theme.textMuted,
-            fontSize: 13,
-            lineHeight: 19,
+            alignSelf: 'flex-start',
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 999,
+            backgroundColor: theme.accentBg,
           }}
         >
-          {t('picker_notice')}
+          <Ionicons name="sparkles" size={14} color={theme.accent} />
+          <Text
+            style={{
+              color: theme.accent,
+              fontSize: 13,
+              fontWeight: '700',
+            }}
+          >
+            {t('picker_badge')}
+          </Text>
+        </View>
+        <Text
+          accessibilityRole="header"
+          style={{
+            fontSize: 30,
+            lineHeight: 36,
+            fontWeight: '800',
+            letterSpacing: -0.5,
+            color: theme.text,
+          }}
+        >
+          {t('picker_title')}
         </Text>
+        <Text
+          style={{ fontSize: 16, lineHeight: 23, color: theme.textSecondary }}
+        >
+          {t('picker_subtitle')}
+        </Text>
+      </Animated.View>
+
+      <View style={{ gap: 12 }}>
+        {ROLES.map(({ role, icon }, index) => (
+          <RoleCard
+            key={role}
+            role={role}
+            icon={icon}
+            index={index}
+            onOpen={open}
+          />
+        ))}
       </View>
+
+      <Animated.View
+        entering={FadeInDown.delay(360).duration(380)}
+        style={{
+          flexDirection: 'row',
+          gap: 12,
+          alignItems: 'center',
+          marginTop: 24,
+          padding: 16,
+          borderRadius: 18,
+          backgroundColor: theme.greenBg,
+        }}
+      >
+        <Ionicons name="shield-checkmark" size={22} color={theme.green} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: theme.text }}>
+            {t('picker_notice_title')}
+          </Text>
+          <Text
+            style={{
+              fontSize: 13,
+              lineHeight: 19,
+              color: theme.textSecondary,
+            }}
+          >
+            {t('picker_notice')}
+          </Text>
+        </View>
+      </Animated.View>
     </ScrollView>
   );
 }

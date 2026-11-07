@@ -1,7 +1,9 @@
 import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 
 export default function AuthorizedPersonsLayout() {
+  const { t } = useTranslation('common');
   const theme = useTheme();
   return (
     <Stack
@@ -22,14 +24,14 @@ export default function AuthorizedPersonsLayout() {
       <Stack.Screen
         name="add"
         options={{
-          title: 'Ajouter une personne',
+          title: t('screen_add_person'),
           presentation: 'modal',
           headerBackTitle: '',
         }}
       />
       <Stack.Screen
         name="[id]"
-        options={{ title: "Modifier l'autorisation", headerBackTitle: '' }}
+        options={{ title: t('screen_edit_authorization'), headerBackTitle: '' }}
       />
     </Stack>
   );

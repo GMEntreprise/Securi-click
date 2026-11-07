@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query';
+import { i18n } from '@/i18n';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthStore } from '@/features/auth/store/auth.store';
@@ -38,13 +39,10 @@ interface CollectorLoginError {
 }
 
 export function formatPinError(code: string): string {
-  if (code === 'invalid_pin')
-    return 'Code incorrect. Vérifiez auprès du parent.';
-  if (code === 'pin_locked')
-    return 'Trop de tentatives. Réessayez dans 15 minutes.';
-  if (code === 'no_active_guardian')
-    return 'Aucun accès actif pour cet email. Vérifiez avec le parent.';
-  return 'Une erreur est survenue. Réessayez.';
+  if (code === 'invalid_pin') return i18n.t('errors:invalid_pin');
+  if (code === 'pin_locked') return i18n.t('errors:pin_locked');
+  if (code === 'no_active_guardian') return i18n.t('errors:no_active_access');
+  return i18n.t('errors:generic');
 }
 
 export function useCollectorPinLogin(onVerified: (version: number) => void) {

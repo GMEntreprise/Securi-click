@@ -3,6 +3,7 @@ import type { HistoryEntry } from '@/features/parent/services/history.service';
 import type { PickupLog } from '@/features/parent/types';
 import type { PickupValidation, SchoolChild } from '@/features/school/types';
 import type { Notification } from '@/features/notifications/types';
+import { i18n } from '@/i18n';
 import { DEMO_USER_IDS } from '../session';
 import type { DemoGuardian, DemoWorld } from './types';
 
@@ -24,15 +25,16 @@ export const DEMO_IDS = {
   alex: 'demo-person-alex',
 } as const;
 
-export const DEMO_UNAUTHORIZED_PERSON = {
-  id: DEMO_IDS.alex,
-  first_name: 'Alex',
-  last_name: 'Durand',
-  phone: '01 99 00 00 04',
-  photo_url: null,
-  relationship: 'Personne non autorisée',
-  identity_status: 'none',
-} as const;
+export function demoUnauthorizedPerson() {
+  return {
+    id: DEMO_IDS.alex,
+    first_name: 'Alex',
+    last_name: 'Durand',
+    phone: '01 99 00 00 04',
+    relationship: i18n.t('demo:seed_rel_unauthorized'),
+    identity_status: 'none' as const,
+  };
+}
 
 export function createDemoWorld(now: Date): DemoWorld {
   const nowMs = now.getTime();
@@ -179,7 +181,7 @@ export function createDemoWorld(now: Date): DemoWorld {
       DEMO_IDS.emma,
       'Sophie',
       'Martin',
-      'Grand-mère',
+      i18n.t('demo:seed_rel_grandmother'),
       '01 99 00 00 01',
       'sophie.martin@demo.invalid',
       {
@@ -191,7 +193,7 @@ export function createDemoWorld(now: Date): DemoWorld {
       DEMO_IDS.lucas,
       'Sophie',
       'Martin',
-      'Grand-mère',
+      i18n.t('demo:seed_rel_grandmother'),
       '01 99 00 00 01',
       'sophie.martin@demo.invalid',
       {
@@ -204,7 +206,7 @@ export function createDemoWorld(now: Date): DemoWorld {
       DEMO_IDS.lucas,
       'Thomas',
       'Martin',
-      'Père',
+      i18n.t('demo:seed_rel_father'),
       '01 99 00 00 02',
       'thomas.martin@demo.invalid'
     ),
@@ -213,7 +215,7 @@ export function createDemoWorld(now: Date): DemoWorld {
       DEMO_IDS.emma,
       'Julie',
       'Bernard',
-      'Nounou',
+      i18n.t('demo:seed_rel_nanny'),
       '01 99 00 00 03',
       'julie.bernard@demo.invalid',
       {
@@ -258,7 +260,7 @@ export function createDemoWorld(now: Date): DemoWorld {
       childId: DEMO_IDS.emma,
       guardianId: DEMO_IDS.julieEmma,
       status: 'refused',
-      reason: 'QR expiré.',
+      reason: i18n.t('demo:seed_qr_expired'),
     },
     {
       id: '4',
@@ -446,6 +448,7 @@ export function createDemoWorld(now: Date): DemoWorld {
       role: 'collector',
       created_at: createdAt,
     },
+    collectorIdentity: null,
     children,
     guardians,
     authorizations,
@@ -453,27 +456,28 @@ export function createDemoWorld(now: Date): DemoWorld {
     history,
     pickupLogs,
     qrCodes: [],
+    usedQrTokens: [],
     notifications: [
       notification(
         'demo-notification-parent',
         DEMO_USER_IDS.parent,
         'parent',
-        'Emma a été récupérée',
-        'Sophie Martin a récupéré Emma à l’École des Tilleuls.'
+        i18n.t('demo:seed_notif_parent_title'),
+        i18n.t('demo:seed_notif_parent_body')
       ),
       notification(
         'demo-notification-collector',
         DEMO_USER_IDS.collector,
         'collector',
-        'Récupération confirmée',
-        'L’École des Tilleuls a validé votre récupération d’Emma.'
+        i18n.t('demo:seed_notif_collector_title'),
+        i18n.t('demo:seed_notif_collector_body')
       ),
       notification(
         'demo-notification-school',
         DEMO_USER_IDS.establishment,
         'school_admin',
-        'Récupération validée',
-        'Sophie Martin a récupéré Emma Martin.'
+        i18n.t('demo:seed_notif_school_title'),
+        i18n.t('demo:seed_notif_school_body')
       ),
     ],
   };

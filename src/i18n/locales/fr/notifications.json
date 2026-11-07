@@ -24,5 +24,22 @@
   "unread_one": "{{count}} non lue",
   "unread_other": "{{count}} non lues",
   "mark_all_read_short": "Tout lire",
-  "empty_body": "Vous serez notifié en temps réel des activités importantes."
+  "empty_body": "Vous serez notifié en temps réel des activités importantes.",
+  "channel_security": "Alertes sécurité",
+  "type_child_picked_up": "Enfant récupéré",
+  "type_pickup_refused": "Récupération refusée",
+  "type_qr_expired": "QR expiré",
+  "type_qr_invalid": "QR invalide",
+  "type_qr_used": "QR utilisé",
+  "type_collector_activated": "Collecteur activé",
+  "type_collector_deactivated": "Collecteur désactivé",
+  "type_new_authorization": "Nouvelle autorisation",
+  "type_identity_validated": "Identité validée",
+  "type_identity_refused": "Identité refusée",
+  "type_account_created": "Compte créé",
+  "type_permissions_modified": "Permissions modifiées",
+  "type_security_incident": "Incident de sécurité",
+  "type_new_parent_linked": "Nouveau parent lié",
+  "type_school_validated": "Établissement validé",
+  "type_access_suspended": "Accès suspendu"
 }

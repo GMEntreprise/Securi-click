@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
 import { toUserFacingError } from '@/shared/errors/supabaseError';
+import { i18n } from '@/i18n';
 import { signStorageFields } from '@/shared/storage';
 import type {
   CollectorGuardian,
@@ -79,6 +80,12 @@ const LOG_SELECT = `
   id, child_id, guardian_id, pickup_time, status, denial_reason,
   child:children!pickup_logs_child_id_fkey ( first_name, last_name, photo_url )
 `.trim();
+
+export class QrGenerationError extends Error {
+  constructor(readonly reason: 'forbidden' | 'suspended') {
+    super(i18n.t(`collector:qr_error_${reason}`));
+  }
+}
 
 const supabaseCollectorService = {
   async getMyGuardians(collectorUserId: string): Promise<CollectorGuardian[]> {
@@ -236,8 +243,7 @@ const supabaseCollectorService = {
     };
     const rawExt = (uri.split('?')[0].split('.').pop() ?? '').toLowerCase();
     const contentType = ALLOWED[rawExt];
-    if (!contentType)
-      throw new Error('Format image non supporté. Utilisez JPG, PNG ou WebP.');
+    if (!contentType) throw new Error(i18n.t('errors:image_format'));
     const ext = rawExt === 'jpeg' ? 'jpg' : rawExt;
     const path = `${userId}/avatar.${ext}`;
     const response = await fetch(uri);
@@ -343,14 +349,17 @@ const supabaseCollectorService = {
       }
     );
     if (rpcError) {
-      if (rpcError.message?.includes('forbidden')) {
-        throw new Error(rpcError.message);
+      const reason = rpcError.message ?? '';
+      if (reason.includes('forbidden')) {
+        throw new QrGenerationError(
+          reason.includes('suspendu') ? 'suspended' : 'forbidden'
+        );
       }
-      throw rpcError;
+      throw toUserFacingError(rpcError);
     }
 
     const qrId = rpcData as string;
-    if (!qrId) throw new Error('QR ID manquant après génération');
+    if (!qrId) throw new Error(i18n.t('errors:qr_generation_failed'));
 
     const { data: qr, error: fetchErr } = await supabase
       .from('qr_codes')
@@ -360,10 +369,7 @@ const supabaseCollectorService = {
       .eq('id', qrId)
       .single();
     if (fetchErr) throw fetchErr;
-    if (!qr)
-      throw new Error(
-        'QR introuvable après génération — policy RLS manquante ?'
-      );
+    if (!qr) throw new Error(i18n.t('errors:qr_generation_failed'));
     return signChildPhotos(qr as unknown as CollectorQrCode);
   },
 };

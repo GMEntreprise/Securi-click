@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { upsertPushToken, deactivatePushToken } from '../api/notifications.api';
+import { i18n } from '@/i18n';
 
 // Configure how notifications appear when the app is in foreground
 Notifications.setNotificationHandler({
@@ -40,7 +41,7 @@ export async function registerPushToken(): Promise<string | null> {
         sound: 'default',
       });
       await Notifications.setNotificationChannelAsync('security', {
-        name: 'Alertes sécurité',
+        name: i18n.t('notifications:channel_security'),
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 500, 250, 500],
         lightColor: '#ef4444',

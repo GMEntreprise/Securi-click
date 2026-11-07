@@ -1,3 +1,5 @@
+import { i18n } from '@/i18n';
+
 export type SupabaseErrorKind =
   | 'rate_limit'
   | 'network'
@@ -50,19 +52,8 @@ export function classifySupabaseError(
   return 'unknown';
 }
 
-const GENERIC_MESSAGES: Record<SupabaseErrorKind, string> = {
-  rate_limit:
-    'Trop de demandes en peu de temps. Réessayez dans quelques minutes.',
-  network: 'Connexion impossible. Vérifiez votre réseau et réessayez.',
-  weak_password: 'Le mot de passe ne respecte pas les exigences de sécurité.',
-  invalid_email: "L'adresse email saisie n'est pas valide.",
-  not_found: 'Cet élément est introuvable ou a été supprimé.',
-  permission_denied: "Vous n'avez pas accès à cette information.",
-  unknown: 'Une erreur est survenue. Réessayez dans quelques instants.',
-};
-
 export function supabaseErrorMessage(kind: SupabaseErrorKind): string {
-  return GENERIC_MESSAGES[kind];
+  return i18n.t(`errors:supabase_${kind}`);
 }
 
 export function toUserFacingError(

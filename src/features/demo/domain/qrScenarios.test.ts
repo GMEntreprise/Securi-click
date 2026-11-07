@@ -38,23 +38,46 @@ describe('demo QR payloads', () => {
     expect(parseDemoQrPayload('')).toBeNull();
   });
 
-  it('round-trips a code generated inside the demo', () => {
-    const token = buildDemoLiveToken(
-      'demo-child-emma',
-      'demo-guardian-sophie-emma'
-    );
+  it('round-trips a self-contained code generated on another device', () => {
+    const code = {
+      childId: 'demo-child-emma',
+      guardianId: 'demo-guardian-nina',
+      expiresAt: Date.UTC(2026, 10, 8, 16, 30),
+      nonce: 'k3x9',
+      child: { first_name: 'Emma', last_name: 'Martin', class_name: 'CP' },
+      guardian: {
+        first_name: 'Nina',
+        last_name: "Roux-d'Arc: tante",
+        relationship: 'Tante',
+      },
+    };
+    const token = buildDemoLiveToken(code);
     expect(isDemoQrPayload(token)).toBe(true);
-    expect(parseDemoQrPayload(token)).toEqual({
+    expect(parseDemoQrPayload(token)).toEqual({ kind: 'live', ...code });
+    const parentCode = { ...code, guardianId: null, guardian: null };
+    expect(parseDemoQrPayload(buildDemoLiveToken(parentCode))).toEqual({
       kind: 'live',
-      childId: 'demo-child-emma',
-      guardianId: 'demo-guardian-sophie-emma',
+      ...parentCode,
     });
-    expect(
-      parseDemoQrPayload(buildDemoLiveToken('demo-child-emma', null))
-    ).toEqual({
-      kind: 'live',
-      childId: 'demo-child-emma',
+  });
+
+  it('refuses a live code that points outside the demo', () => {
+    const token = buildDemoLiveToken({
+      childId: '6f1c2b0e-0000-4000-8000-000000000001',
       guardianId: null,
+      expiresAt: Date.UTC(2026, 10, 8),
+      nonce: 'a',
+      child: { first_name: 'X', last_name: 'Y', class_name: null },
+      guardian: null,
     });
+    expect(parseDemoQrPayload(token)).toBeNull();
+    expect(
+      parseDemoQrPayload('SECURICLICK-DEMO:v1:live:demo-child-emma:parent')
+    ).toBeNull();
+    expect(
+      parseDemoQrPayload(
+        'SECURICLICK-DEMO:v1:live:demo-child-emma:parent:zz:n:%E0%A4%A:M::::'
+      )
+    ).toBeNull();
   });
 });

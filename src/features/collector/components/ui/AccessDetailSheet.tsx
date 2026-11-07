@@ -5,7 +5,9 @@ import Animated, { FadeInDown, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { appLocale } from '@/i18n/locale';
 import { Avatar } from '@/shared/ui/base/avatar';
 import type { CollectorGuardian } from '@/features/collector/types';
 import { usePickupAuthorization } from '@/features/parent/hooks/usePickupAuthorization';
@@ -85,6 +87,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
   onClose,
 }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const insets = useSafeAreaInsets();
 
   const { data: pickupAuth } = usePickupAuthorization(
@@ -147,7 +150,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                 marginBottom: 2,
               }}
             >
-              Détail accès
+              {t('detail_title')}
             </Text>
             <Text
               style={{
@@ -222,7 +225,9 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                   color: isActive ? '#10b981' : '#ef4444',
                 }}
               >
-                {isActive ? 'Accès actif' : 'Accès suspendu'}
+                {isActive
+                  ? t('home_access_active')
+                  : t('home_access_suspended')}
               </Text>
             </View>
           </Animated.View>
@@ -273,7 +278,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                   letterSpacing: 0.8,
                 }}
               >
-                Enfant
+                {t('detail_child')}
               </Text>
             </View>
             <View
@@ -292,7 +297,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                   color={theme.textMuted}
                 />
               }
-              label="Prénom & Nom"
+              label={t('detail_full_name')}
               value={childName || '—'}
             />
             {child?.class_name ? (
@@ -304,7 +309,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                     color={theme.textMuted}
                   />
                 }
-                label="Classe"
+                label={t('detail_class')}
                 value={child.class_name}
               />
             ) : null}
@@ -317,7 +322,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                     color={theme.textMuted}
                   />
                 }
-                label="Établissement"
+                label={t('detail_school')}
                 value={`${child.school.name}${child.school.city ? `, ${child.school.city}` : ''}`}
               />
             ) : null}
@@ -330,7 +335,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                     color={theme.textMuted}
                   />
                 }
-                label="Adresse"
+                label={t('detail_address')}
                 value={`${child.school.address}${child.school.postal_code ? `, ${child.school.postal_code}` : ''}${child.school.city ? ` ${child.school.city}` : ''}`}
               />
             ) : null}
@@ -382,7 +387,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                   letterSpacing: 0.8,
                 }}
               >
-                Autorisation
+                {t('detail_authorization')}
               </Text>
             </View>
             <View
@@ -401,7 +406,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                   color={theme.textMuted}
                 />
               }
-              label="Relation"
+              label={t('detail_relationship')}
               value={guardian.relationship || '—'}
             />
             <InfoRow
@@ -412,12 +417,15 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                   color={theme.textMuted}
                 />
               }
-              label="Autorisé depuis"
-              value={new Date(guardian.created_at).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
+              label={t('detail_since')}
+              value={new Date(guardian.created_at).toLocaleDateString(
+                appLocale(),
+                {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                }
+              )}
             />
           </Animated.View>
 
@@ -468,7 +476,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                     letterSpacing: 0.8,
                   }}
                 >
-                  Planning
+                  {t('detail_schedule')}
                 </Text>
                 <View
                   style={{
@@ -488,7 +496,9 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                       color: pickupAuth.is_active ? theme.green : theme.red,
                     }}
                   >
-                    {pickupAuth.is_active ? 'Actif' : 'Désactivé'}
+                    {pickupAuth.is_active
+                      ? t('detail_active')
+                      : t('detail_inactive')}
                   </Text>
                 </View>
               </View>
@@ -544,7 +554,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                       marginBottom: 8,
                     }}
                   >
-                    Jours autorisés
+                    {t('detail_days')}
                   </Text>
                   <View
                     style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}
@@ -589,7 +599,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                       marginBottom: 6,
                     }}
                   >
-                    Horaires
+                    {t('detail_hours')}
                   </Text>
                   <View
                     style={{
@@ -665,7 +675,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                     letterSpacing: 0.8,
                   }}
                 >
-                  Notes médicales
+                  {t('detail_medical')}
                 </Text>
               </View>
               <View
@@ -708,8 +718,7 @@ export const AccessDetailSheet = memo(function AccessDetailSheet({
                   lineHeight: 20,
                 }}
               >
-                Votre accès a été suspendu par le parent responsable.
-                Contactez-le directement pour rétablir l'autorisation.
+                {t('detail_suspended')}
               </Text>
             </Animated.View>
           )}

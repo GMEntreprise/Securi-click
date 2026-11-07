@@ -4,6 +4,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 
 interface AuthStepBarProps {
@@ -14,6 +15,7 @@ interface AuthStepBarProps {
 export const AuthStepBar: React.FC<AuthStepBarProps> = memo(
   ({ currentStep, totalSteps }) => {
     const t = useTheme();
+    const { t: i18n } = useTranslation('auth');
 
     return (
       <View style={{ marginBottom: 24 }}>
@@ -25,7 +27,10 @@ export const AuthStepBar: React.FC<AuthStepBarProps> = memo(
             fontWeight: '600',
           }}
         >
-          Étape {currentStep} sur {totalSteps}
+          {i18n('step_progress', {
+            current: currentStep,
+            total: totalSteps,
+          })}
         </Text>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {Array.from({ length: totalSteps }).map((_, i) => (

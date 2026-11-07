@@ -9,6 +9,7 @@ import { mapSupabaseSessionToAuthSession } from '../utils/mapAuthSession';
 import { directoryService } from '@/features/school/directory';
 import { resolveSignUpOutcome } from '../utils/signUpOutcome';
 import { toAuthError } from '../utils/authError';
+import { i18n } from '@/i18n';
 import {
   ACCOUNT_OWNED_BUCKETS,
   collectIdentityDocumentPaths,
@@ -19,8 +20,6 @@ import {
  * On distingue les cas fréquents (doublon, rate limit email, erreur DB)
  * au lieu d'un générique « Impossible de créer le compte » qui masque tout.
  */
-const UNUSABLE_SIGNUP_MESSAGE =
-  "L'inscription n'a pas abouti. Réessayez dans quelques instants.";
 
 function mapSignUpError(error: {
   message: string;
@@ -34,34 +33,28 @@ function mapSignUpError(error: {
     msg.includes('already registered') ||
     msg.includes('already been registered')
   ) {
-    return new Error(
-      'Un compte existe déjà avec cet email. Connectez-vous ou réinitialisez votre mot de passe.'
-    );
+    return new Error(i18n.t('errors:signup_email_taken'));
   }
   if (
     code === 'over_email_send_rate_limit' ||
     error.status === 429 ||
     msg.includes('rate limit')
   ) {
-    return new Error(
-      "Trop de demandes d'inscription pour le moment. Réessayez dans quelques minutes."
-    );
+    return new Error(i18n.t('errors:signup_rate_limit'));
   }
   if (msg.includes('database error') || msg.includes('saving new user')) {
-    return new Error(
-      'Erreur serveur lors de la création du compte. Notre équipe a été informée, réessayez plus tard.'
-    );
+    return new Error(i18n.t('errors:signup_server'));
   }
   if (msg.includes('password')) {
-    return new Error(
-      'Le mot de passe ne respecte pas les exigences de sécurité.'
-    );
+    return new Error(i18n.t('errors:supabase_weak_password'));
   }
   // Cas inconnu : conserver le message réel en dev pour le diagnostic
   if (__DEV__) {
-    return new Error(`Inscription échouée: ${error.message}`);
+    return new Error(
+      i18n.t('errors:signup_failed_dev', { message: error.message })
+    );
   }
-  return new Error('Impossible de créer le compte. Réessayez.');
+  return new Error(i18n.t('errors:signup_failed'));
 }
 
 async function signInWithPassword(
@@ -80,26 +73,24 @@ async function signInWithPassword(
       msg.includes('credentials') ||
       msg.includes('password')
     ) {
-      throw new Error('Email ou mot de passe incorrect.');
+      throw new Error(i18n.t('errors:login_invalid'));
     }
     if (msg.includes('email not confirmed')) {
-      throw new Error('Confirmez votre email avant de vous connecter.');
+      throw new Error(i18n.t('errors:login_unconfirmed'));
     }
-    throw new Error('Une erreur est survenue. Réessayez.');
+    throw new Error(i18n.t('errors:generic'));
   }
 
   const session = data.session;
   if (!session) {
-    throw new Error('Aucune session retournée');
+    throw new Error(i18n.t('errors:login_no_session'));
   }
 
   try {
     return await mapSupabaseSessionToAuthSession(session);
   } catch {
     await supabase.auth.signOut();
-    throw new Error(
-      'Votre profil est introuvable. Réessayez, ou contactez le support si le problème persiste.'
-    );
+    throw new Error(i18n.t('errors:profile_missing'));
   }
 }
 
@@ -124,7 +115,7 @@ async function registerParent(data: RegisterParentData): Promise<void> {
     throw mapSignUpError(error);
   }
   if (resolveSignUpOutcome(signUp) === 'unusable') {
-    throw new Error(UNUSABLE_SIGNUP_MESSAGE);
+    throw new Error(i18n.t('errors:signup_unusable'));
   }
 }
 
@@ -132,22 +123,16 @@ async function registerSchool(data: RegisterSchoolData): Promise<void> {
   const normalizedEmail = data.email.trim().toLowerCase();
   const establishment = await directoryService.byUai(data.directory_uai);
   if (establishment.status === 'network_error') {
-    throw new Error(
-      'Connexion impossible. Vérifiez votre réseau et réessayez.'
-    );
+    throw new Error(i18n.t('errors:supabase_network'));
   }
   if (establishment.status !== 'found') {
-    throw new Error(
-      'Établissement introuvable. Vérifiez le code UAI sélectionné.'
-    );
+    throw new Error(i18n.t('errors:school_not_found'));
   }
   if (!establishment.establishment.is_active) {
-    throw new Error("Cet établissement n'est actuellement pas disponible.");
+    throw new Error(i18n.t('errors:school_unavailable'));
   }
   if (establishment.establishment.is_claimed) {
-    throw new Error(
-      'Cet établissement possède déjà un compte SecuriClick. Connectez-vous ou contactez le support.'
-    );
+    throw new Error(i18n.t('errors:school_claimed'));
   }
 
   const { data: signUp, error } = await supabase.auth.signUp({
@@ -174,14 +159,12 @@ async function registerSchool(data: RegisterSchoolData): Promise<void> {
   if (error) {
     const latest = await directoryService.byUai(data.directory_uai);
     if (latest.status === 'found' && latest.establishment.is_claimed) {
-      throw new Error(
-        'Cet établissement possède déjà un compte SecuriClick. Connectez-vous ou contactez le support.'
-      );
+      throw new Error(i18n.t('errors:school_claimed'));
     }
     throw mapSignUpError(error);
   }
   if (resolveSignUpOutcome(signUp) === 'unusable') {
-    throw new Error(UNUSABLE_SIGNUP_MESSAGE);
+    throw new Error(i18n.t('errors:signup_unusable'));
   }
 }
 

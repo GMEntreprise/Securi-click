@@ -324,7 +324,10 @@ export default function ProfileScreen() {
             ),
             iconBg: theme.primaryBg,
             title: i18n('profile_language'),
-            subtitle: language === 'fr' ? '🇫🇷 Français' : '🇬🇧 English',
+            subtitle:
+              language === 'fr'
+                ? i18n('common:french')
+                : i18n('common:english'),
             onPress: () => nav.goToParentLanguage(),
           },
         ] as RowItem[],

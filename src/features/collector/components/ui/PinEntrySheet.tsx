@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import type { PendingInvite } from '../../hooks/useCollector';
 
@@ -38,6 +39,7 @@ export const PinEntrySheet = memo(function PinEntrySheet({
   error,
 }: PinEntrySheetProps) {
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const [pin, setPin] = useState('');
   const [visible, setVisible] = useState(false);
   const autoHideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -128,7 +130,7 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                 marginBottom: 3,
               }}
             >
-              Invitation reçue
+              {t('pin_invite_received')}
             </Text>
             <Text
               style={{
@@ -138,7 +140,7 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                 letterSpacing: -0.3,
               }}
             >
-              Code de sécurité
+              {t('pin_security_code')}
             </Text>
           </View>
           <TouchableOpacity
@@ -177,7 +179,7 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                   fontWeight: '600',
                 }}
               >
-                Autorisation pour
+                {t('pin_authorization_for')}
               </Text>
               {childName ? (
                 <Text
@@ -218,8 +220,7 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                 lineHeight: 17,
               }}
             >
-              Le parent qui vous a invité vous a communiqué ce code à 6 chiffres
-              en privé.
+              {t('pin_shared_privately')}
             </Text>
           </Animated.View>
 
@@ -296,7 +297,7 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                   marginTop: 6,
                 }}
               >
-                Code visible — masquage dans 8 secondes
+                {t('pin_visible')}
               </Text>
             ) : null}
 
@@ -338,7 +339,7 @@ export const PinEntrySheet = memo(function PinEntrySheet({
                   <Text
                     style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
                   >
-                    Confirmer l'accès
+                    {t('pin_confirm')}
                   </Text>
                 </>
               )}

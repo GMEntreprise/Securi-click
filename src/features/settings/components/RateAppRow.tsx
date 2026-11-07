@@ -2,11 +2,13 @@ import React from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { useStoreReview } from '../hooks/useStoreReview';
 
 export function RateAppRow({ isLast = false }: { isLast?: boolean }) {
   const theme = useTheme();
+  const { t } = useTranslation('common');
   const { reviewState, request } = useStoreReview();
 
   const isDone = reviewState === 'done';
@@ -28,16 +30,16 @@ export function RateAppRow({ isLast = false }: { isLast?: boolean }) {
       : 'rgba(245,158,11,0.12)';
 
   const label = isDone
-    ? 'Merci pour votre soutien !'
+    ? t('rate_thanks')
     : isBlocked
-      ? 'Vous avez déjà donné votre avis récemment'
-      : "Noter l'application";
+      ? t('rate_already')
+      : t('rate_cta');
 
   const subtitle = isDone
-    ? 'Votre avis compte énormément'
+    ? t('rate_thanks_subtitle')
     : isBlocked
-      ? 'Revenez dans quelques semaines'
-      : 'Votre avis nous aide à améliorer SecuriClick';
+      ? t('rate_already_subtitle')
+      : t('rate_subtitle');
 
   const handlePress = () => {
     if (isBusy || isDone || isBlocked) return;

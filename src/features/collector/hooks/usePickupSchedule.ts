@@ -1,18 +1,23 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
+import { i18n } from '@/i18n';
+import { appLocale } from '@/i18n/locale';
 import { useSession } from '@/features/auth/store/auth.store';
 import { subscribeToTable } from '@/lib/supabase/realtimeRegistry';
-import { pickupAuthorizationService, type PickupAuthorization } from '@/features/parent/services/pickupAuthorization.service';
+import {
+  pickupAuthorizationService,
+  type PickupAuthorization,
+} from '@/features/parent/services/pickupAuthorization.service';
 
 export const COLLECTOR_SCHEDULE_KEY = (collectorUserId: string) =>
   ['collector', 'pickup_schedules', collectorUserId] as const;
 
-const DAY_LABELS: Record<string, string> = {
-  monday: 'Lundi',
-  tuesday: 'Mardi',
-  wednesday: 'Mercredi',
-  thursday: 'Jeudi',
-  friday: 'Vendredi',
+const DAY_LABEL_KEYS: Record<string, string> = {
+  monday: 'common:day_monday',
+  tuesday: 'common:day_tuesday',
+  wednesday: 'common:day_wednesday',
+  thursday: 'common:day_thursday',
+  friday: 'common:day_friday',
 };
 
 const DOW_TO_KEY: Record<number, keyof PickupAuthorization> = {
@@ -24,11 +29,9 @@ const DOW_TO_KEY: Record<number, keyof PickupAuthorization> = {
 };
 
 export function getActiveDayLabels(auth: PickupAuthorization): string[] {
-  return (
-    Object.entries(DAY_LABELS)
-      .filter(([key]) => auth[key as keyof PickupAuthorization] === true)
-      .map(([, label]) => label)
-  );
+  return Object.entries(DAY_LABEL_KEYS)
+    .filter(([key]) => auth[key as keyof PickupAuthorization] === true)
+    .map(([, labelKey]) => i18n.t(labelKey));
 }
 
 export function isTodayAuthorized(auth: PickupAuthorization): boolean {
@@ -63,13 +66,19 @@ export function getNextPickupLabel(auth: PickupAuthorization): string | null {
     a.getMonth() === b.getMonth() &&
     a.getDate() === b.getDate();
 
-  const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const time = d.toLocaleTimeString(appLocale(), {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-  if (isSameDay(d, today)) return `Aujourd'hui à ${time}`;
-  if (isSameDay(d, tomorrow)) return `Demain à ${time}`;
+  if (isSameDay(d, today)) return i18n.t('common:today_at', { time });
+  if (isSameDay(d, tomorrow)) return i18n.t('common:tomorrow_at', { time });
 
-  const dayName = d.toLocaleDateString('fr-FR', { weekday: 'long' });
-  return `${dayName.charAt(0).toUpperCase() + dayName.slice(1)} à ${time}`;
+  const dayName = d.toLocaleDateString(appLocale(), { weekday: 'long' });
+  return i18n.t('common:day_at', {
+    day: dayName.charAt(0).toUpperCase() + dayName.slice(1),
+    time,
+  });
 }
 
 export function useCollectorPickupSchedules() {
@@ -89,7 +98,11 @@ export function useCollectorPickupSchedules() {
     return subscribeToTable(
       `collector-schedules-${collectorUserId}`,
       { event: '*', schema: 'public', table: 'pickup_authorizations' },
-      () => { queryClient.invalidateQueries({ queryKey: COLLECTOR_SCHEDULE_KEY(collectorUserId) }); }
+      () => {
+        queryClient.invalidateQueries({
+          queryKey: COLLECTOR_SCHEDULE_KEY(collectorUserId),
+        });
+      }
     );
   }, [collectorUserId, queryClient]);
 

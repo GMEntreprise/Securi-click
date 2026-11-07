@@ -4,6 +4,7 @@ import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { tabIconColor } from '@/constants/tabBar';
 
@@ -29,6 +30,7 @@ function ThemedCurvedTabBar(
 }
 
 export default function SchoolTabsLayout() {
+  const { t } = useTranslation('common');
   const renderTabBar = useCallback(
     (props: BottomTabBarProps) => <ThemedCurvedTabBar {...props} />,
     []
@@ -40,7 +42,7 @@ export default function SchoolTabsLayout() {
         <Tabs.Screen
           name="home"
           options={{
-            title: 'Accueil',
+            title: t('tab_home'),
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 name="home-outline"
@@ -53,7 +55,7 @@ export default function SchoolTabsLayout() {
         <Tabs.Screen
           name="students"
           options={{
-            title: 'Élèves',
+            title: t('tab_students'),
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 name="account-group"
@@ -66,7 +68,7 @@ export default function SchoolTabsLayout() {
         <Tabs.Screen
           name="scanner"
           options={{
-            title: 'Scanner',
+            title: t('tab_scanner'),
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 name="line-scan"
@@ -79,7 +81,7 @@ export default function SchoolTabsLayout() {
         <Tabs.Screen
           name="history"
           options={{
-            title: 'Historique',
+            title: t('tab_history'),
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 name="history"
@@ -92,9 +94,13 @@ export default function SchoolTabsLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Profil',
+            title: t('tab_profile'),
             tabBarIcon: ({ color }) => (
-              <Ionicons name="person-outline" size={ICON_SIZE} color={tabIconColor(color)} />
+              <Ionicons
+                name="person-outline"
+                size={ICON_SIZE}
+                color={tabIconColor(color)}
+              />
             ),
           }}
         />

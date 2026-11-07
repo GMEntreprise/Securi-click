@@ -2,10 +2,12 @@ import React from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 
 export default function CallbackScreen() {
   const t = useTheme();
+  const { t: i18n } = useTranslation('auth');
   const insets = useSafeAreaInsets();
 
   return (
@@ -33,10 +35,10 @@ export default function CallbackScreen() {
               letterSpacing: -0.3,
             }}
           >
-            Connexion en cours…
+            {i18n('callback_title')}
           </Text>
           <Text style={{ fontSize: 14, color: t.textSecondary }}>
-            Vérification de votre lien d'accès
+            {i18n('callback_subtitle')}
           </Text>
         </View>
       </Animated.View>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import React, { memo } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
@@ -41,6 +42,7 @@ const Body = memo(({ children }: { children: string }) => {
 
 export const PrivacyPolicyScreen = memo(() => {
   const t = useTheme();
+  const { t: i18n } = useTranslation('legal');
   const insets = useSafeAreaInsets();
 
   return (
@@ -61,54 +63,40 @@ export const PrivacyPolicyScreen = memo(() => {
           marginBottom: 24,
         }}
       >
-        {`Nous nous engageons à respecter les dispositions de la loi n°78-17 du 6 janvier 1978 relative à l'informatique, aux fichiers et aux libertés, ainsi que le Règlement (UE) 2016/679 du 27 avril 2016 dit « RGPD ».\n\nSite web : https://securi-click.com/`}
+        {i18n('privacy_intro')}
       </Text>
 
-      <Section title="Données collectées via formulaires">
-        <Body>
-          {`Lorsque vous soumettez une question ou une demande de rappel, nous collectons votre prénom, nom, téléphone et adresse e-mail.\n\nLors d'une inscription à notre newsletter, nous collectons votre prénom et e-mail.`}
-        </Body>
+      <Section title={i18n('privacy_title_1')}>
+        <Body>{i18n('privacy_body_1')}</Body>
       </Section>
 
-      <Section title="Google Analytics">
-        <Body>
-          {`Nous utilisons Google Analytics pour suivre les visiteurs sur ce site. Les données collectées sont traitées anonymement et le « partage de données » est désactivé. Aucun autre service Google n'est combiné avec Google Analytics.`}
-        </Body>
+      <Section title={i18n('privacy_title_2')}>
+        <Body>{i18n('privacy_body_2')}</Body>
       </Section>
 
-      <Section title="Cookies">
-        <Body>
-          {`La navigation peut provoquer l'installation de cookies sur votre appareil. Ces cookies ne permettent pas d'identifier l'utilisateur mais enregistrent des informations relatives à la navigation pour faciliter votre expérience.\n\nSi vous laissez un commentaire, un cookie d'un an peut être déposé pour mémoriser vos coordonnées.`}
-        </Body>
+      <Section title={i18n('privacy_title_3')}>
+        <Body>{i18n('privacy_body_3')}</Body>
       </Section>
 
-      <Section title="Durée de conservation des données">
-        <Body>
-          {`Les commentaires et leurs métadonnées sont conservés indéfiniment. Les informations personnelles fournies dans votre profil utilisateur sont conservées tant que votre compte est actif.\n\nTous les utilisateurs peuvent voir, modifier ou supprimer leurs informations personnelles à tout moment.`}
-        </Body>
+      <Section title={i18n('privacy_title_4')}>
+        <Body>{i18n('privacy_body_4')}</Body>
       </Section>
 
-      <Section title="Vos droits">
-        <Body>
-          {`Vous pouvez demander à recevoir un fichier exporté des données personnelles que nous détenons à votre sujet. Vous pouvez également demander leur effacement, sauf pour les données que nous sommes tenus de conserver à des fins administratives, légales ou de sécurité.`}
-        </Body>
+      <Section title={i18n('privacy_title_5')}>
+        <Body>{i18n('privacy_body_5')}</Body>
       </Section>
 
-      <Section title="Sécurité">
-        <Body>
-          {`Nous utilisons des protocoles sécurisés (HTTPS) pour la communication et le transfert de données. Nous surveillons nos systèmes pour détecter d'éventuelles vulnérabilités et attaques.\n\nEn cas de violation de données, nous nous engageons à en informer les autorités compétentes et à vous en avertir si vos droits sont menacés.`}
-        </Body>
+      <Section title={i18n('privacy_title_6')}>
+        <Body>{i18n('privacy_body_6')}</Body>
       </Section>
 
-      <Section title="Modifications de cette politique">
-        <Body>
-          {`Nous nous réservons le droit de modifier cette politique à tout moment. Les changements entrent en vigueur immédiatement après leur publication sur le site.`}
-        </Body>
+      <Section title={i18n('privacy_title_7')}>
+        <Body>{i18n('privacy_body_7')}</Body>
       </Section>
 
-      <Section title="Développeur de l'application">
+      <Section title={i18n('privacy_title_8')}>
         <View style={{ gap: 6 }}>
-          <Body>{`L'application mobile SecuriClick a été développée par Shavod.`}</Body>
+          <Body>{i18n('privacy_body_8')}</Body>
           <Pressable onPress={() => Linking.openURL('https://shavod.com')}>
             {({ pressed }) => (
               <Text
@@ -127,10 +115,8 @@ export const PrivacyPolicyScreen = memo(() => {
         </View>
       </Section>
 
-      <Section title="Contact">
-        <Body>
-          {`SECURI'CLICK — SARL Securi'ClickT\n1 Rue Louis Jourdan, 83000 Toulon\nEmail : contact@securi-click.com`}
-        </Body>
+      <Section title={i18n('privacy_title_9')}>
+        <Body>{i18n('privacy_body_9')}</Body>
       </Section>
     </ScrollView>
   );

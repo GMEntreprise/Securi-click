@@ -13,6 +13,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -21,6 +22,7 @@ const BRAND_DARK = '#1570cc';
 
 export function SplashAnimationScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation('auth');
 
   // ── Valeurs partagées ─────────────────────────────────────────────────────
   const bgOpacity = useSharedValue(0);
@@ -264,7 +266,7 @@ export function SplashAnimationScreen() {
         ]}
       >
         <Text style={styles.appName}>SecuriClick</Text>
-        <Text style={styles.tagline}>Sécurité scolaire intelligente</Text>
+        <Text style={styles.tagline}>{t('splash_tagline')}</Text>
 
         {/* Indicateur de chargement */}
         <Animated.View style={[styles.dotsRow, dotStyle]}>

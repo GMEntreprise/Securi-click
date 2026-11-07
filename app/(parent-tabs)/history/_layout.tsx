@@ -1,7 +1,9 @@
 import { Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 
 export default function HistoryLayout() {
+  const { t } = useTranslation('common');
   const theme = useTheme();
   return (
     <Stack
@@ -22,7 +24,7 @@ export default function HistoryLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
         name="archive"
-        options={{ title: 'Archives', headerBackTitle: '' }}
+        options={{ title: t('screen_archives'), headerBackTitle: '' }}
       />
     </Stack>
   );

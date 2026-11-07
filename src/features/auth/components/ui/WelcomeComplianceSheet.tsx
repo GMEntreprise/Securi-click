@@ -318,7 +318,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                         color: isActive ? theme.primary : theme.textMuted,
                       }}
                     >
-                      {code === 'fr' ? 'Français' : 'English'}
+                      {code === 'fr' ? t('language_fr') : t('language_en')}
                     </Text>
                   </TouchableOpacity>
                 );

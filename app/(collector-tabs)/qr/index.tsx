@@ -20,7 +20,10 @@ import * as Haptics from 'expo-haptics';
 import * as LocalAuthentication from 'expo-local-authentication';
 import QRCodeStyled from 'react-native-qrcode-styled';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { appLocale } from '@/i18n/locale';
+import { QrGenerationError } from '@/features/collector/services/collector.service';
 import {
   useMyGuardians,
   useCollectorQrCode,
@@ -33,23 +36,24 @@ const STATUS_CFG = {
   completed: {
     iconName: 'checkmark-circle' as const,
     color: '#10b981',
-    label: 'Validé',
+    labelKey: 'common:status_completed',
   },
   denied: {
     iconName: 'close-circle' as const,
     color: '#ef4444',
-    label: 'Refusé',
+    labelKey: 'common:status_denied',
   },
   cancelled: {
     iconName: 'remove-circle' as const,
     color: '#f59e0b',
-    label: 'Annulé',
+    labelKey: 'common:status_cancelled',
   },
 } as const;
 
 export default function CollectorQRScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const [unlocked, setUnlocked] = useState(isDemoActive);
   const [selectedGuardianIdx, setSelectedGuardianIdx] = useState(0);
   const [showPicker, setShowPicker] = useState(false);
@@ -81,8 +85,8 @@ export default function CollectorQRScreen() {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authentifiez-vous pour accéder au QR',
-        cancelLabel: 'Annuler',
+        promptMessage: t('qr_unlock_prompt'),
+        cancelLabel: t('common:cancel'),
       });
       if (result.success) {
         setUnlocked(true);
@@ -91,25 +95,19 @@ export default function CollectorQRScreen() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     } catch {
-      Alert.alert('Erreur', 'Authentification indisponible.');
+      Alert.alert(t('common:error'), t('qr_auth_unavailable'));
       setUnlocked(true);
     }
-  }, []);
+  }, [t]);
 
   const handleGenerate = useCallback(() => {
     if (isGenerating) return;
     if (!hasAccess) {
-      Alert.alert(
-        'Accès suspendu',
-        'Votre accès a été suspendu par le parent. Contactez-le pour le rétablir.'
-      );
+      Alert.alert(t('qr_suspended_title'), t('qr_suspended_body'));
       return;
     }
     if (!selectedGuardian?.child?.id) {
-      Alert.alert(
-        'Erreur',
-        "L'enfant associé est introuvable. Rafraîchissez l'application."
-      );
+      Alert.alert(t('common:error'), t('qr_child_missing'));
       return;
     }
     if (!unlocked) {
@@ -132,25 +130,15 @@ export default function CollectorQRScreen() {
         },
         onError: (err: unknown) => {
           qrScale.value = withSpring(1);
-          const msg = err instanceof Error ? err.message : '';
-          if (
-            msg.includes('guardian introuvable') ||
-            msg.includes('non autorisé')
-          ) {
+          if (err instanceof QrGenerationError) {
             Alert.alert(
-              'Non autorisé',
-              "Vous n'êtes pas autorisé à générer ce QR code."
-            );
-          } else if (msg.includes('accès suspendu')) {
-            Alert.alert(
-              'Accès suspendu',
-              'Votre accès a été suspendu par le parent.'
+              err.reason === 'suspended'
+                ? t('qr_suspended_title')
+                : t('qr_forbidden_title'),
+              err.message
             );
           } else {
-            Alert.alert(
-              'Erreur',
-              'Impossible de générer le QR code pour le moment. Réessayez dans quelques instants.'
-            );
+            Alert.alert(t('common:error'), t('errors:qr_generation_failed'));
           }
         },
       }
@@ -164,6 +152,7 @@ export default function CollectorQRScreen() {
     qrScale,
     qrRotate,
     generateMutation,
+    t,
   ]);
 
   if (guardiansLoading) {
@@ -224,7 +213,7 @@ export default function CollectorQRScreen() {
               textTransform: 'uppercase',
             }}
           >
-            {hasAccess ? 'QR Code sécurisé' : 'Accès suspendu'}
+            {hasAccess ? t('qr_secure') : t('qr_suspended_title')}
           </Text>
         </View>
 
@@ -266,7 +255,7 @@ export default function CollectorQRScreen() {
           >
             {selectedGuardian
               ? `${selectedGuardian.child?.first_name} ${selectedGuardian.child?.last_name}`
-              : 'Aucun accès actif'}
+              : t('qr_no_access')}
           </Text>
         )}
 
@@ -368,7 +357,7 @@ export default function CollectorQRScreen() {
                   fontWeight: '600',
                 }}
               >
-                Accès suspendu par le parent
+                {t('qr_suspended_by_parent')}
               </Text>
             </View>
           ) : unlocked && activeQr ? (
@@ -394,7 +383,7 @@ export default function CollectorQRScreen() {
                   textAlign: 'center',
                 }}
               >
-                Aucun QR actif — appuyez sur Générer
+                {t('qr_none_active')}
               </Text>
             </View>
           ) : (
@@ -422,7 +411,7 @@ export default function CollectorQRScreen() {
                   fontWeight: '600',
                 }}
               >
-                Verrouillé
+                {t('qr_locked')}
               </Text>
             </View>
           )}
@@ -482,12 +471,12 @@ export default function CollectorQRScreen() {
               }}
             >
               {isGenerating
-                ? 'Génération...'
+                ? t('qr_generating')
                 : !hasAccess
-                  ? 'Accès suspendu'
+                  ? t('qr_suspended_title')
                   : unlocked
-                    ? 'Générer le QR'
-                    : 'Déverrouiller'}
+                    ? t('qr_generate')
+                    : t('qr_unlock')}
             </Text>
           </TouchableOpacity>
         </Animated.View>
@@ -503,7 +492,7 @@ export default function CollectorQRScreen() {
             marginBottom: 12,
           }}
         >
-          Scans récents
+          {t('qr_recent_scans')}
         </Text>
         <View
           style={{
@@ -519,7 +508,7 @@ export default function CollectorQRScreen() {
           ) : !recentScans || recentScans.length === 0 ? (
             <View style={{ padding: 24, alignItems: 'center' }}>
               <Text style={{ color: theme.textMuted, fontSize: 14 }}>
-                Aucun scan récent
+                {t('qr_no_recent_scans')}
               </Text>
             </View>
           ) : (
@@ -568,10 +557,12 @@ export default function CollectorQRScreen() {
                         marginTop: 1,
                       }}
                     >
-                      {d.toLocaleDateString('fr-FR')} à{' '}
-                      {d.toLocaleTimeString('fr-FR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
+                      {t('home_date_at_time', {
+                        date: d.toLocaleDateString(appLocale()),
+                        time: d.toLocaleTimeString(appLocale(), {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }),
                       })}
                     </Text>
                   </View>
@@ -590,7 +581,7 @@ export default function CollectorQRScreen() {
                         fontWeight: '700',
                       }}
                     >
-                      {cfg.label}
+                      {t(cfg.labelKey)}
                     </Text>
                   </View>
                 </View>

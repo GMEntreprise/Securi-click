@@ -10,6 +10,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 
 export interface AvatarPickerSheetProps {
@@ -97,6 +98,7 @@ export function AvatarPickerSheet({
   onClose,
 }: AvatarPickerSheetProps) {
   const theme = useTheme();
+  const { t } = useTranslation('common');
   const insets = useSafeAreaInsets();
 
   // Keep the Modal mounted during the closing animation
@@ -245,7 +247,7 @@ export function AvatarPickerSheet({
           }}
         >
           <Text style={{ color: theme.text, fontSize: 17, fontWeight: '800' }}>
-            Photo de profil
+            {t('avatar_title')}
           </Text>
           <TouchableOpacity
             onPress={handleBackdropPress}
@@ -273,8 +275,8 @@ export function AvatarPickerSheet({
               <Ionicons name="camera-outline" size={21} color={theme.accent} />
             }
             iconBg={theme.accentBg}
-            label="Prendre une photo"
-            description="Ouvrir l'appareil photo"
+            label={t('photo_camera')}
+            description={t('avatar_camera_desc')}
             onPress={() => handleOption(onCamera)}
           />
           <OptionRow
@@ -282,8 +284,8 @@ export function AvatarPickerSheet({
               <Ionicons name="image-outline" size={21} color={theme.primary} />
             }
             iconBg={theme.primaryBg}
-            label="Choisir dans la galerie"
-            description="Sélectionner depuis vos photos"
+            label={t('avatar_library')}
+            description={t('avatar_library_desc')}
             onPress={() => handleOption(onGallery)}
           />
           {hasPhoto && (
@@ -292,8 +294,8 @@ export function AvatarPickerSheet({
                 <Ionicons name="trash-outline" size={21} color={theme.red} />
               }
               iconBg={theme.redBg}
-              label="Supprimer la photo"
-              description="Revenir à l'avatar par défaut"
+              label={t('photo_remove')}
+              description={t('avatar_remove_desc')}
               destructive
               isLast
               onPress={() => handleOption(onRemove)}

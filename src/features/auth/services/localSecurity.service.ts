@@ -1,5 +1,6 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
+import { i18n } from '@/i18n';
 
 const KEY = (uid: string) => `biometric_enabled_${uid}`;
 
@@ -11,10 +12,15 @@ export interface BiometricCapability {
   type: BiometricType;
 }
 
-function mapAuthType(types: LocalAuthentication.AuthenticationType[]): BiometricType {
-  if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) return 'facial';
-  if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) return 'fingerprint';
-  if (types.includes(LocalAuthentication.AuthenticationType.IRIS)) return 'iris';
+function mapAuthType(
+  types: LocalAuthentication.AuthenticationType[]
+): BiometricType {
+  if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION))
+    return 'facial';
+  if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT))
+    return 'fingerprint';
+  if (types.includes(LocalAuthentication.AuthenticationType.IRIS))
+    return 'iris';
   return 'none';
 }
 
@@ -38,8 +44,8 @@ async function isEnabled(uid: string): Promise<boolean> {
 
 async function enable(uid: string): Promise<boolean> {
   const result = await LocalAuthentication.authenticateAsync({
-    promptMessage: 'Confirmez avec votre biométrie pour activer la protection',
-    cancelLabel: 'Annuler',
+    promptMessage: i18n.t('auth:biometric_enable_prompt'),
+    cancelLabel: i18n.t('common:cancel'),
     fallbackLabel: '',
     disableDeviceFallback: true,
   });
@@ -50,8 +56,8 @@ async function enable(uid: string): Promise<boolean> {
 
 async function disable(uid: string): Promise<boolean> {
   const result = await LocalAuthentication.authenticateAsync({
-    promptMessage: 'Confirmez pour désactiver la protection',
-    cancelLabel: 'Annuler',
+    promptMessage: i18n.t('auth:biometric_disable_prompt'),
+    cancelLabel: i18n.t('common:cancel'),
     fallbackLabel: '',
     disableDeviceFallback: true,
   });
@@ -62,9 +68,9 @@ async function disable(uid: string): Promise<boolean> {
 
 async function authenticate(): Promise<boolean> {
   const result = await LocalAuthentication.authenticateAsync({
-    promptMessage: 'Déverrouillez l\'accès à SecuriClick',
-    cancelLabel: 'Annuler',
-    fallbackLabel: 'Utiliser le mot de passe',
+    promptMessage: i18n.t('auth:biometric_unlock_prompt'),
+    cancelLabel: i18n.t('common:cancel'),
+    fallbackLabel: i18n.t('auth:biometric_use_password'),
     disableDeviceFallback: false,
   });
   return result.success;
@@ -72,8 +78,8 @@ async function authenticate(): Promise<boolean> {
 
 async function test(): Promise<boolean> {
   const result = await LocalAuthentication.authenticateAsync({
-    promptMessage: 'Test de votre protection biométrique',
-    cancelLabel: 'Annuler',
+    promptMessage: i18n.t('auth:biometric_test_prompt'),
+    cancelLabel: i18n.t('common:cancel'),
     fallbackLabel: '',
     disableDeviceFallback: true,
   });

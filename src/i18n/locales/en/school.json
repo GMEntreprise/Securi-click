@@ -199,5 +199,9 @@
   "edit_school_official_readonly": "Official information is read-only.",
 
   "profile_language": "Language",
-  "profile_language_subtitle": "Français, English"
+  "profile_language_subtitle": "Français, English",
+  "school_type_private_nursery": "Private nursery school",
+  "school_type_public_nursery": "Public nursery school",
+  "school_type_private_primary": "Private primary school",
+  "school_type_public_primary": "Public primary school"
 }

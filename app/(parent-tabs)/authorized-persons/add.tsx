@@ -16,32 +16,34 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Clipboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { message } from '@/i18n/validation';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSection';
 import { useSession } from '@/features/auth/store/auth.store';
 import { parentService } from '@/features/parent/services/parent.service';
 import { Toast } from '@/shared/ui/molecules/Toast';
 
-const RELATIONSHIPS = [
-  'Grand-père',
-  'Grand-mère',
-  'Oncle',
-  'Tante',
-  'Frère',
-  'Sœur',
-  'Cousin(e)',
-  'Nourrice',
-  'Autre',
-];
+const RELATIONSHIP_KEYS = [
+  'guardian_rel_grandfather',
+  'guardian_rel_grandmother',
+  'guardian_rel_uncle',
+  'guardian_rel_aunt',
+  'guardian_rel_brother',
+  'guardian_rel_sister',
+  'guardian_rel_cousin',
+  'guardian_rel_nanny',
+  'guardian_rel_other',
+] as const;
 
 const schema = z.object({
-  first_name: z.string().min(2, 'Minimum 2 caractères'),
-  last_name: z.string().min(2, 'Minimum 2 caractères'),
+  first_name: z.string().min(2, message('errors:min_2_chars')),
+  last_name: z.string().min(2, message('errors:min_2_chars')),
   phone: z.string().optional().or(z.literal('')),
-  relationship: z.string().min(1, 'Sélectionnez une relation'),
-  email: z.string().email('Email invalide'),
-  access_code: z.string().regex(/^\d{6}$/, '6 chiffres requis'),
+  relationship: z.string().min(1, message('errors:relationship_required')),
+  email: z.string().email(message('errors:email_invalid')),
+  access_code: z.string().regex(/^\d{6}$/, message('errors:pin_6_digits')),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -54,6 +56,7 @@ interface CreatedGuardian {
 
 export default function AddGuardianScreen() {
   const router = useRouter();
+  const { t } = useTranslation('parent');
   const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
   const session = useSession();
@@ -117,7 +120,7 @@ export default function AddGuardianScreen() {
           pin: data.access_code,
         });
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Une erreur est survenue.';
+        const msg = e instanceof Error ? e.message : t('errors:generic');
         setError(msg);
         Toast.show(msg, { type: 'error', duration: 4000 });
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -125,14 +128,17 @@ export default function AddGuardianScreen() {
         setIsSubmitting(false);
       }
     },
-    [childId, session]
+    [childId, session, t]
   );
 
-  const handleCopyPin = useCallback((pin: string) => {
-    Clipboard.setString(pin);
-    Toast.show('Code copié !', { type: 'success', duration: 2000 });
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-  }, []);
+  const handleCopyPin = useCallback(
+    (pin: string) => {
+      Clipboard.setString(pin);
+      Toast.show(t('ap_code_copied'), { type: 'success', duration: 2000 });
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    },
+    [t]
+  );
 
   // ── Success screen ────────────────────────────────────────────────────────
   if (created) {
@@ -178,7 +184,7 @@ export default function AddGuardianScreen() {
                   marginBottom: 8,
                 }}
               >
-                {created.firstName} a été ajouté(e) !
+                {t('ap_added', { name: created.firstName })}
               </Text>
               <Text
                 style={{
@@ -188,9 +194,7 @@ export default function AddGuardianScreen() {
                   lineHeight: 21,
                 }}
               >
-                Partagez ce code de connexion directement avec{' '}
-                {created.firstName}.{'\n'}Il se connectera avec son email et ce
-                code.
+                {t('ap_share_intro', { name: created.firstName })}
               </Text>
             </View>
 
@@ -215,7 +219,7 @@ export default function AddGuardianScreen() {
                   marginBottom: 6,
                 }}
               >
-                Email de connexion
+                {t('ap_login_email')}
               </Text>
               <Text
                 style={{ fontSize: 15, fontWeight: '600', color: theme.text }}
@@ -245,7 +249,7 @@ export default function AddGuardianScreen() {
                   marginBottom: 12,
                 }}
               >
-                Code de connexion sécurisé
+                {t('ap_secure_code')}
               </Text>
               <View
                 style={{
@@ -296,11 +300,11 @@ export default function AddGuardianScreen() {
                   lineHeight: 20,
                 }}
               >
-                ⚠️ Partagez ce code{' '}
+                {t('ap_share_pre')}{' '}
                 <Text style={{ fontWeight: '700', color: theme.text }}>
-                  en privé
+                  {t('ap_share_bold')}
                 </Text>{' '}
-                — par téléphone ou en personne. Ne l'envoyez pas par message.
+                {t('ap_share_post')}
               </Text>
             </View>
 
@@ -314,7 +318,7 @@ export default function AddGuardianScreen() {
               }}
             >
               <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-                Terminé
+                {t('ap_done')}
               </Text>
             </TouchableOpacity>
           </Animated.View>
@@ -341,7 +345,7 @@ export default function AddGuardianScreen() {
           <AuthInputField
             control={control}
             name="first_name"
-            label="Prénom"
+            label={t('common:first_name')}
             icon={
               <Ionicons
                 name="person-outline"
@@ -349,13 +353,13 @@ export default function AddGuardianScreen() {
                 color={theme.textMuted}
               />
             }
-            placeholder="Ex. Jean"
+            placeholder={t('ap_first_name_placeholder')}
             error={errors.first_name?.message}
           />
           <AuthInputField
             control={control}
             name="last_name"
-            label="Nom"
+            label={t('common:last_name')}
             icon={
               <Ionicons
                 name="person-outline"
@@ -363,17 +367,17 @@ export default function AddGuardianScreen() {
                 color={theme.textMuted}
               />
             }
-            placeholder="Ex. Dupont"
+            placeholder={t('ap_last_name_placeholder')}
             error={errors.last_name?.message}
           />
           <AuthInputField
             control={control}
             name="email"
-            label="Email"
+            label={t('common:email')}
             icon={
               <Ionicons name="mail-outline" size={16} color={theme.textMuted} />
             }
-            placeholder="collecteur@email.com"
+            placeholder={t('ap_email_placeholder')}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -382,7 +386,7 @@ export default function AddGuardianScreen() {
           <AuthInputField
             control={control}
             name="phone"
-            label="Téléphone (optionnel)"
+            label={t('ap_phone_optional')}
             icon={
               <Ionicons name="call-outline" size={16} color={theme.textMuted} />
             }
@@ -406,10 +410,11 @@ export default function AddGuardianScreen() {
               marginBottom: 10,
             }}
           >
-            Relation
+            {t('ap_relationship')}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {RELATIONSHIPS.map(r => {
+            {RELATIONSHIP_KEYS.map(key => {
+              const r = t(key);
               const active = selectedRelationship === r;
               return (
                 <TouchableOpacity
@@ -487,7 +492,7 @@ export default function AddGuardianScreen() {
         >
           <Ionicons name="checkmark" size={18} color="#fff" />
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-            {isSubmitting ? 'Création…' : "Créer l'autorisation"}
+            {isSubmitting ? t('ap_creating') : t('ap_create')}
           </Text>
         </TouchableOpacity>
         {error ? (

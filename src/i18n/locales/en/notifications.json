@@ -24,5 +24,22 @@
   "unread_one": "{{count}} unread",
   "unread_other": "{{count}} unread",
   "mark_all_read_short": "Mark read",
-  "empty_body": "You'll be notified in real time of important activities."
+  "empty_body": "You'll be notified in real time of important activities.",
+  "channel_security": "Security alerts",
+  "type_child_picked_up": "Child collected",
+  "type_pickup_refused": "Pickup refused",
+  "type_qr_expired": "QR code expired",
+  "type_qr_invalid": "Invalid QR code",
+  "type_qr_used": "QR code used",
+  "type_collector_activated": "Collector activated",
+  "type_collector_deactivated": "Collector deactivated",
+  "type_new_authorization": "New authorization",
+  "type_identity_validated": "Identity verified",
+  "type_identity_refused": "Identity refused",
+  "type_account_created": "Account created",
+  "type_permissions_modified": "Permissions changed",
+  "type_security_incident": "Security incident",
+  "type_new_parent_linked": "New parent linked",
+  "type_school_validated": "School verified",
+  "type_access_suspended": "Access suspended"
 }

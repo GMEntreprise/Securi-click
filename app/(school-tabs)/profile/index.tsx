@@ -428,7 +428,9 @@ export default function SchoolProfileScreen() {
               <Text
                 style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}
               >
-                {language === 'fr' ? '🇫🇷 Français' : '🇬🇧 English'}
+                {language === 'fr'
+                  ? i18n('common:french')
+                  : i18n('common:english')}
               </Text>
             </View>
             <Ionicons

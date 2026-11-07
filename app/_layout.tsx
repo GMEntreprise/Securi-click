@@ -41,6 +41,7 @@ import { NotificationCenterScreen } from '@/features/notifications/screens/Notif
 import { NetworkBanner } from '@/shared/ui/molecules/NetworkBanner';
 import { useOTAUpdate } from '@/hooks/useOTAUpdate';
 import { useLanguageStore } from '@/stores/language.store';
+import { i18n } from '@/i18n';
 import { useComplianceStore } from '@/stores/compliance.store';
 import { StatusBar } from 'expo-status-bar';
 
@@ -92,7 +93,7 @@ function DeepLinkHandler() {
           await supabase.auth.exchangeCodeForSession(code);
 
         if (error || !data.session) {
-          Toast.show('Lien expiré ou déjà utilisé. Demandez un nouveau lien.', {
+          Toast.show(i18n.t('auth:magic_link_expired'), {
             type: 'error',
             duration: 6000,
           });

@@ -24,7 +24,9 @@ import { useQuery } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { message } from '@/i18n/validation';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSection';
 import {
@@ -34,27 +36,27 @@ import {
 } from '@/features/parent/hooks/useGuardians';
 import { parentService } from '@/features/parent/services/parent.service';
 
-const RELATIONSHIPS = [
-  'Grand-père',
-  'Grand-mère',
-  'Oncle',
-  'Tante',
-  'Frère',
-  'Sœur',
-  'Cousin(e)',
-  'Nourrice',
-  'Autre',
-];
+const RELATIONSHIP_KEYS = [
+  'guardian_rel_grandfather',
+  'guardian_rel_grandmother',
+  'guardian_rel_uncle',
+  'guardian_rel_aunt',
+  'guardian_rel_brother',
+  'guardian_rel_sister',
+  'guardian_rel_cousin',
+  'guardian_rel_nanny',
+  'guardian_rel_other',
+] as const;
 
 const schema = z.object({
-  first_name: z.string().min(2, 'Minimum 2 caractères'),
-  last_name: z.string().min(2, 'Minimum 2 caractères'),
+  first_name: z.string().min(2, message('errors:min_2_chars')),
+  last_name: z.string().min(2, message('errors:min_2_chars')),
   phone: z.string().optional().or(z.literal('')),
-  email: z.string().email('Email invalide'),
-  relationship: z.string().min(1, 'Sélectionnez une relation'),
+  email: z.string().email(message('errors:email_invalid')),
+  relationship: z.string().min(1, message('errors:relationship_required')),
   access_code: z
     .string()
-    .regex(/^\d{6}$/, '6 chiffres requis')
+    .regex(/^\d{6}$/, message('errors:pin_6_digits'))
     .optional()
     .or(z.literal('')),
 });
@@ -66,6 +68,7 @@ export default function GuardianDetailScreen() {
   const navigation = useNavigation();
   const tabBarHeight = useBottomTabBarHeight();
   const theme = useTheme();
+  const { t } = useTranslation('parent');
   const { id, childId } = useLocalSearchParams<{
     id: string;
     childId: string;
@@ -178,12 +181,14 @@ export default function GuardianDetailScreen() {
   const handleDelete = useCallback(() => {
     if (!id || !guardian) return;
     Alert.alert(
-      "Supprimer l'autorisation",
-      `Retirer l'accès à ${guardian.first_name} ${guardian.last_name} ?`,
+      t('ap_delete_title'),
+      t('ap_delete_body', {
+        name: `${guardian.first_name} ${guardian.last_name}`,
+      }),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('common:cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('common:delete'),
           style: 'destructive',
           onPress: () => {
             deleteGuardian.mutate(id);
@@ -193,7 +198,7 @@ export default function GuardianDetailScreen() {
         },
       ]
     );
-  }, [id, guardian, deleteGuardian, router]);
+  }, [id, guardian, deleteGuardian, router, t]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -270,9 +275,7 @@ export default function GuardianDetailScreen() {
                 fontSize: 13,
               }}
             >
-              {guardian.is_active
-                ? "Accès actif — peut récupérer l'enfant"
-                : "Accès désactivé — ne peut pas récupérer l'enfant"}
+              {guardian.is_active ? t('ap_active_hint') : t('ap_inactive_hint')}
             </Text>
           </Animated.View>
         )}
@@ -281,7 +284,7 @@ export default function GuardianDetailScreen() {
           <AuthInputField
             control={control}
             name="first_name"
-            label="Prénom"
+            label={t('common:first_name')}
             icon={
               <Ionicons
                 name="person-outline"
@@ -289,13 +292,13 @@ export default function GuardianDetailScreen() {
                 color={theme.textMuted}
               />
             }
-            placeholder="Ex. Jean"
+            placeholder={t('ap_first_name_placeholder')}
             error={errors.first_name?.message}
           />
           <AuthInputField
             control={control}
             name="last_name"
-            label="Nom"
+            label={t('common:last_name')}
             icon={
               <Ionicons
                 name="person-outline"
@@ -303,17 +306,17 @@ export default function GuardianDetailScreen() {
                 color={theme.textMuted}
               />
             }
-            placeholder="Ex. Dupont"
+            placeholder={t('ap_last_name_placeholder')}
             error={errors.last_name?.message}
           />
           <AuthInputField
             control={control}
             name="email"
-            label="Email"
+            label={t('common:email')}
             icon={
               <Ionicons name="mail-outline" size={16} color={theme.textMuted} />
             }
-            placeholder="collecteur@email.com"
+            placeholder={t('ap_email_placeholder')}
             keyboardType="email-address"
             autoCapitalize="none"
             autoCorrect={false}
@@ -322,7 +325,7 @@ export default function GuardianDetailScreen() {
           <AuthInputField
             control={control}
             name="phone"
-            label="Téléphone (optionnel)"
+            label={t('ap_phone_optional')}
             icon={
               <Ionicons name="call-outline" size={16} color={theme.textMuted} />
             }
@@ -346,10 +349,11 @@ export default function GuardianDetailScreen() {
               marginBottom: 10,
             }}
           >
-            Relation
+            {t('ap_relationship')}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {RELATIONSHIPS.map(r => {
+            {RELATIONSHIP_KEYS.map(key => {
+              const r = t(key);
               const active = selectedRelationship === r;
               return (
                 <TouchableOpacity
@@ -412,7 +416,7 @@ export default function GuardianDetailScreen() {
               marginBottom: 10,
             }}
           >
-            Zone dangereuse
+            {t('ap_danger_zone')}
           </Text>
           <TouchableOpacity
             onPress={handleDelete}
@@ -444,7 +448,7 @@ export default function GuardianDetailScreen() {
               <Text
                 style={{ color: theme.red, fontWeight: '700', fontSize: 14 }}
               >
-                Supprimer l'autorisation
+                {t('ap_delete_title')}
               </Text>
               <Text
                 style={{
@@ -454,7 +458,7 @@ export default function GuardianDetailScreen() {
                   marginTop: 2,
                 }}
               >
-                Cette personne ne pourra plus récupérer l'enfant.
+                {t('ap_delete_hint')}
               </Text>
             </View>
           </TouchableOpacity>
@@ -489,7 +493,7 @@ export default function GuardianDetailScreen() {
         >
           <Ionicons name="checkmark" size={18} color="#fff" />
           <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
-            {isSaving ? 'Enregistrement…' : 'Enregistrer les modifications'}
+            {isSaving ? t('ap_saving') : t('ap_save')}
           </Text>
         </TouchableOpacity>
         {updateGuardian.isError ? (
@@ -501,7 +505,7 @@ export default function GuardianDetailScreen() {
               marginTop: 8,
             }}
           >
-            Une erreur est survenue. Réessayez.
+            {t('errors:generic')}
           </Text>
         ) : null}
       </View>

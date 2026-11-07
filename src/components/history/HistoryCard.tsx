@@ -3,7 +3,9 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { appLocale } from '@/i18n/locale';
 import type { HistoryEntry } from '@/features/parent/services/history.service';
 
 interface Props {
@@ -17,19 +19,19 @@ const STATUS_CFG = {
     iconName: 'checkmark-circle' as const,
     color: '#10b981',
     bg: 'rgba(16,185,129,0.12)',
-    label: 'Validé',
+    labelKey: 'status_completed',
   },
   denied: {
     iconName: 'close-circle' as const,
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.12)',
-    label: 'Refusé',
+    labelKey: 'status_denied',
   },
   cancelled: {
     iconName: 'remove-circle' as const,
     color: '#f59e0b',
     bg: 'rgba(245,158,11,0.12)',
-    label: 'Annulé',
+    labelKey: 'status_cancelled',
   },
 } as const;
 
@@ -39,6 +41,7 @@ export const HistoryCard = memo(function HistoryCard({
   onPress,
 }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation('common');
   const cfg = STATUS_CFG[item.status] ?? STATUS_CFG.cancelled;
   const { iconName } = cfg;
 
@@ -47,9 +50,9 @@ export const HistoryCard = memo(function HistoryCard({
     : '—';
   const guardianName = item.guardian
     ? `${item.guardian.first_name} ${item.guardian.last_name}`
-    : 'QR Parent direct';
+    : t('history_parent_direct');
   const d = new Date(item.scanned_at);
-  const time = d.toLocaleTimeString('fr-FR', {
+  const time = d.toLocaleTimeString(appLocale(), {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -130,7 +133,7 @@ export const HistoryCard = memo(function HistoryCard({
                       fontWeight: '700',
                     }}
                   >
-                    {cfg.label}
+                    {t(cfg.labelKey)}
                   </Text>
                 </View>
                 <Text style={{ color: theme.textMuted, fontSize: 12 }}>
@@ -142,7 +145,7 @@ export const HistoryCard = memo(function HistoryCard({
             <Text style={{ color: theme.textSecondary, fontSize: 13 }}>
               {item.guardian ? (
                 <>
-                  Par{' '}
+                  {t('history_by')}{' '}
                   <Text style={{ fontWeight: '600', color: theme.text }}>
                     {guardianName}
                   </Text>
@@ -152,7 +155,7 @@ export const HistoryCard = memo(function HistoryCard({
                 </>
               ) : (
                 <Text style={{ fontWeight: '600', color: theme.text }}>
-                  QR Parent direct
+                  {guardianName}
                 </Text>
               )}
             </Text>

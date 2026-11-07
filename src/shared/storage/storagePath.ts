@@ -2,7 +2,7 @@ const PUBLIC_OBJECT_SEGMENT = '/storage/v1/object/public/';
 
 export function isStoragePath(reference: string | null | undefined): boolean {
   if (!reference) return false;
-  return !/^https?:\/\//i.test(reference);
+  return !/^[a-z][a-z0-9+.-]*:/i.test(reference);
 }
 
 export function publicUrlToPath(

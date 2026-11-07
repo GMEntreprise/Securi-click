@@ -4,6 +4,7 @@ import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { tabIconColor } from '@/constants/tabBar';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
@@ -31,6 +32,7 @@ function ThemedCurvedTabBar(
 }
 
 export default function ParentTabsLayout() {
+  const { t } = useTranslation('common');
   const renderTabBar = useCallback(
     (props: BottomTabBarProps) => <ThemedCurvedTabBar {...props} />,
     []
@@ -42,7 +44,7 @@ export default function ParentTabsLayout() {
         <Tabs.Screen
           name="index"
           options={{
-            title: 'Accueil',
+            title: t('tab_home'),
             headerRight: () => <NotificationBell />,
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
@@ -56,7 +58,7 @@ export default function ParentTabsLayout() {
         <Tabs.Screen
           name="children"
           options={{
-            title: 'Collecteurs',
+            title: t('tab_collectors'),
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 name="shield-account-outline"
@@ -69,7 +71,7 @@ export default function ParentTabsLayout() {
         <Tabs.Screen
           name="qr"
           options={{
-            title: 'QR Code',
+            title: t('tab_qr'),
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 name="qrcode"
@@ -82,7 +84,7 @@ export default function ParentTabsLayout() {
         <Tabs.Screen
           name="history"
           options={{
-            title: 'Historique',
+            title: t('tab_history'),
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
                 name="history"
@@ -95,9 +97,13 @@ export default function ParentTabsLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            title: 'Profil',
+            title: t('tab_profile'),
             tabBarIcon: ({ color }) => (
-              <Ionicons name="person-outline" size={ICON_SIZE} color={tabIconColor(color)} />
+              <Ionicons
+                name="person-outline"
+                size={ICON_SIZE}
+                color={tabIconColor(color)}
+              />
             ),
           }}
         />

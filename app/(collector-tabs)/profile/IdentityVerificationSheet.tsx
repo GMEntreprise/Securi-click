@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import {
@@ -30,10 +31,10 @@ interface Props {
   currentIdentity: CollectorIdentity | null | undefined;
 }
 
-const DOC_TYPES: { id: DocumentType; label: string }[] = [
-  { id: 'id_card', label: "Carte d'identité" },
-  { id: 'passport', label: 'Passeport' },
-  { id: 'driving_license', label: 'Permis de conduire' },
+const DOC_TYPES: { id: DocumentType; labelKey: string }[] = [
+  { id: 'id_card', labelKey: 'doc_id_card' },
+  { id: 'passport', labelKey: 'doc_passport' },
+  { id: 'driving_license', labelKey: 'doc_driving_license' },
 ];
 
 export default function IdentityVerificationSheet({
@@ -43,6 +44,7 @@ export default function IdentityVerificationSheet({
 }: Props) {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const uploadIdentity = useUploadIdentity();
   const { data: guardians } = useMyGuardians();
 
@@ -69,36 +71,42 @@ export default function IdentityVerificationSheet({
     }
   }, []);
 
-  const takePhoto = useCallback(async (slot: 'front' | 'back' | 'selfie') => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission refusée',
-        "Autorisez l'accès à la caméra dans les réglages."
-      );
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      quality: 0.8,
-      allowsEditing: true,
-      aspect: slot === 'selfie' ? [1, 1] : [4, 3],
-    });
-    if (!result.canceled && result.assets[0]) {
-      const uri = result.assets[0].uri;
-      if (slot === 'front') setFrontUri(uri);
-      else if (slot === 'back') setBackUri(uri);
-      else setSelfieUri(uri);
-    }
-  }, []);
+  const takePhoto = useCallback(
+    async (slot: 'front' | 'back' | 'selfie') => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('identity_camera_denied_title'),
+          t('identity_camera_denied_body')
+        );
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+        allowsEditing: true,
+        aspect: slot === 'selfie' ? [1, 1] : [4, 3],
+      });
+      if (!result.canceled && result.assets[0]) {
+        const uri = result.assets[0].uri;
+        if (slot === 'front') setFrontUri(uri);
+        else if (slot === 'back') setBackUri(uri);
+        else setSelfieUri(uri);
+      }
+    },
+    [t]
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!frontUri) {
-      Alert.alert('Document requis', 'Ajoutez au moins le recto du document.');
+      Alert.alert(
+        t('identity_front_required_title'),
+        t('identity_front_required_body')
+      );
       return;
     }
     if (!parentId) {
-      Alert.alert('Erreur', 'Aucun parent associé à votre compte.');
+      Alert.alert(t('common:error'), t('identity_no_parent'));
       return;
     }
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -119,26 +127,27 @@ export default function IdentityVerificationSheet({
     parentId,
     uploadIdentity,
     onClose,
+    t,
   ]);
 
   const statusConfig = {
     pending: {
-      label: 'En attente de vérification',
+      labelKey: 'identity_status_pending',
       color: '#f59e0b',
       iconName: 'warning-outline' as const,
     },
     verified: {
-      label: 'Identité vérifiée',
+      labelKey: 'identity_badge_verified',
       color: '#10b981',
       iconName: 'checkmark-circle' as const,
     },
     refused: {
-      label: 'Vérification refusée',
+      labelKey: 'identity_badge_refused',
       color: '#ef4444',
       iconName: 'shield-outline' as const,
     },
     expired: {
-      label: 'Identité expirée — resoumettez',
+      labelKey: 'identity_status_expired',
       color: '#ef4444',
       iconName: 'shield-outline' as const,
     },
@@ -174,7 +183,7 @@ export default function IdentityVerificationSheet({
           }}
         >
           <Text style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}>
-            Vérification d'identité
+            {t('identity_title')}
           </Text>
           <TouchableOpacity
             onPress={onClose}
@@ -228,7 +237,7 @@ export default function IdentityVerificationSheet({
                         flex: 1,
                       }}
                     >
-                      {cfg.label}
+                      {t(cfg.labelKey)}
                     </Text>
                   </View>
                 );
@@ -251,7 +260,7 @@ export default function IdentityVerificationSheet({
                 marginBottom: 10,
               }}
             >
-              Type de document
+              {t('identity_doc_type')}
             </Text>
             <View style={{ gap: 8 }}>
               {DOC_TYPES.map(dt => (
@@ -286,7 +295,7 @@ export default function IdentityVerificationSheet({
                       fontSize: 14,
                     }}
                   >
-                    {dt.label}
+                    {t(dt.labelKey)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -299,21 +308,21 @@ export default function IdentityVerificationSheet({
             style={{ gap: 16, marginBottom: 24 }}
           >
             <UploadSlot
-              label="Recto du document *"
+              label={t('identity_front_required')}
               uri={frontUri}
               onGallery={() => pickImage('front')}
               onCamera={() => takePhoto('front')}
             />
             {docType !== 'passport' && (
               <UploadSlot
-                label="Verso du document"
+                label={t('identity_back')}
                 uri={backUri}
                 onGallery={() => pickImage('back')}
                 onCamera={() => takePhoto('back')}
               />
             )}
             <UploadSlot
-              label="Selfie de vérification"
+              label={t('identity_selfie')}
               uri={selfieUri}
               onGallery={() => pickImage('selfie')}
               onCamera={() => takePhoto('selfie')}
@@ -338,8 +347,7 @@ export default function IdentityVerificationSheet({
                 lineHeight: 18,
               }}
             >
-              🔒 Vos documents sont stockés de manière sécurisée et chiffrée.
-              Seul le parent associé peut y accéder pour vérification.
+              {t('identity_storage_note')}
             </Text>
           </View>
 
@@ -365,8 +373,8 @@ export default function IdentityVerificationSheet({
             )}
             <Text style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}>
               {uploadIdentity.isPending
-                ? 'Envoi en cours…'
-                : 'Soumettre pour vérification'}
+                ? t('identity_sending')
+                : t('identity_submit_review')}
             </Text>
           </TouchableOpacity>
         </ScrollView>
@@ -389,6 +397,7 @@ function UploadSlot({
   isSquare?: boolean;
 }) {
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const height = isSquare ? 140 : 110;
 
   return (
@@ -429,7 +438,7 @@ function UploadSlot({
           >
             <Ionicons name="camera-outline" size={13} color="#fff" />
             <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
-              Changer
+              {t('identity_change')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -462,7 +471,7 @@ function UploadSlot({
                 fontWeight: '600',
               }}
             >
-              Galerie
+              {t('identity_gallery')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -484,7 +493,7 @@ function UploadSlot({
             <Text
               style={{ color: theme.accent, fontSize: 12, fontWeight: '600' }}
             >
-              Caméra
+              {t('identity_camera')}
             </Text>
           </TouchableOpacity>
         </View>

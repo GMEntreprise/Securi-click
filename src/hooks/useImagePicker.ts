@@ -1,37 +1,27 @@
 import { useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { supabase } from '@/lib/supabase/client';
-import { resolveStorageUrl } from '@/shared/storage';
-
-function randomId() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
+import { useTranslation } from 'react-i18next';
+import {
+  imageUploadService,
+  type ImageBucket,
+  type UploadedImage,
+} from '@/shared/storage/imageUpload';
 import { Toast } from '@/shared/ui/molecules/Toast';
 
-type Bucket =
-  | 'profile-images'
-  | 'children-images'
-  | 'collector-avatars'
-  | 'school-logos';
-
 interface UseImagePickerOptions {
-  bucket: Bucket;
+  bucket: ImageBucket;
   userId: string;
 }
 
-interface UploadResult {
-  signedUrl: string;
-  filePath: string;
-}
-
 export function useImagePicker({ bucket, userId }: UseImagePickerOptions) {
+  const { t } = useTranslation('common');
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function pickFromGallery(): Promise<UploadResult | null> {
+  async function pickFromGallery(): Promise<UploadedImage | null> {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      setError("Permission d'accès à la galerie refusée.");
+      setError(t('permission_library_denied'));
       return null;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -44,10 +34,10 @@ export function useImagePicker({ bucket, userId }: UseImagePickerOptions) {
     return uploadAsset(result.assets[0]);
   }
 
-  async function takePhoto(): Promise<UploadResult | null> {
+  async function takePhoto(): Promise<UploadedImage | null> {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      setError("Permission d'accès à la caméra refusée.");
+      setError(t('permission_camera_denied'));
       return null;
     }
     const result = await ImagePicker.launchCameraAsync({
@@ -61,38 +51,19 @@ export function useImagePicker({ bucket, userId }: UseImagePickerOptions) {
 
   async function uploadAsset(
     asset: ImagePicker.ImagePickerAsset
-  ): Promise<UploadResult | null> {
+  ): Promise<UploadedImage | null> {
     setIsUploading(true);
     setError(null);
     try {
-      const uri = asset.uri;
-      const ext = uri.split('.').pop()?.toLowerCase().split('?')[0] ?? 'jpg';
-      const contentType = ext === 'png' ? 'image/png' : 'image/jpeg';
-      const filePath = `${userId}/${randomId()}.${ext}`;
-
-      const response = await fetch(uri);
-      const arrayBuffer = await response.arrayBuffer();
-
-      const { error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, arrayBuffer, {
-          contentType,
-          upsert: true,
-          cacheControl: '3600',
-        });
-      if (uploadError) throw uploadError;
-
-      const signedUrl = await resolveStorageUrl(bucket, filePath);
-      if (!signedUrl) throw new Error('unresolved_upload');
-      return { signedUrl, filePath };
-    } catch (error) {
-      const msg = "Échec de l'envoi. Réessayez.";
+      return await imageUploadService.upload(bucket, userId, asset.uri);
+    } catch (uploadError) {
+      const msg = t('upload_failed');
       setError(msg);
       Toast.show(msg, { type: 'error', duration: 3000 });
       if (__DEV__)
         console.error(
           '[useImagePicker] upload error:',
-          error instanceof Error ? error.message : error
+          uploadError instanceof Error ? uploadError.message : uploadError
         );
       return null;
     } finally {

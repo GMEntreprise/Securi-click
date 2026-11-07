@@ -12,7 +12,9 @@ import Animated, { FadeInDown, SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { appLocale } from '@/i18n/locale';
 import {
   useHistoryDetail,
   usePinEntry,
@@ -28,19 +30,19 @@ const STATUS_CFG = {
     iconName: 'checkmark-circle' as const,
     color: '#10b981',
     bg: 'rgba(16,185,129,0.12)',
-    label: 'Validé',
+    labelKey: 'status_completed',
   },
   denied: {
     iconName: 'close-circle' as const,
     color: '#ef4444',
     bg: 'rgba(239,68,68,0.12)',
-    label: 'Refusé',
+    labelKey: 'status_denied',
   },
   cancelled: {
     iconName: 'remove-circle' as const,
     color: '#f59e0b',
     bg: 'rgba(245,158,11,0.12)',
-    label: 'Annulé',
+    labelKey: 'status_cancelled',
   },
 } as const;
 
@@ -97,6 +99,7 @@ function InfoRow({
 export const HistoryDetailsBottomSheet = memo(
   function HistoryDetailsBottomSheet({ entryId, onClose }: Props) {
     const theme = useTheme();
+    const { t } = useTranslation('common');
     const insets = useSafeAreaInsets();
     const { data: detail, isLoading } = useHistoryDetail(entryId);
     const pinMutation = usePinEntry();
@@ -150,7 +153,7 @@ export const HistoryDetailsBottomSheet = memo(
             <Text
               style={{ color: theme.text, fontSize: 18, fontWeight: '800' }}
             >
-              Détail de l'événement
+              {t('history_detail_title')}
             </Text>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               {detail && (
@@ -226,12 +229,12 @@ export const HistoryDetailsBottomSheet = memo(
                         fontSize: 16,
                       }}
                     >
-                      {cfg!.label}
+                      {t(cfg!.labelKey)}
                     </Text>
                     <Text
                       style={{ color: cfg!.color, fontSize: 12, opacity: 0.8 }}
                     >
-                      {new Date(detail.scanned_at).toLocaleString('fr-FR', {
+                      {new Date(detail.scanned_at).toLocaleString(appLocale(), {
                         weekday: 'long',
                         day: 'numeric',
                         month: 'long',
@@ -265,7 +268,7 @@ export const HistoryDetailsBottomSheet = memo(
                           }}
                         />
                         <Text style={{ color: theme.textMuted, fontSize: 11 }}>
-                          Enfant
+                          {t('history_child')}
                         </Text>
                       </View>
                     )}
@@ -281,7 +284,7 @@ export const HistoryDetailsBottomSheet = memo(
                           }}
                         />
                         <Text style={{ color: theme.textMuted, fontSize: 11 }}>
-                          Collecteur
+                          {t('history_collector')}
                         </Text>
                       </View>
                     )}
@@ -307,7 +310,7 @@ export const HistoryDetailsBottomSheet = memo(
                         color={theme.textMuted}
                       />
                     }
-                    label="Enfant"
+                    label={t('history_child')}
                     value={
                       detail.child
                         ? `${detail.child.first_name} ${detail.child.last_name}`
@@ -325,11 +328,11 @@ export const HistoryDetailsBottomSheet = memo(
                         color={theme.textMuted}
                       />
                     }
-                    label="Collecteur"
+                    label={t('history_collector')}
                     value={
                       detail.guardian
                         ? `${detail.guardian.first_name} ${detail.guardian.last_name}${detail.guardian.relationship ? ` · ${detail.guardian.relationship}` : ''}`
-                        : 'QR Parent direct'
+                        : t('history_parent_direct')
                     }
                   />
                   {detail.school && (
@@ -345,7 +348,7 @@ export const HistoryDetailsBottomSheet = memo(
                             color={theme.textMuted}
                           />
                         }
-                        label="Établissement"
+                        label={t('history_school')}
                         value={`${detail.school.name}, ${detail.school.city}`}
                       />
                     </>
@@ -361,7 +364,7 @@ export const HistoryDetailsBottomSheet = memo(
                         color={theme.textMuted}
                       />
                     }
-                    label="Heure exacte"
+                    label={t('history_exact_time')}
                     value={new Date(detail.scanned_at).toISOString()}
                   />
                   {detail.qr_jti && (
@@ -377,7 +380,7 @@ export const HistoryDetailsBottomSheet = memo(
                             color={theme.textMuted}
                           />
                         }
-                        label="QR ID"
+                        label={t('history_qr_id')}
                         value={detail.qr_jti}
                       />
                     </>
@@ -401,7 +404,7 @@ export const HistoryDetailsBottomSheet = memo(
                         fontWeight: '600',
                       }}
                     >
-                      Motif de refus
+                      {t('history_denial_reason')}
                     </Text>
                     <Text
                       style={{ color: theme.red, fontSize: 14, marginTop: 4 }}

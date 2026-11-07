@@ -4,6 +4,7 @@ import { Control, Controller, FieldValues, Path } from 'react-hook-form';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 
 interface AuthPickerFieldProps<T extends FieldValues> {
@@ -22,10 +23,11 @@ function AuthPickerFieldInner<T extends FieldValues>({
   label,
   options,
   icon,
-  placeholder = 'Sélectionner…',
+  placeholder,
   error,
 }: AuthPickerFieldProps<T>) {
   const t = useTheme();
+  const { t: i18n } = useTranslation('auth');
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
 
@@ -80,7 +82,7 @@ function AuthPickerFieldInner<T extends FieldValues>({
                 }}
                 numberOfLines={1}
               >
-                {value || placeholder}
+                {value || placeholder || i18n('picker_placeholder')}
               </Text>
               <Ionicons
                 name="chevron-down"

@@ -15,6 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import {
@@ -114,6 +115,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
   onClose,
 }: EditCollectorSheetProps) {
   const theme = useTheme();
+  const { t } = useTranslation('collector');
   const insets = useSafeAreaInsets();
   const session = useSession();
   const userId = session?.user.id ?? '';
@@ -143,13 +145,14 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
 
   const validate = useCallback((): boolean => {
     const next: FormErrors = {};
-    if (!form.firstName.trim()) next.firstName = 'Prénom requis';
-    if (!form.lastName.trim()) next.lastName = 'Nom requis';
+    if (!form.firstName.trim())
+      next.firstName = t('errors:first_name_required');
+    if (!form.lastName.trim()) next.lastName = t('errors:last_name_required');
     if (form.phone.trim().length > 0 && form.phone.trim().length < 10)
-      next.phone = 'Numéro invalide';
+      next.phone = t('edit_phone_invalid');
     setErrors(next);
     return Object.keys(next).length === 0;
-  }, [form]);
+  }, [form, t]);
 
   const [pickerVisible, setPickerVisible] = useState(false);
 
@@ -162,15 +165,18 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
       setAvatarUri(result.signedUrl);
       try {
         await updateAvatarUrl.mutateAsync(result.signedUrl);
-        Toast.show('Photo mise à jour', { type: 'success', duration: 2000 });
+        Toast.show(t('edit_photo_updated'), {
+          type: 'success',
+          duration: 2000,
+        });
       } catch {
-        Toast.show('Impossible de sauvegarder la photo. Réessayez.', {
+        Toast.show(t('profile_photo_save_error'), {
           type: 'error',
           duration: 3000,
         });
       }
     },
-    [updateAvatarUrl]
+    [updateAvatarUrl, t]
   );
 
   const handleRemovePhoto = useCallback(async () => {
@@ -178,12 +184,12 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
     try {
       await updateAvatarUrl.mutateAsync('');
     } catch {
-      Toast.show('Impossible de supprimer la photo. Réessayez.', {
+      Toast.show(t('profile_photo_remove_error'), {
         type: 'error',
         duration: 3000,
       });
     }
-  }, [updateAvatarUrl]);
+  }, [updateAvatarUrl, t]);
 
   const handleSave = useCallback(async () => {
     if (!validate()) {
@@ -198,19 +204,19 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
         phone: form.phone.trim(),
       });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Toast.show('Profil mis à jour avec succès', {
+      Toast.show(t('edit_saved'), {
         type: 'success',
         duration: 2500,
       });
       onClose();
     } catch {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-      Toast.show("Impossible d'enregistrer les modifications", {
+      Toast.show(t('edit_save_error'), {
         type: 'error',
         duration: 3000,
       });
     }
-  }, [validate, updateProfile, form, onClose]);
+  }, [validate, updateProfile, form, onClose, t]);
 
   const isBusy =
     updateProfile.isPending || isUploading || updateAvatarUrl.isPending;
@@ -240,7 +246,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
         }}
       >
         <Text style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}>
-          Modifier le profil
+          {t('profile_edit')}
         </Text>
         <TouchableOpacity
           onPress={onClose}
@@ -310,7 +316,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
               </View>
             </TouchableOpacity>
             <Text style={{ color: theme.textMuted, fontSize: 12 }}>
-              Appuyer pour modifier la photo
+              {t('edit_tap_photo')}
             </Text>
           </Animated.View>
 
@@ -361,22 +367,22 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
               <Text
                 style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
               >
-                Identité
+                {t('edit_identity')}
               </Text>
             </View>
             <InputField
-              label="Prénom"
+              label={t('common:first_name')}
               value={form.firstName}
               onChangeText={setField('firstName')}
-              placeholder="Votre prénom"
+              placeholder={t('edit_first_name_placeholder')}
               autoCapitalize="words"
               error={errors.firstName}
             />
             <InputField
-              label="Nom"
+              label={t('common:last_name')}
               value={form.lastName}
               onChangeText={setField('lastName')}
-              placeholder="Votre nom"
+              placeholder={t('edit_last_name_placeholder')}
               autoCapitalize="words"
               error={errors.lastName}
             />
@@ -416,11 +422,11 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
               <Text
                 style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
               >
-                Contact
+                {t('edit_contact')}
               </Text>
             </View>
             <InputField
-              label="Téléphone"
+              label={t('common:phone')}
               value={form.phone}
               onChangeText={setField('phone')}
               placeholder="+33 6 00 00 00 00"
@@ -454,7 +460,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
                   <Text
                     style={{ color: '#fff', fontWeight: '700', fontSize: 16 }}
                   >
-                    Enregistrer les modifications
+                    {t('edit_save')}
                   </Text>
                 </>
               )}
@@ -468,7 +474,7 @@ export const EditCollectorSheet = memo(function EditCollectorSheet({
                   marginTop: 8,
                 }}
               >
-                Impossible d'enregistrer. Réessayez.
+                {t('edit_save_retry')}
               </Text>
             ) : null}
           </Animated.View>

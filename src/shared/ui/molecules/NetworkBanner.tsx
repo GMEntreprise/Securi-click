@@ -7,6 +7,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import {
   useGlobalConnectivity,
   type ConnectivityStatus,
@@ -15,7 +16,7 @@ import {
 const DURATION = 280;
 
 interface BannerConfig {
-  message: string;
+  messageKey: string;
   color: string;
   bg: string;
   iconName: 'wifi-outline' | 'cloud-offline-outline' | 'refresh-outline';
@@ -24,21 +25,21 @@ interface BannerConfig {
 
 const CONFIG: Record<Exclude<ConnectivityStatus, 'online'>, BannerConfig> = {
   offline: {
-    message: 'Aucune connexion réseau',
+    messageKey: 'network_offline',
     color: '#ffffff',
     bg: '#1a1a2e',
     iconName: 'wifi-outline',
     showRetry: true,
   },
   realtime_disconnected: {
-    message: 'Synchronisation en attente',
+    messageKey: 'network_sync_pending',
     color: '#ffffff',
     bg: '#7c3aed',
     iconName: 'cloud-offline-outline',
     showRetry: true,
   },
   reconnecting: {
-    message: 'Reconnexion en cours…',
+    messageKey: 'network_reconnecting',
     color: '#ffffff',
     bg: '#0f766e',
     iconName: 'refresh-outline',
@@ -48,6 +49,7 @@ const CONFIG: Record<Exclude<ConnectivityStatus, 'online'>, BannerConfig> = {
 
 export function NetworkBanner() {
   const insets = useSafeAreaInsets();
+  const { t } = useTranslation('common');
   const { status, retry } = useGlobalConnectivity();
   const visible = status !== 'online';
   const translateY = useSharedValue(-60);
@@ -70,7 +72,8 @@ export function NetworkBanner() {
 
   if (status === 'online') return null;
 
-  const { message, color, bg, iconName, showRetry } = CONFIG[status];
+  const { messageKey, color, bg, iconName, showRetry } = CONFIG[status];
+  const message = t(messageKey);
 
   return (
     <Animated.View
@@ -90,11 +93,11 @@ export function NetworkBanner() {
           onPress={retry}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           accessibilityRole="button"
-          accessibilityLabel="Réessayer"
+          accessibilityLabel={t('retry')}
           style={[styles.retryBtn, { borderColor: `${color}50` }]}
         >
           <Ionicons name="refresh-outline" size={10} color={color} />
-          <Text style={[styles.retryText, { color }]}>Réessayer</Text>
+          <Text style={[styles.retryText, { color }]}>{t('retry')}</Text>
         </TouchableOpacity>
       )}
     </Animated.View>

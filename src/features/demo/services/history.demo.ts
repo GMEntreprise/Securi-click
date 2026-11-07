@@ -17,6 +17,32 @@ function matchesSearch(entry: HistoryEntry, search: string): boolean {
   return haystack.includes(search.trim().toLowerCase());
 }
 
+function inMonth(entry: HistoryEntry, year: number, month: number): boolean {
+  const date = new Date(entry.scanned_at);
+  return date.getFullYear() === year && date.getMonth() + 1 === month;
+}
+
+function setMonthArchived(
+  year: number,
+  month: number,
+  archived: boolean
+): number {
+  const targets = readWorld().history.filter(
+    entry => inMonth(entry, year, month) && entry.is_archived !== archived
+  );
+  const ids = new Set(targets.map(entry => entry.id));
+  const archivedAt = archived ? new Date().toISOString() : null;
+  writeWorld(world => ({
+    ...world,
+    history: world.history.map(entry =>
+      ids.has(entry.id)
+        ? { ...entry, is_archived: archived, archived_at: archivedAt }
+        : entry
+    ),
+  }));
+  return targets.length;
+}
+
 export const demoHistoryService: HistoryService = {
   async fetchPage(_parentId, filters, cursor, pageSize = 30) {
     const matching = readWorld()
@@ -82,12 +108,12 @@ export const demoHistoryService: HistoryService = {
     }));
   },
 
-  async archiveMonth() {
-    throw demoUnavailable();
+  async archiveMonth(_parentId, year, month) {
+    return setMonthArchived(year, month, true);
   },
 
-  async restoreMonth() {
-    throw demoUnavailable();
+  async restoreMonth(_parentId, year, month) {
+    return setMonthArchived(year, month, false);
   },
 
   async searchEntries(_parentId, search, limit = 20) {

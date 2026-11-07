@@ -80,8 +80,15 @@ export const demoParentService: ParentService = {
     return readWorld().parentProfile;
   },
 
-  async updateAvatar() {
-    throw demoUnavailable();
+  async updateAvatar(_userId, avatarUrl) {
+    writeWorld(world => ({
+      ...world,
+      parentProfile: {
+        ...world.parentProfile,
+        avatar_url: avatarUrl || null,
+        updated_at: nowIso(),
+      },
+    }));
   },
 
   async changePassword() {},

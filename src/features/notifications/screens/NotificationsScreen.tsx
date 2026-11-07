@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useLayoutEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Pressable,
@@ -25,6 +26,7 @@ import type { Notification } from '../types';
 
 export const NotificationsScreen = memo(() => {
   const t = useTheme();
+  const { t: i18n } = useTranslation('common');
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const unread = useUnreadCount();
@@ -92,7 +94,7 @@ export const NotificationsScreen = memo(() => {
               color={t.accent}
             />
             <Text style={{ fontSize: 13, color: t.accent, fontWeight: '600' }}>
-              Tout marquer comme lu
+              {i18n('notifications_mark_all')}
             </Text>
           </Pressable>
         </View>
@@ -115,7 +117,7 @@ export const NotificationsScreen = memo(() => {
         >
           <Text style={{ fontSize: 48 }}>🔔</Text>
           <Text style={{ fontSize: 17, fontWeight: '700', color: t.text }}>
-            Aucune notification
+            {i18n('notifications_empty')}
           </Text>
           <Text
             style={{
@@ -125,7 +127,7 @@ export const NotificationsScreen = memo(() => {
               paddingHorizontal: 40,
             }}
           >
-            Vous serez notifié en temps réel des événements importants.
+            {i18n('notifications_empty_body')}
           </Text>
         </View>
       ) : (

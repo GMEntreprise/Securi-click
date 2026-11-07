@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase/client';
 import { signStorageFields } from '@/shared/storage';
+import { toUserFacingError } from '@/shared/errors/supabaseError';
+import { i18n } from '@/i18n';
 import type {
   AddGuardianPayload,
   AddChildPayload,
@@ -209,7 +211,7 @@ const supabaseParentService = {
         .single();
       if (error) {
         if (error.code === '23505') {
-          throw new Error('Ce collecteur est déjà autorisé pour cet enfant.');
+          throw new Error(i18n.t('errors:collector_already_linked'));
         }
         throw error;
       }
@@ -218,7 +220,7 @@ const supabaseParentService = {
 
     // Path B — pending invitation: call invite_guardian RPC
     if (!payload.email) {
-      throw new Error("Impossible d'identifier ce collecteur.");
+      throw new Error(i18n.t('errors:collector_unidentified'));
     }
 
     const { error: rpcError } = await supabase.rpc('invite_guardian', {
@@ -235,9 +237,9 @@ const supabaseParentService = {
         rpcError.message.includes('duplicate_guardian_email') ||
         rpcError.code === '23505'
       ) {
-        throw new Error('Ce collecteur est déjà associé à cet enfant.');
+        throw new Error(i18n.t('errors:duplicate_guardian_email'));
       }
-      throw new Error(rpcError.message);
+      throw toUserFacingError(rpcError);
     }
 
     const { data, error } = await supabase
@@ -381,7 +383,7 @@ const supabaseParentService = {
   ): Promise<string> {
     const ALLOWED = ['image/jpeg', 'image/png', 'image/webp'];
     if (!ALLOWED.includes(contentType)) {
-      throw new Error('Format image non supporté. Utilisez JPG, PNG ou WebP.');
+      throw new Error(i18n.t('errors:image_format'));
     }
     const { error } = await supabase.storage
       .from(bucket)

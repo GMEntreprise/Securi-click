@@ -56,31 +56,109 @@ export const DEMO_QR_SCENARIOS: readonly DemoQrScenario[] = [
   },
 ];
 
+export interface DemoLiveCode {
+  childId: string;
+  guardianId: string | null;
+  expiresAt: number;
+  nonce: string;
+  child: { first_name: string; last_name: string; class_name: string | null };
+  guardian: {
+    first_name: string;
+    last_name: string;
+    relationship: string;
+  } | null;
+}
+
 export type ParsedDemoQr =
   | { kind: 'scenario'; scenario: DemoQrScenarioId }
-  | { kind: 'live'; childId: string; guardianId: string | null };
+  | ({ kind: 'live' } & DemoLiveCode);
+
+const LIVE = 'live';
+const LIVE_FIELDS = 10;
+const DEMO_ID_PREFIX = 'demo-';
 
 export function isDemoQrPayload(payload: string): boolean {
   return payload.startsWith(`${PREFIX}:`);
 }
 
-export function buildDemoLiveToken(
-  childId: string,
-  guardianId: string | null
-): string {
-  return `${ROOT}:live:${childId}:${guardianId ?? NO_GUARDIAN}`;
+export function buildDemoLiveToken(code: DemoLiveCode): string {
+  const fields = [
+    code.childId,
+    code.guardianId ?? NO_GUARDIAN,
+    code.expiresAt.toString(36),
+    code.nonce,
+    code.child.first_name,
+    code.child.last_name,
+    code.child.class_name ?? '',
+    code.guardian?.first_name ?? '',
+    code.guardian?.last_name ?? '',
+    code.guardian?.relationship ?? '',
+  ];
+  return [ROOT, LIVE, ...fields.map(encodeURIComponent)].join(':');
+}
+
+function decodeFields(raw: string[]): string[] | null {
+  try {
+    return raw.map(decodeURIComponent);
+  } catch {
+    return null;
+  }
+}
+
+function parseLive(raw: string[]): DemoLiveCode | null {
+  if (raw.length !== LIVE_FIELDS) return null;
+  const fields = decodeFields(raw);
+  if (!fields) return null;
+  const [
+    childId,
+    guardian,
+    expires,
+    nonce,
+    childFirst,
+    childLast,
+    className,
+    guardianFirst,
+    guardianLast,
+    relationship,
+  ] = fields;
+  const expiresAt = parseInt(expires, 36);
+  const guardianId = guardian === NO_GUARDIAN ? null : guardian;
+
+  if (!childId.startsWith(DEMO_ID_PREFIX)) return null;
+  if (guardianId !== null && !guardianId.startsWith(DEMO_ID_PREFIX)) {
+    return null;
+  }
+  if (!Number.isFinite(expiresAt) || !nonce || !childFirst) return null;
+  if (guardianId !== null && !guardianFirst) return null;
+
+  return {
+    childId,
+    guardianId,
+    expiresAt,
+    nonce,
+    child: {
+      first_name: childFirst,
+      last_name: childLast,
+      class_name: className || null,
+    },
+    guardian:
+      guardianId === null
+        ? null
+        : {
+            first_name: guardianFirst,
+            last_name: guardianLast,
+            relationship,
+          },
+  };
 }
 
 export function parseDemoQrPayload(payload: string): ParsedDemoQr | null {
   const parts = payload.split(':');
   if (parts[0] !== PREFIX || parts[1] !== VERSION) return null;
 
-  if (parts[2] === 'live' && parts.length === 5 && parts[3] && parts[4]) {
-    return {
-      kind: 'live',
-      childId: parts[3],
-      guardianId: parts[4] === NO_GUARDIAN ? null : parts[4],
-    };
+  if (parts[2] === LIVE) {
+    const live = parseLive(parts.slice(3));
+    return live ? { kind: 'live', ...live } : null;
   }
 
   const scenario = DEMO_QR_SCENARIOS.find(item => item.payload === payload);
