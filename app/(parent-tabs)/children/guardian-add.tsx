@@ -24,7 +24,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSection';
 import { useSession } from '@/features/auth/store/auth.store';
-import { supabase } from '@/lib/supabase/client';
+import { parentService } from '@/features/parent/services/parent.service';
+import { isDemoActive } from '@/features/demo/store/demo.store';
 import { authService } from '@/features/auth/services/supabaseAuth.service';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import { Avatar } from '@/shared/ui/base/avatar';
@@ -396,17 +397,28 @@ export default function AddGuardianScreen() {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      first_name: '',
-      last_name: '',
-      phone: '',
-      relationship: '',
-      email: '',
-      access_code: '',
-    },
+    defaultValues: isDemoActive()
+      ? {
+          first_name: 'Nina',
+          last_name: 'Roux',
+          phone: '',
+          relationship: i18n('guardian_rel_aunt'),
+          email: 'nina.roux@demo.invalid',
+          access_code: '246810',
+        }
+      : {
+          first_name: '',
+          last_name: '',
+          phone: '',
+          relationship: '',
+          email: '',
+          access_code: '',
+        },
   });
 
-  const [selectedRelationship, setSelectedRelationship] = useState('');
+  const [selectedRelationship, setSelectedRelationship] = useState(() =>
+    isDemoActive() ? i18n('guardian_rel_aunt') : ''
+  );
 
   const handleRelationshipSelect = useCallback(
     (rel: string) => {
@@ -424,7 +436,7 @@ export default function AddGuardianScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
       try {
-        const { error: rpcError } = await supabase.rpc('invite_guardian', {
+        const { error: rpcError } = await parentService.inviteGuardian({
           p_child_id: childId,
           p_first_name: data.first_name,
           p_last_name: data.last_name,

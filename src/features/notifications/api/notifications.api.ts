@@ -1,11 +1,13 @@
 import { supabase } from '@/lib/supabase/client';
 import { toUserFacingError } from '@/shared/errors/supabaseError';
 import type { Notification } from '../types';
+import { demoAware } from '@/features/demo/services/demoAware';
+import { demoNotificationsApi } from '@/features/demo/services/notifications.demo';
 
 const COLUMNS =
   'id,user_id,role,type,title,body,metadata,is_read,read_at,created_at,expires_at' as const;
 
-export async function fetchNotifications(
+async function fetchNotificationsFromSupabase(
   userId: string
 ): Promise<Notification[]> {
   const { data, error } = await supabase
@@ -19,7 +21,7 @@ export async function fetchNotifications(
   return (data ?? []) as Notification[];
 }
 
-export async function fetchUnreadCount(userId: string): Promise<number> {
+async function fetchUnreadCountFromSupabase(userId: string): Promise<number> {
   const { count, error } = await supabase
     .from('notifications')
     .select('id', { count: 'exact', head: true })
@@ -30,7 +32,7 @@ export async function fetchUnreadCount(userId: string): Promise<number> {
   return count ?? 0;
 }
 
-export async function markNotificationsRead(ids: string[]): Promise<void> {
+async function markNotificationsReadFromSupabase(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
   const { error } = await supabase.rpc('mark_notifications_read', {
     p_notification_ids: ids,
@@ -38,12 +40,12 @@ export async function markNotificationsRead(ids: string[]): Promise<void> {
   if (error) throw toUserFacingError(error);
 }
 
-export async function markAllRead(): Promise<void> {
+async function markAllReadFromSupabase(): Promise<void> {
   const { error } = await supabase.rpc('mark_all_notifications_read');
   if (error) throw toUserFacingError(error);
 }
 
-export async function upsertPushToken(
+async function upsertPushTokenFromSupabase(
   token: string,
   platform: 'ios' | 'android' | 'web'
 ): Promise<void> {
@@ -54,10 +56,30 @@ export async function upsertPushToken(
   if (error) throw toUserFacingError(error);
 }
 
-export async function deactivatePushToken(token: string): Promise<void> {
+async function deactivatePushTokenFromSupabase(token: string): Promise<void> {
   const { error } = await supabase
     .from('push_tokens')
     .update({ is_active: false, updated_at: new Date().toISOString() })
     .eq('token', token);
   if (error) throw toUserFacingError(error);
 }
+
+const supabaseNotificationsApi = {
+  fetchNotifications: fetchNotificationsFromSupabase,
+  fetchUnreadCount: fetchUnreadCountFromSupabase,
+  markNotificationsRead: markNotificationsReadFromSupabase,
+  markAllRead: markAllReadFromSupabase,
+  upsertPushToken: upsertPushTokenFromSupabase,
+  deactivatePushToken: deactivatePushTokenFromSupabase,
+};
+
+export type NotificationsApi = typeof supabaseNotificationsApi;
+
+export const {
+  fetchNotifications,
+  fetchUnreadCount,
+  markNotificationsRead,
+  markAllRead,
+  upsertPushToken,
+  deactivatePushToken,
+}: NotificationsApi = demoAware(supabaseNotificationsApi, demoNotificationsApi);

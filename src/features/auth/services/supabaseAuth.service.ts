@@ -3,7 +3,8 @@ import type {
   RegisterParentData,
   RegisterSchoolData,
 } from '../types';
-import { supabase } from '@/lib/supabase/client';
+import { isAuthRetryableFetchError, type Session } from '@supabase/supabase-js';
+import { readStoredSession, supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '../utils/mapAuthSession';
 import { directoryService } from '@/features/school/directory';
 import { resolveSignUpOutcome } from '../utils/signUpOutcome';
@@ -195,32 +196,70 @@ async function inviteCollector(email: string): Promise<void> {
   if (error) throw toAuthError(error);
 }
 
+const STARTUP_NETWORK_DEADLINE_MS = 4_000;
+
+function withStartupDeadline<T>(pending: Promise<T>): Promise<T | 'deadline'> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<'deadline'>(resolve => {
+    timer = setTimeout(() => resolve('deadline'), STARTUP_NETWORK_DEADLINE_MS);
+  });
+  return Promise.race([pending, deadline]).finally(() => clearTimeout(timer));
+}
+
+async function restoreFromDevice(): Promise<AuthSession | null> {
+  const stored = await readStoredSession();
+  if (!stored) return null;
+  try {
+    return await mapSupabaseSessionToAuthSession(stored);
+  } catch {
+    return null;
+  }
+}
+
+async function mapSession(session: Session): Promise<AuthSession | null> {
+  try {
+    return await mapSupabaseSessionToAuthSession(session);
+  } catch {
+    return null;
+  }
+}
+
 async function restoreSession(): Promise<AuthSession | null> {
+  const outcome = await withStartupDeadline(supabase.auth.getSession());
+  if (outcome === 'deadline') return restoreFromDevice();
+
   const {
     data: { session },
     error,
-  } = await supabase.auth.getSession();
+  } = outcome;
 
-  if (error || !session?.access_token) {
-    return null;
+  if (error) {
+    return isAuthRetryableFetchError(error) ? restoreFromDevice() : null;
   }
+  if (!session?.access_token) return null;
 
   const expiresAtMs = (session.expires_at ?? 0) * 1000;
   if (Date.now() >= expiresAtMs) {
-    const { data: refreshed, error: refreshError } =
-      await supabase.auth.refreshSession({
+    const refreshOutcome = await withStartupDeadline(
+      supabase.auth.refreshSession({
         refresh_token: session.refresh_token ?? '',
-      });
+      })
+    );
+    if (refreshOutcome === 'deadline') return restoreFromDevice();
 
+    const { data: refreshed, error: refreshError } = refreshOutcome;
+    if (refreshError && isAuthRetryableFetchError(refreshError)) {
+      return restoreFromDevice();
+    }
     if (refreshError || !refreshed.session) {
       await supabase.auth.signOut();
       return null;
     }
 
-    return mapSupabaseSessionToAuthSession(refreshed.session);
+    return mapSession(refreshed.session);
   }
 
-  return mapSupabaseSessionToAuthSession(session);
+  return mapSession(session);
 }
 
 async function signOut(): Promise<void> {

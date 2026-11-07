@@ -182,6 +182,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
   const t = useTheme();
   const { t: i18n } = useTranslation('auth');
   const { t: i18nCommon } = useTranslation('common');
+  const { t: i18nDemo } = useTranslation('demo');
   const language = useLanguageStore(s => s.language);
   const [selectedId, setSelectedId] = useState<RoleItem['id'] | null>(null);
   const [showCompliance, setShowCompliance] = useState(false);
@@ -311,6 +312,27 @@ export const RoleChoiceScreen: React.FC = memo(() => {
         >
           Continuer
         </AuthPrimaryButton>
+        <Pressable
+          onPress={() => nav.pushRoute('/demo')}
+          accessibilityRole="button"
+          accessibilityHint={i18nDemo('entry_subtitle')}
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: 48,
+            marginTop: 8,
+            borderRadius: 14,
+            borderWidth: 1.5,
+            borderColor: t.primary,
+          }}
+        >
+          <Text style={{ color: t.primary, fontSize: 15, fontWeight: '800' }}>
+            {i18nDemo('entry_title')}
+          </Text>
+          <Text style={{ color: t.textSecondary, fontSize: 12, marginTop: 1 }}>
+            {i18nDemo('entry_subtitle')}
+          </Text>
+        </Pressable>
         <View style={{ alignItems: 'center', marginTop: 14, gap: 2 }}>
           <Text
             style={{

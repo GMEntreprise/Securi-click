@@ -7,6 +7,8 @@ import type {
   CollectorPickupLog,
   DocumentType,
 } from '../types';
+import { demoAware } from '@/features/demo/services/demoAware';
+import { demoCollectorService } from '@/features/demo/services/collector.demo';
 
 async function signChildPhotos<T>(payload: T): Promise<T> {
   return signStorageFields(payload, 'children-images', ['photo_url']);
@@ -78,7 +80,7 @@ const LOG_SELECT = `
   child:children!pickup_logs_child_id_fkey ( first_name, last_name, photo_url )
 `.trim();
 
-export const collectorService = {
+const supabaseCollectorService = {
   async getMyGuardians(collectorUserId: string): Promise<CollectorGuardian[]> {
     const { data, error } = await supabase
       .from('guardians')
@@ -365,3 +367,10 @@ export const collectorService = {
     return signChildPhotos(qr as unknown as CollectorQrCode);
   },
 };
+
+export type CollectorService = typeof supabaseCollectorService;
+
+export const collectorService: CollectorService = demoAware(
+  supabaseCollectorService,
+  demoCollectorService
+);

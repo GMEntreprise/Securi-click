@@ -33,7 +33,6 @@ import {
   useDeleteGuardian,
 } from '@/features/parent/hooks/useGuardians';
 import { parentService } from '@/features/parent/services/parent.service';
-import { supabase } from '@/lib/supabase/client';
 
 const RELATIONSHIPS = [
   'Grand-père',
@@ -145,21 +144,15 @@ export default function GuardianDetailScreen() {
         });
 
         if (usePinCode && data.access_code?.trim()) {
-          const { error: rpcError } = await supabase.rpc(
-            'update_guardian_pin',
-            {
-              p_guardian_id: id,
-              p_access_code: data.access_code.trim(),
-            }
+          const { error: rpcError } = await parentService.updateGuardianPin(
+            id,
+            data.access_code.trim()
           );
           if (rpcError) throw new Error(rpcError.message);
         } else if (!usePinCode) {
-          const { error: rpcError } = await supabase.rpc(
-            'update_guardian_pin',
-            {
-              p_guardian_id: id,
-              p_access_code: null,
-            }
+          const { error: rpcError } = await parentService.updateGuardianPin(
+            id,
+            null
           );
           if (rpcError) throw new Error(rpcError.message);
         }

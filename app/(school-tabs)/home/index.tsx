@@ -64,7 +64,7 @@ export default function SchoolHomeScreen() {
     staleTime: 2 * 60 * 1000,
   });
 
-  if (schoolError || statsError) {
+  if ((schoolError && !school) || (statsError && !stats)) {
     return (
       <QueryError
         onRetry={() => {

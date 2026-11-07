@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/features/auth/store/auth.store';
+import { leaveDemo, useAuthStore } from '@/features/auth/store/auth.store';
+import { isDemoActive } from '@/features/demo/store/demo.store';
 import { ROUTES } from './routes';
 import { setExplicitLogoutInProgress } from './authFlags';
 
@@ -49,6 +50,10 @@ export function useAppNavigation() {
   // ── Delete account (shared by all roles) ────────────────────────────────────
 
   const deleteAccount = useCallback(async () => {
+    if (isDemoActive()) {
+      await leaveDemo();
+      return;
+    }
     const { authService } =
       await import('@/features/auth/services/supabaseAuth.service');
     setExplicitLogoutInProgress(true);

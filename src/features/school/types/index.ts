@@ -97,6 +97,7 @@ export type CollectorIdentityStatus =
 export interface QrScanResult {
   success: boolean;
   refusal_reason?: string;
+  note?: string;
   validation_id?: string;
   log_id?: string;
   scanned_at?: string;

@@ -5,17 +5,21 @@ import type {
   AddChildPayload,
   Guardian,
   Child,
+  InviteGuardianParams,
+  RpcOutcome,
   ParentProfile,
   PickupLog,
   UpdateGuardianPayload,
   UpdateProfilePayload,
 } from '../types';
+import { demoAware } from '@/features/demo/services/demoAware';
+import { demoParentService } from '@/features/demo/services/parent.demo';
 
 async function signChildPhotos<T>(payload: T): Promise<T> {
   return signStorageFields(payload, 'children-images', ['photo_url']);
 }
 
-export const parentService = {
+const supabaseParentService = {
   async getProfile(userId: string): Promise<ParentProfile> {
     const { data, error } = await supabase
       .from('user_profiles')
@@ -391,4 +395,27 @@ export const parentService = {
     const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
     return data.publicUrl;
   },
+
+  async inviteGuardian(params: InviteGuardianParams): Promise<RpcOutcome> {
+    const { error } = await supabase.rpc('invite_guardian', params);
+    return { error };
+  },
+
+  async updateGuardianPin(
+    guardianId: string,
+    accessCode: string | null
+  ): Promise<RpcOutcome> {
+    const { error } = await supabase.rpc('update_guardian_pin', {
+      p_guardian_id: guardianId,
+      p_access_code: accessCode,
+    });
+    return { error };
+  },
 };
+
+export type ParentService = typeof supabaseParentService;
+
+export const parentService: ParentService = demoAware(
+  supabaseParentService,
+  demoParentService
+);

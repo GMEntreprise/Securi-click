@@ -340,7 +340,7 @@ export default function ParentDashboard() {
     [theme, childrenCount, completedCount, recentLogs, i18n]
   );
 
-  if (childrenError || logsError) {
+  if ((childrenError && !children) || (logsError && !recentLogs)) {
     return (
       <QueryError
         onRetry={() => {

@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase/client';
+import { demoAware } from '@/features/demo/services/demoAware';
+import { demoPickupAuthorizationService } from '@/features/demo/services/pickupAuthorization.demo';
 
 export interface TimeWindow {
   start: string;
@@ -44,7 +46,7 @@ export interface UpsertPickupAuthorizationPayload {
 const PA_SELECT =
   'id, parent_id, child_id, guardian_id, monday, tuesday, wednesday, thursday, friday, start_time, end_time, time_windows, timezone, reminder_before, is_active, expires_at, next_pickup_at, last_reminded_at, created_at, updated_at';
 
-export const pickupAuthorizationService = {
+const supabasePickupAuthorizationService = {
   async getForGuardian(
     childId: string,
     guardianId: string
@@ -127,3 +129,12 @@ export const pickupAuthorizationService = {
     if (error) throw error;
   },
 };
+
+export type PickupAuthorizationService =
+  typeof supabasePickupAuthorizationService;
+
+export const pickupAuthorizationService: PickupAuthorizationService =
+  demoAware(
+    supabasePickupAuthorizationService,
+    demoPickupAuthorizationService
+  );

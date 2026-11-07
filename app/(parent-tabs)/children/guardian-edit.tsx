@@ -45,7 +45,6 @@ import {
   formatTimeWindows,
 } from '@/features/collector/hooks/usePickupSchedule';
 import { parentService } from '@/features/parent/services/parent.service';
-import { supabase } from '@/lib/supabase/client';
 import { useTranslation } from 'react-i18next';
 
 type FormData = {
@@ -198,12 +197,9 @@ export default function GuardianEditScreen() {
 
         // New PIN entered → rehash server-side. Empty = keep existing hash.
         if (data.access_code?.trim()) {
-          const { error: rpcError } = await supabase.rpc(
-            'update_guardian_pin',
-            {
-              p_guardian_id: guardianId,
-              p_access_code: data.access_code.trim(),
-            }
+          const { error: rpcError } = await parentService.updateGuardianPin(
+            guardianId,
+            data.access_code.trim()
           );
           if (rpcError) throw new Error(rpcError.message);
         }
@@ -678,8 +674,8 @@ export default function GuardianEditScreen() {
         >
           <TouchableOpacity
             onPress={() => {
-            handleSubmit(onSubmit)();
-          }}
+              handleSubmit(onSubmit)();
+            }}
             disabled={isSaving}
             style={{
               backgroundColor: theme.primary,

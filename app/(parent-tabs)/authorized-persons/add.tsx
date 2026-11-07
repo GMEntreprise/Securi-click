@@ -20,7 +20,7 @@ import { useTheme } from '@/theme';
 import { AuthInputField } from '@/features/auth/components/ui/AuthInputField';
 import { PinAccessSection } from '@/features/parent/components/ui/PinAccessSection';
 import { useSession } from '@/features/auth/store/auth.store';
-import { supabase } from '@/lib/supabase/client';
+import { parentService } from '@/features/parent/services/parent.service';
 import { Toast } from '@/shared/ui/molecules/Toast';
 
 const RELATIONSHIPS = [
@@ -98,7 +98,7 @@ export default function AddGuardianScreen() {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
       try {
-        const { error: rpcError } = await supabase.rpc('invite_guardian', {
+        const { error: rpcError } = await parentService.inviteGuardian({
           p_child_id: childId,
           p_first_name: data.first_name,
           p_last_name: data.last_name,

@@ -27,6 +27,7 @@ import {
   useCollectorRecentScans,
   useCollectorGenerateQr,
 } from '@/features/collector/hooks/useCollector';
+import { isDemoActive } from '@/features/demo/store/demo.store';
 
 const STATUS_CFG = {
   completed: {
@@ -49,7 +50,7 @@ const STATUS_CFG = {
 export default function CollectorQRScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(isDemoActive);
   const [selectedGuardianIdx, setSelectedGuardianIdx] = useState(0);
   const [showPicker, setShowPicker] = useState(false);
 

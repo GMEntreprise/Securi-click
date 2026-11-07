@@ -1,5 +1,6 @@
 import { supabase } from './client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { isDemoActive } from '@/features/demo/store/demo.store';
 
 type Callback = (payload: any) => void;
 
@@ -45,7 +46,7 @@ function buildEntry(
     let ls = listeners.get(ck);
     if (!ls) {
       const callbacks = new Set<Callback>();
-      const dispatcher: Callback = (payload) => {
+      const dispatcher: Callback = payload => {
         for (const cb of callbacks) cb(payload);
       };
       ls = { callbacks, dispatcher };
@@ -88,6 +89,7 @@ export function subscribeToTableMulti(
   channelKey: string,
   configs: { config: ChannelConfig; callback: Callback }[]
 ): () => void {
+  if (isDemoActive()) return () => {};
   let entry = registry.get(channelKey);
 
   if (!entry) {

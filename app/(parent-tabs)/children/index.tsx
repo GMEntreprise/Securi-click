@@ -812,7 +812,7 @@ export default function CollectorsScreen() {
     [nav]
   );
 
-  if (isError) return <QueryError onRetry={refetch} />;
+  if (isError && !children) return <QueryError onRetry={refetch} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>

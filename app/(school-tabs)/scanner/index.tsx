@@ -33,6 +33,9 @@ import type {
   CollectorIdentityStatus,
 } from '@/features/school/types';
 import { useTranslation } from 'react-i18next';
+import { useIsFocused } from 'expo-router';
+import { useDemoRole } from '@/features/demo/store/demo.store';
+import { DemoScanPicker } from '@/features/demo/components/DemoScanPicker';
 
 type ScanState = 'idle' | 'scanning' | 'result';
 
@@ -330,6 +333,19 @@ const ResultSheet = memo(function ResultSheet({
                   {result.refusal_reason}
                 </Text>
               )}
+              {isOk && result.note && (
+                <Text
+                  style={{
+                    color: statusColor,
+                    fontSize: 13,
+                    marginTop: 3,
+                    opacity: 0.9,
+                    lineHeight: 18,
+                  }}
+                >
+                  {result.note}
+                </Text>
+              )}
               {isOk && (
                 <View
                   style={{
@@ -623,6 +639,10 @@ export default function ScannerScreen() {
   const [result, setResult] = useState<QrScanResult | null>(null);
   const lastScannedRef = useRef<string>('');
   const cooldownRef = useRef(false);
+  const isFocused = useIsFocused();
+  const isDemo = useDemoRole() === 'establishment';
+  const { t: i18nDemo } = useTranslation('demo');
+  const [demoPickerOpen, setDemoPickerOpen] = useState(false);
 
   const { data: school } = useMySchool();
   const schoolId = school?.id ?? '';
@@ -688,6 +708,43 @@ export default function ScannerScreen() {
     },
     [schoolId, validateQr, i18n]
   );
+
+  const handleDemoPick = useCallback(
+    (payload: string) => {
+      setDemoPickerOpen(false);
+      handleBarCodeScanned({ data: payload });
+    },
+    [handleBarCodeScanned]
+  );
+
+  const demoSimulator = isDemo ? (
+    <>
+      <TouchableOpacity
+        onPress={() => setDemoPickerOpen(true)}
+        accessibilityRole="button"
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          minHeight: 48,
+          borderRadius: 16,
+          paddingHorizontal: 20,
+          backgroundColor: 'rgba(255,255,255,0.92)',
+        }}
+      >
+        <Ionicons name="qr-code-outline" size={18} color={t.primary} />
+        <Text style={{ color: t.primary, fontWeight: '800', fontSize: 15 }}>
+          {i18nDemo('scanner_demo_title')}
+        </Text>
+      </TouchableOpacity>
+      <DemoScanPicker
+        visible={demoPickerOpen}
+        onPick={handleDemoPick}
+        onClose={() => setDemoPickerOpen(false)}
+      />
+    </>
+  ) : null;
 
   const handleReset = useCallback(() => {
     setResult(null);
@@ -760,6 +817,15 @@ export default function ScannerScreen() {
             {i18n('scanner_camera_allow')}
           </Text>
         </TouchableOpacity>
+        {demoSimulator}
+        {scanState === 'result' && result && (
+          <Animated.View
+            entering={FadeIn.duration(100)}
+            style={{ position: 'absolute', inset: 0 }}
+          >
+            <ResultSheet result={result} onReset={handleReset} />
+          </Animated.View>
+        )}
       </View>
     );
   }
@@ -767,129 +833,146 @@ export default function ScannerScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }}>
       {/* Camera — always mounted, hidden when showing result */}
-      <CameraView
-        style={{ flex: 1 }}
-        barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
-        onBarcodeScanned={
-          scanState === 'idle' ? handleBarCodeScanned : undefined
-        }
-      >
-        {/* Top bar with notifications */}
-        <View
-          style={{
-            position: 'absolute',
-            top: insets.top + 12,
-            left: 20,
-            right: 20,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
+      {isFocused ? (
+        <CameraView
+          style={{ flex: 1 }}
+          barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+          onBarcodeScanned={
+            scanState === 'idle' ? handleBarCodeScanned : undefined
+          }
         >
-          <Text
-            style={{
-              color: '#fff',
-              fontSize: 17,
-              fontWeight: '800',
-              textShadowColor: 'rgba(0,0,0,0.5)',
-              textShadowOffset: { width: 0, height: 1 },
-              textShadowRadius: 4,
-            }}
-          >
-            {school?.name ?? 'Scanner'}
-          </Text>
+          {/* Top bar with notifications */}
           <View
             style={{
-              backgroundColor: 'rgba(0,0,0,0.35)',
-              borderRadius: 12,
-              padding: 4,
+              position: 'absolute',
+              top: insets.top + 12,
+              left: 20,
+              right: 20,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
-            <NotificationBell />
+            <Text
+              style={{
+                color: '#fff',
+                fontSize: 17,
+                fontWeight: '800',
+                textShadowColor: 'rgba(0,0,0,0.5)',
+                textShadowOffset: { width: 0, height: 1 },
+                textShadowRadius: 4,
+              }}
+            >
+              {school?.name ?? 'Scanner'}
+            </Text>
+            <View
+              style={{
+                backgroundColor: 'rgba(0,0,0,0.35)',
+                borderRadius: 12,
+                padding: 4,
+              }}
+            >
+              <NotificationBell />
+            </View>
           </View>
-        </View>
 
-        {/* Viewfinder */}
-        <View
-          style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
-        >
-          {scanState !== 'result' && (
-            <>
-              <Text
-                style={{
-                  color: 'rgba(255,255,255,0.9)',
-                  fontSize: 15,
-                  fontWeight: '600',
-                  marginBottom: 32,
-                  textShadowColor: 'rgba(0,0,0,0.5)',
-                  textShadowOffset: { width: 0, height: 1 },
-                  textShadowRadius: 4,
-                }}
-              >
-                {i18n('scanner_point_qr')}
-              </Text>
-
-              <View style={{ position: 'relative', width: 240, height: 240 }}>
-                {/* Dim border */}
-                <View
+          {/* Viewfinder */}
+          <View
+            style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
+          >
+            {scanState !== 'result' && (
+              <>
+                <Text
                   style={{
-                    position: 'absolute',
-                    inset: 0,
-                    borderRadius: 20,
-                    borderWidth: 1,
-                    borderColor: 'rgba(255,255,255,0.2)',
+                    color: 'rgba(255,255,255,0.9)',
+                    fontSize: 15,
+                    fontWeight: '600',
+                    marginBottom: 32,
+                    textShadowColor: 'rgba(0,0,0,0.5)',
+                    textShadowOffset: { width: 0, height: 1 },
+                    textShadowRadius: 4,
                   }}
-                />
+                >
+                  {i18n('scanner_point_qr')}
+                </Text>
 
-                {/* Corners */}
-                <Corner position="top-left" active={scanState === 'idle'} />
-                <Corner position="top-right" active={scanState === 'idle'} />
-                <Corner position="bottom-left" active={scanState === 'idle'} />
-                <Corner position="bottom-right" active={scanState === 'idle'} />
-
-                {/* Beam (idle only) */}
-                {scanState === 'idle' && <ScanBeam />}
-
-                {/* Scanning spinner */}
-                {scanState === 'scanning' && (
-                  <Animated.View
-                    entering={FadeIn.duration(200)}
-                    exiting={FadeOut.duration(150)}
+                <View style={{ position: 'relative', width: 240, height: 240 }}>
+                  {/* Dim border */}
+                  <View
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      borderRadius: 18,
-                      backgroundColor: 'rgba(0,0,0,0.5)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 10,
+                      borderRadius: 20,
+                      borderWidth: 1,
+                      borderColor: 'rgba(255,255,255,0.2)',
                     }}
-                  >
-                    <ActivityIndicator color="#fff" size="large" />
-                    <Text
-                      style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}
-                    >
-                      {i18n('scanner_validating')}
-                    </Text>
-                  </Animated.View>
-                )}
-              </View>
+                  />
 
-              <Text
-                style={{
-                  color: 'rgba(255,255,255,0.6)',
-                  fontSize: 13,
-                  marginTop: 28,
-                  textAlign: 'center',
-                  paddingHorizontal: 40,
-                }}
-              >
-                {i18n('scanner_auto')}
-              </Text>
-            </>
-          )}
-        </View>
-      </CameraView>
+                  {/* Corners */}
+                  <Corner position="top-left" active={scanState === 'idle'} />
+                  <Corner position="top-right" active={scanState === 'idle'} />
+                  <Corner
+                    position="bottom-left"
+                    active={scanState === 'idle'}
+                  />
+                  <Corner
+                    position="bottom-right"
+                    active={scanState === 'idle'}
+                  />
+
+                  {/* Beam (idle only) */}
+                  {scanState === 'idle' && <ScanBeam />}
+
+                  {/* Scanning spinner */}
+                  {scanState === 'scanning' && (
+                    <Animated.View
+                      entering={FadeIn.duration(200)}
+                      exiting={FadeOut.duration(150)}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: 18,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 10,
+                      }}
+                    >
+                      <ActivityIndicator color="#fff" size="large" />
+                      <Text
+                        style={{
+                          color: '#fff',
+                          fontSize: 13,
+                          fontWeight: '600',
+                        }}
+                      >
+                        {i18n('scanner_validating')}
+                      </Text>
+                    </Animated.View>
+                  )}
+                </View>
+
+                <Text
+                  style={{
+                    color: 'rgba(255,255,255,0.6)',
+                    fontSize: 13,
+                    marginTop: 28,
+                    textAlign: 'center',
+                    paddingHorizontal: 40,
+                  }}
+                >
+                  {i18n('scanner_auto')}
+                </Text>
+                {scanState === 'idle' && (
+                  <View style={{ marginTop: 20 }}>{demoSimulator}</View>
+                )}
+              </>
+            )}
+          </View>
+        </CameraView>
+      ) : (
+        <View style={{ flex: 1 }} />
+      )}
 
       {/* Result sheet — overlaid above camera, no Modal */}
       {scanState === 'result' && result && (

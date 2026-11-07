@@ -8,6 +8,10 @@ import type {
   UpdateSchoolPayload,
   DashboardStats,
 } from '../types';
+import { i18n } from '@/i18n';
+import { isDemoQrPayload } from '@/features/demo/domain/qrScenarios';
+import { demoAware } from '@/features/demo/services/demoAware';
+import { demoSchoolService } from '@/features/demo/services/school.demo';
 
 async function signChildPhotos<T>(payload: T): Promise<T> {
   return signStorageFields(payload, 'children-images', ['photo_url']);
@@ -22,7 +26,7 @@ const CHILD_SELECT =
 const VALIDATION_SELECT =
   'id, school_id, child_id, guardian_id, qr_code_id, scanner_user_id, status, refusal_reason, scanned_at, meta, created_at, child:children(id, first_name, last_name, photo_url, class_name, parent:user_profiles!children_parent_id_user_profiles_fkey(first_name, last_name)), guardian:guardians(id, first_name, last_name, phone, photo_url, relationship, identity_status)';
 
-export const schoolService = {
+const supabaseSchoolService = {
   async getSchoolByAdminUserId(userId: string): Promise<SchoolProfile | null> {
     const { data, error } = await supabase
       .from('schools')
@@ -148,6 +152,12 @@ export const schoolService = {
     schoolId: string,
     scannerUserId: string
   ): Promise<QrScanResult> {
+    if (isDemoQrPayload(qrToken)) {
+      return {
+        success: false,
+        refusal_reason: i18n.t('demo:qr_refused_demo_in_production'),
+      };
+    }
     const { data, error } = await supabase.rpc(
       'validate_qr_and_create_pickup',
       {
@@ -160,3 +170,10 @@ export const schoolService = {
     return signChildPhotos(data as QrScanResult);
   },
 };
+
+export type SchoolService = typeof supabaseSchoolService;
+
+export const schoolService: SchoolService = demoAware(
+  supabaseSchoolService,
+  demoSchoolService
+);

@@ -101,3 +101,17 @@ export interface UpdateGuardianPayload {
   relationship: string;
   priority?: number;
 }
+
+export interface InviteGuardianParams {
+  p_child_id: string;
+  p_first_name: string;
+  p_last_name: string;
+  p_phone: string | null;
+  p_relationship: string;
+  p_access_code_hash: string | null;
+  p_email: string;
+}
+
+export interface RpcOutcome {
+  error: { message: string; code?: string } | null;
+}

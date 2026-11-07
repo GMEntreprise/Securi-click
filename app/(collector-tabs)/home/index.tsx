@@ -209,7 +209,7 @@ export default function CollectorHomeScreen() {
     identityBadge.none;
   const recentLogs = (logs ?? []).slice(0, 5);
 
-  if (guardiansError || logsError) {
+  if ((guardiansError && !guardians) || (logsError && !logs)) {
     return (
       <QueryError
         onRetry={() => {

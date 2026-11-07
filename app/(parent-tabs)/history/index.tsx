@@ -152,7 +152,8 @@ export default function HistoryScreen() {
     []
   );
 
-  if (isError) return <QueryError onRetry={refetch} />;
+  if (isError && flatItems.length === 0)
+    return <QueryError onRetry={refetch} />;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.bg }}>

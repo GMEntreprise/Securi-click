@@ -65,7 +65,7 @@ export default function StudentsScreen() {
 
   const keyExtractor = useCallback((item: SchoolChild) => item.id, []);
 
-  if (isError) return <QueryError onRetry={refetch} />;
+  if (isError && !students) return <QueryError onRetry={refetch} />;
 
   if (isLoading && !students) {
     return (

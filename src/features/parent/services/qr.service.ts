@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase/client';
 import { signStorageFields } from '@/shared/storage';
+import { demoAware } from '@/features/demo/services/demoAware';
+import { demoQrService } from '@/features/demo/services/qr.demo';
 
 async function signChildPhotos<T>(payload: T): Promise<T> {
   return signStorageFields(payload, 'children-images', ['photo_url']);
@@ -48,7 +50,7 @@ const SCAN_SELECT = `
   guardian:guardians!pickup_logs_guardian_id_fkey ( first_name, last_name, relationship )
 `.trim();
 
-export const qrService = {
+const supabaseQrService = {
   async getActiveQrCodes(parentId: string): Promise<QrCode[]> {
     const { data, error } = await supabase
       .from('qr_codes')
@@ -137,3 +139,7 @@ export const qrService = {
     return signChildPhotos((data ?? []) as unknown as RecentScan[]);
   },
 };
+
+export type QrService = typeof supabaseQrService;
+
+export const qrService: QrService = demoAware(supabaseQrService, demoQrService);

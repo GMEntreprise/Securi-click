@@ -5,6 +5,7 @@ import frCollector from './locales/fr/collector.json';
 import frSchool from './locales/fr/school.json';
 import frNotifications from './locales/fr/notifications.json';
 import frErrors from './locales/fr/errors.json';
+import frDemo from './locales/fr/demo.json';
 
 import enCommon from './locales/en/common.json';
 import enAuth from './locales/en/auth.json';
@@ -13,6 +14,7 @@ import enCollector from './locales/en/collector.json';
 import enSchool from './locales/en/school.json';
 import enNotifications from './locales/en/notifications.json';
 import enErrors from './locales/en/errors.json';
+import enDemo from './locales/en/demo.json';
 
 export const resources = {
   fr: {
@@ -23,6 +25,7 @@ export const resources = {
     school: frSchool,
     notifications: frNotifications,
     errors: frErrors,
+    demo: frDemo,
   },
   en: {
     common: enCommon,
@@ -32,6 +35,7 @@ export const resources = {
     school: enSchool,
     notifications: enNotifications,
     errors: enErrors,
+    demo: enDemo,
   },
 } as const;
 

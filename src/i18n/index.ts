@@ -16,6 +16,7 @@ i18n.use(initReactI18next).init({
     'school',
     'notifications',
     'errors',
+    'demo',
   ],
   interpolation: { escapeValue: false },
 });

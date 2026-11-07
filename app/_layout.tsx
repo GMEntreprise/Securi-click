@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { Modal } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useRouter, useSegments, Slot } from 'expo-router';
+import { useRouter, useSegments, Slot, type Href } from 'expo-router';
 import * as Linking from 'expo-linking';
 import {
   useAuthStore,
   useIsAuthenticated,
   useIsRestoring,
-  useSession,
+  useUserRole,
 } from '@/features/auth/store/auth.store';
+import { useDemoRole } from '@/features/demo/store/demo.store';
+import { DemoChrome } from '@/features/demo/components/DemoChrome';
+import { resolveGuardTarget } from '@/navigation/resolveGuardTarget';
+import { startConnectivitySync } from '@/lib/offline/connectivity';
+import { startQueryPersistence } from '@/lib/offline/queryPersistence';
 import { useCollectorSessionStore } from '@/features/collector/stores/collectorSession.store';
 import { supabase } from '@/lib/supabase/client';
 import { mapSupabaseSessionToAuthSession } from '@/features/auth/utils/mapAuthSession';
@@ -313,114 +318,64 @@ function AuthStateSync() {
 }
 
 // ─── NavigationGuard ──────────────────────────────────────────────────────────
-// Single source of truth for routing.
-// lastRedirect prevents redirect loops: we only redirect if the target differs
-// from what we already navigated to. Resets when auth state changes.
+// Single source of truth for routing. The decision itself lives in
+// resolveGuardTarget; lastRedirect prevents redirect loops.
 function NavigationGuard() {
   const router = useRouter();
   const segments = useSegments();
   const isAuthenticated = useIsAuthenticated();
   const isRestoring = useIsRestoring();
+  const role = useUserRole();
+  const demoRole = useDemoRole();
   const pinVerified = useCollectorSessionStore(s => s.isVerified);
   const pinRestoring = useCollectorSessionStore(s => s.isRestoring);
 
   const lastRedirectRef = useRef<string | null>(null);
-  const prevAuthRef = useRef(isAuthenticated);
+  const prevKeyRef = useRef(`${isAuthenticated}:${demoRole}`);
 
-  // Reset lastRedirect when auth state flips — new session needs fresh routing.
-  if (prevAuthRef.current !== isAuthenticated) {
+  const sessionKey = `${isAuthenticated}:${demoRole}`;
+  if (prevKeyRef.current !== sessionKey) {
     lastRedirectRef.current = null;
-    prevAuthRef.current = isAuthenticated;
+    prevKeyRef.current = sessionKey;
   }
 
   useEffect(() => {
-    if (__DEV__)
-      console.log(
-        '[Guard] effect | isRestoring=',
-        isRestoring,
-        'pinRestoring=',
-        pinRestoring,
-        'deepLink=',
-        deepLinkProcessing,
-        'auth=',
-        isAuthenticated,
-        'seg=',
-        segments[0],
-        segments[1]
-      );
-
     if (isRestoring || pinRestoring || deepLinkProcessing) return;
 
     const seg = segments[0] as string | undefined;
-    if (!seg) {
-      if (__DEV__) console.log('[Guard] no seg, skip');
-      return;
-    }
+    if (!seg) return;
 
-    const inAuth = seg === '(auth)';
-    const sub1 = segments[1] as string | undefined;
-    if (inAuth && (sub1 === 'callback' || sub1 === 'reset-password')) return;
-
-    const inPinScreen = inAuth && sub1 === 'collector-pin';
-    const role = useAuthStore.getState().session?.user.role;
-
-    let target: string | null = null;
-
-    if (!isAuthenticated) {
-      if (!inAuth) target = '/(auth)/login';
-    } else if (role === 'collector') {
-      if (!pinVerified && !inPinScreen) {
-        target = '/(auth)/collector-pin';
-      } else if (pinVerified && (inAuth || seg !== '(collector-tabs)')) {
-        target = '/(collector-tabs)/home';
-      }
-    } else if (role === 'school_admin' || role === 'staff') {
-      if (
-        inAuth ||
-        seg === '(app)' ||
-        seg === '(parent-tabs)' ||
-        seg === '(collector-tabs)'
-      ) {
-        target = '/(school-tabs)/home';
-      }
-    } else {
-      // parent / default
-      if (
-        inAuth ||
-        seg === '(app)' ||
-        seg === '(collector-tabs)' ||
-        seg === '(school-tabs)'
-      ) {
-        target = '/(parent-tabs)';
-      }
-    }
+    const target = resolveGuardTarget({
+      isAuthenticated,
+      role,
+      pinVerified,
+      demoRole,
+      seg,
+      sub1: segments[1] as string | undefined,
+    });
 
     if (__DEV__)
       console.log(
         '[Guard] role=',
         role,
-        'target=',
-        target,
-        'lastRedirect=',
-        lastRedirectRef.current,
+        'demo=',
+        demoRole,
         'seg=',
-        seg
+        seg,
+        'target=',
+        target
       );
 
-    if (!target) return;
-    if (target === lastRedirectRef.current) {
-      if (__DEV__) console.log('[Guard] skipped — same as lastRedirect');
-      return;
-    }
-
-    if (__DEV__) console.log('[Guard] → router.replace', target);
+    if (!target || target === lastRedirectRef.current) return;
     lastRedirectRef.current = target;
-    router.replace(target as any);
+    router.replace(target as Href);
   }, [
     isAuthenticated,
     isRestoring,
     pinRestoring,
     pinVerified,
+    role,
+    demoRole,
     segments,
     router,
   ]);
@@ -430,8 +385,7 @@ function NavigationGuard() {
 
 // Registers push token + wires foreground/response listeners after login
 function NotificationBootstrap() {
-  const session = useSession();
-  const userId = session?.user.id;
+  const userId = useAuthStore(s => s.session?.user.id);
   const router = useRouter();
   useUnreadCountQuery();
 
@@ -507,6 +461,11 @@ export default function RootLayout() {
   useOTAUpdate();
 
   useEffect(() => {
+    startConnectivitySync();
+    return startQueryPersistence();
+  }, []);
+
+  useEffect(() => {
     initLanguage();
     initCollectorSession();
     initializeLocal();
@@ -530,8 +489,10 @@ export default function RootLayout() {
             <NavigationGuard />
             <NotificationBootstrap />
             <NotificationCenterModal />
+            <DemoChrome>
+              <Slot />
+            </DemoChrome>
             <NetworkBanner />
-            <Slot />
           </ToastProviderWithViewport>
         </ThemeProvider>
       </QueryClientProvider>

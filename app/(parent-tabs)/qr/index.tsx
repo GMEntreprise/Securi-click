@@ -29,12 +29,13 @@ import {
   useGenerateQrCode,
 } from '@/features/parent/hooks/useQr';
 import { useTranslation } from 'react-i18next';
+import { isDemoActive } from '@/features/demo/store/demo.store';
 
 export default function QRScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t: i18n } = useTranslation('parent');
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(isDemoActive);
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [showChildPicker, setShowChildPicker] = useState(false);
 

@@ -15,7 +15,8 @@
     "directory:audit:france": "SYNC_SCOPE=france bun scripts/audit-education-directory.ts",
     "directory:sync:paris": "SYNC_SCOPE=paris bun scripts/import-schools.ts",
     "directory:sync:france": "SYNC_SCOPE=france bun scripts/import-schools.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "demo:qr": "bun scripts/generate-demo-qr.ts"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -33,6 +34,7 @@
     "expo-blur": "~58.0.5",
     "expo-camera": "~58.0.14",
     "expo-constants": "~58.0.15",
+    "expo-crypto": "~58.0.7",
     "expo-dev-client": "~58.0.18",
     "expo-device": "~58.0.5",
     "expo-file-system": "~58.0.13",
@@ -83,6 +85,7 @@
   "devDependencies": {
     "@testing-library/react-native": "^13.3.3",
     "@types/node": "^26.6.6",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "~19.3.0",
     "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^8.69.0",
@@ -97,7 +100,10 @@
     "jest": "~30.5.2",
     "jest-expo": "~58.0.14",
     "lint-staged": "^17.0.4",
+    "pdf-lib": "1.17.1",
     "prettier": "^3.8.3",
+    "qrcode": "^1.5.4",
+    "react-test-renderer": "19.3.0",
     "reacticx": "^0.1.10",
     "typescript": "~6.0.3"
   },

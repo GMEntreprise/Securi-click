@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase/client';
 import { signStorageFields } from '@/shared/storage';
+import { demoAware } from '@/features/demo/services/demoAware';
+import { demoHistoryService } from '@/features/demo/services/history.demo';
 
 async function signChildPhotos<T>(payload: T): Promise<T> {
   return signStorageFields(payload, 'children-images', ['photo_url']);
@@ -101,7 +103,7 @@ const HISTORY_DETAIL_SELECT = `
   school:schools!pickup_history_school_id_fkey(name, address, city)
 `.trim();
 
-export const historyService = {
+const supabaseHistoryService = {
   async fetchPage(
     parentId: string,
     filters: HistoryFilters,
@@ -228,3 +230,10 @@ export const historyService = {
     return signChildPhotos((data ?? []) as unknown as HistoryEntry[]);
   },
 };
+
+export type HistoryService = typeof supabaseHistoryService;
+
+export const historyService: HistoryService = demoAware(
+  supabaseHistoryService,
+  demoHistoryService
+);
