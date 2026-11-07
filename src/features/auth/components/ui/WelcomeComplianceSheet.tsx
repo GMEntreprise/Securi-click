@@ -9,9 +9,11 @@ import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from '@/stores/language.store';
 import type { SupportedLanguage } from '@/i18n/resources';
 import {
-  ComplianceIcon,
-  type ComplianceIconName,
-} from '@/shared/ui/icons/ComplianceIcon';
+  AppIcon,
+  type AppIconName,
+  type AppIconTone,
+} from '@/shared/ui/icons/AppIcon';
+import { SettingIcon } from '@/features/settings/components/SettingIcon';
 
 interface WelcomeComplianceSheetProps {
   visible: boolean;
@@ -85,18 +87,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
               paddingBottom: 4,
             }}
           >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 13,
-                backgroundColor: theme.primaryBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <ComplianceIcon name="shield" size={23} color={theme.primary} />
-            </View>
+            <AppIcon name="shield" tone="primary" size={44} />
             <View style={{ flex: 1 }}>
               <Text
                 style={{ fontSize: 18, fontWeight: '800', color: theme.text }}
@@ -133,40 +124,35 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
             >
               <InfoRow
                 icon="lock"
-                iconColor={theme.primary}
-                iconBg={theme.primaryBg}
+                tone="primary"
                 title={t('welcome_data_title')}
                 body={t('welcome_data_body')}
               />
               <Separator color={theme.separator} />
               <InfoRow
                 icon="family"
-                iconColor={theme.accent}
-                iconBg={theme.accentBg}
+                tone="accent"
                 title={t('welcome_children_title')}
                 body={t('welcome_children_body')}
               />
               <Separator color={theme.separator} />
               <InfoRow
                 icon="bell"
-                iconColor={theme.green}
-                iconBg={theme.greenBg}
+                tone="green"
                 title={t('welcome_notif_title')}
                 body={t('welcome_notif_body')}
               />
               <Separator color={theme.separator} />
               <InfoRow
                 icon="trash"
-                iconColor={theme.red}
-                iconBg={theme.redBg}
+                tone="red"
                 title={t('welcome_delete_title')}
                 body={t('welcome_delete_body')}
               />
               <Separator color={theme.separator} />
               <InfoRow
                 icon="document"
-                iconColor={theme.textMuted}
-                iconBg={theme.iconBg}
+                tone="neutral"
                 title={t('welcome_rgpd_title')}
                 body={t('welcome_rgpd_body')}
               />
@@ -197,22 +183,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                   borderBottomColor: theme.separator,
                 }}
               >
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: theme.iconBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <ComplianceIcon
-                    name="lock"
-                    size={17}
-                    color={theme.textMuted}
-                  />
-                </View>
+                <SettingIcon id="privacy" size={34} />
                 <Text
                   style={{
                     flex: 1,
@@ -242,22 +213,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                   gap: 12,
                 }}
               >
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: theme.iconBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <ComplianceIcon
-                    name="document"
-                    size={17}
-                    color={theme.textMuted}
-                  />
-                </View>
+                <SettingIcon id="legal" size={34} />
                 <Text
                   style={{
                     flex: 1,
@@ -359,45 +315,35 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
 
 function InfoRow({
   icon,
-  iconColor,
-  iconBg,
+  tone,
   title,
   body,
 }: {
-  icon: ComplianceIconName;
-  iconColor: string;
-  iconBg: string;
+  icon: AppIconName;
+  tone: AppIconTone;
   title: string;
   body: string;
 }) {
+  const theme = useTheme();
   return (
     <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
-      <View
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 11,
-          backgroundColor: iconBg,
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-          marginTop: 1,
-        }}
-      >
-        <ComplianceIcon name={icon} size={19} color={iconColor} />
+      <View style={{ flexShrink: 0, marginTop: 1 }}>
+        <AppIcon name={icon} tone={tone} size={38} />
       </View>
       <View style={{ flex: 1 }}>
         <Text
           style={{
             fontSize: 13,
             fontWeight: '700',
-            color: '#444',
+            color: theme.text,
             marginBottom: 2,
           }}
         >
           {title}
         </Text>
-        <Text style={{ fontSize: 12, color: '#888', lineHeight: 17 }}>
+        <Text
+          style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 17 }}
+        >
           {body}
         </Text>
       </View>
