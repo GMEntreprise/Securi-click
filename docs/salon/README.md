@@ -3,6 +3,31 @@
 Faire découvrir l’application en moins d’une minute, sans compte, sans réseau,
 sans jamais toucher aux données réelles.
 
+## En bref : le jour du salon
+
+1. **La veille** : installer la dernière version sur deux téléphones (un
+   iPhone, un Android). Imprimer à 100 % `planche-5-qr-scenarios-A4.pdf` et les
+   deux `chevalet-*-A4.pdf`.
+2. **Avant l’ouverture** :
+   - Téléphone 1 → **Essayer sans compte → Établissement → Scanner**, autoriser
+     la caméra. C’est la « tablette du stand ».
+   - Scanner les 5 QR de la planche : 3 VALIDÉS, 2 REFUSÉS. Si c’est bon, tout
+     est prêt.
+   - Scanner un chevalet avec l’appareil photo de chaque téléphone : la démo doit
+     s’ouvrir sur le bon écran.
+3. **Avec un visiteur** :
+   - il scanne un chevalet avec **son** téléphone : l’application s’ouvre, ou
+     le store s’affiche pour l’installer ;
+   - il ajoute une personne autorisée (rôle Parent) puis génère un QR code ;
+   - il le présente au téléphone du stand, qui le valide comme en vrai. Un
+     second scan du même QR est refusé (usage unique).
+   - Les 5 QR de la planche servent à montrer vite les cas validés et refusés.
+4. **Entre deux visiteurs** : bandeau « Démo » en haut → **Recommencer la
+   démonstration**.
+
+Rien n’est envoyé ni enregistré : toutes les personnes et tous les enfants sont
+fictifs, et la démo fonctionne même sans réseau.
+
 ## 1. Ce que voit le visiteur
 
 | Entrée                                    | Ce qui s’ouvre                                         |
@@ -119,33 +144,44 @@ Rien n’est à configurer, aucun compte à communiquer.
 ## 7. Liens HTTPS des chevalets
 
 Les chevalets pointent vers `https://securi-click.com/demo/etablissement` et
-`https://securi-click.com/demo/parent/collecteurs`. **Au moment de cette
-livraison, ces adresses renvoient 404** : il faut déposer sur le serveur le
-contenu de `docs/salon/site/` :
+`https://securi-click.com/demo/parent/collecteurs`. Ce que voit le visiteur
+après le scan, avec l’appareil photo de son téléphone :
 
-- `demo/index.html` + `demo/.htaccess` : page de transition (application non
-  installée) avec liens App Store / Google Play et bouton d’ouverture ;
+| Téléphone  | Application installée                 | Application absente                                                                 |
+| ---------- | ------------------------------------- | ----------------------------------------------------------------------------------- |
+| iPhone     | Sécuri’Click s’ouvre sur le bon écran | [App Store](https://apps.apple.com/fr/app/securiclick/id6774208284)                 |
+| Android    | Sécuri’Click s’ouvre sur le bon écran | [Google Play](https://play.google.com/store/apps/details?id=com.shavod.securiclick) |
+| Ordinateur | —                                     | Page avec les deux boutons de téléchargement                                        |
+
+**Au moment de cette livraison, ces adresses renvoient 404** : il faut déposer
+sur le serveur le contenu de `docs/salon/site/` :
+
+- `demo/index.html` + `demo/.htaccess` : page de transition. Elle reconnaît le
+  téléphone : sur Android, elle ouvre l’application si elle est installée,
+  sinon Google Play ; sur iPhone, elle renvoie vers l’App Store (si
+  l’application est installée, iOS l’a déjà ouverte avant d’afficher la page) ;
 - `.well-known/apple-app-site-association` : ouvre directement l’application sur
   iPhone (Team ID `N9M36K8YNL`) ;
 - `.well-known/assetlinks.json` : remplacer `EMPREINTE_SHA256_DU_CERTIFICAT_DE_SIGNATURE`
   par l’empreinte SHA-256 du certificat de signature Android
   (`bunx eas credentials -p android`, ou Play Console → Intégrité de
-  l’application). Sans cette valeur, Android ouvre la page web au lieu de
-  l’application.
+  l’application). Avec cette valeur, Android ouvre l’application sans même
+  afficher la page ; sans elle, la page fait le relais (un instant de plus).
 
 Vérifier après dépôt :
 
 ```bash
 curl -I https://securi-click.com/.well-known/apple-app-site-association   # 200, application/json
+curl -I https://securi-click.com/.well-known/assetlinks.json              # 200, application/json
 curl -I https://securi-click.com/demo/etablissement                       # 200
 ```
 
 Pour imprimer des chevalets vers une autre adresse :
 `DEMO_BASE_URL=https://exemple.fr/demo bun run demo:qr`.
 
-Les liens de l’App Store et de Google Play ne fonctionnent qu’une fois
-l’application publiée sur ces stores (la piste Android est actuellement
-`internal`).
+Les liens des stores ne fonctionnent que si la version publiée contient le mode
+démo (§ 8) et, sur Android, que si l’application est sur une piste publique
+(elle est actuellement en piste `internal`).
 
 ## 8. Livraison : une nouvelle build est obligatoire
 
