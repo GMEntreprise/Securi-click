@@ -1,0 +1,28 @@
+import React from 'react';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { useTheme } from '@/theme';
+
+interface ParentIconProps {
+  size?: number;
+}
+
+export function ParentIcon({ size = 60 }: ParentIconProps) {
+  const theme = useTheme();
+  const adult = theme.isDark ? theme.text : theme.primary;
+
+  return (
+    <Svg width={size} height={size} viewBox="0 0 64 64" accessible={false}>
+      <Rect width="64" height="64" rx="20" fill={theme.primaryBg} />
+      <Circle cx="24" cy="17" r="5" fill={adult} />
+      <Path
+        d="M19 25C16.5 25 15 26.8 14.5 29L12 38A2 2 0 0 0 15.8 39L18 31V49A2.5 2.5 0 0 0 23 49V40H25V49A2.5 2.5 0 0 0 30 49V31L33.5 36A2 2 0 0 0 36.8 33.7L32.3 27.3C31.2 25.8 29.8 25 28 25Z"
+        fill={adult}
+      />
+      <Circle cx="43" cy="28" r="3.8" fill={theme.accent} />
+      <Path
+        d="M40 34C38.5 34 37.5 34.7 36.6 35.6L34 33.5A1.8 1.8 0 0 0 31.7 36.3L36 39.8A1.8 1.8 0 0 0 38.5 39.6L39 39V49.5A2 2 0 0 0 43 49.5V44H44V49.5A2 2 0 0 0 48 49.5V39L49.5 42A1.8 1.8 0 0 0 52.7 40.4L50.7 36.5C49.9 34.9 48.7 34 47 34Z"
+        fill={theme.accent}
+      />
+    </Svg>
+  );
+}

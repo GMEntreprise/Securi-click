@@ -28,6 +28,7 @@ export const NotificationItem = memo(({ item, onPress }: Props) => {
       style={{ paddingHorizontal: 16, paddingVertical: 4 }}
     >
       <Pressable
+        cssInterop={false}
         onPress={handlePress}
         style={({ pressed }) => ({
           flexDirection: 'row',

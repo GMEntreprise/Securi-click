@@ -3,40 +3,40 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter, type Href } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { useTheme, type AppTheme } from '@/theme';
+import { ParentIcon } from '@/shared/ui/icons/ParentIcon';
+import { CollectorIcon } from '@/shared/ui/icons/CollectorIcon';
+import { SchoolIcon } from '@/shared/ui/icons/SchoolIcon';
+import { ROLE_ICON_SIZE, type RoleIconName } from '@/constants/roleIcons';
 import { leaveDemo } from '@/features/auth/store/auth.store';
 import { DEMO_ROLE_HOMES } from '../domain/resolveDemoEntry';
 import type { DemoRole } from '../domain/types';
 import { isDemoActive, useDemoStore } from '../store/demo.store';
 import { useHideSplash } from './useHideSplash';
 
-type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
-
-const ROLES: { role: DemoRole; icon: IconName }[] = [
-  { role: 'parent', icon: 'account-group' },
-  { role: 'collector', icon: 'shield-account' },
+const ROLES: { role: DemoRole; icon: RoleIconName }[] = [
+  { role: 'parent', icon: 'parent' },
+  { role: 'collector', icon: 'collector' },
   { role: 'establishment', icon: 'school' },
 ];
 
-function roleTint(role: DemoRole, theme: AppTheme) {
+function roleTint(role: DemoRole, theme: AppTheme): string {
   switch (role) {
     case 'parent':
-      return { color: theme.amber, background: theme.amberBg };
+      return theme.amber;
     case 'collector':
-      return { color: theme.green, background: theme.greenBg };
+      return theme.green;
     case 'establishment':
-      return theme.isDark
-        ? { color: theme.accent, background: theme.accentBg }
-        : { color: theme.primary, background: theme.primaryBg };
+      return theme.isDark ? theme.accent : theme.primary;
   }
 }
 
 interface RoleCardProps {
   role: DemoRole;
-  icon: IconName;
+  icon: RoleIconName;
   index: number;
   onOpen: (role: DemoRole) => void;
 }
@@ -45,6 +45,12 @@ function RoleCard({ role, icon, index, onOpen }: RoleCardProps) {
   const theme = useTheme();
   const { t } = useTranslation('demo');
   const tint = roleTint(role, theme);
+  const Icon =
+    icon === 'parent'
+      ? ParentIcon
+      : icon === 'collector'
+        ? CollectorIcon
+        : SchoolIcon;
 
   return (
     <Animated.View entering={FadeInDown.delay(120 + index * 70).duration(380)}>
@@ -62,7 +68,7 @@ function RoleCard({ role, icon, index, onOpen }: RoleCardProps) {
           borderRadius: 22,
           backgroundColor: theme.card,
           borderWidth: 1.5,
-          borderColor: pressed ? tint.color : theme.cardBorder,
+          borderColor: pressed ? tint : theme.cardBorder,
           transform: [{ scale: pressed ? 0.985 : 1 }],
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
@@ -71,18 +77,7 @@ function RoleCard({ role, icon, index, onOpen }: RoleCardProps) {
           elevation: 1,
         })}
       >
-        <View
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: 18,
-            backgroundColor: tint.background,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <MaterialCommunityIcons name={icon} size={28} color={tint.color} />
-        </View>
+        <Icon size={ROLE_ICON_SIZE} />
 
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={{ fontSize: 17, fontWeight: '800', color: theme.text }}>

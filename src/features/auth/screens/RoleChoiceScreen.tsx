@@ -1,8 +1,13 @@
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useTheme } from '@/theme';
+import { ParentIcon } from '@/shared/ui/icons/ParentIcon';
+import { CollectorIcon } from '@/shared/ui/icons/CollectorIcon';
+import { SchoolIcon } from '@/shared/ui/icons/SchoolIcon';
+import { DemoIcon } from '@/shared/ui/icons/DemoIcon';
+import { ROLE_ICON_SIZE, type RoleIconName } from '@/constants/roleIcons';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { FontAwesome6, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { memo, useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from '@/stores/language.store';
@@ -36,7 +41,7 @@ interface RoleItem {
   id: 'parent' | 'school' | 'collector';
   title: string;
   description: string;
-  icon: (color: string) => React.ReactNode;
+  icon: RoleIconName;
   route: string;
 }
 
@@ -46,25 +51,21 @@ function buildRoles(t: (key: string) => string): RoleItem[] {
       id: 'parent',
       title: t('role_parent_title'),
       description: t('role_parent_desc'),
-      icon: color => <FontAwesome6 name="user-group" size={22} color={color} />,
+      icon: 'parent',
       route: '/(auth)/parent',
     },
     {
       id: 'collector',
       title: t('role_collector_title'),
       description: t('role_collector_desc'),
-      icon: color => (
-        <MaterialCommunityIcons name="shield-check" size={24} color={color} />
-      ),
+      icon: 'collector',
       route: '/(auth)/collector-pin',
     },
     {
       id: 'school',
       title: t('role_school_title'),
       description: t('role_school_desc'),
-      icon: color => (
-        <MaterialCommunityIcons name="school" size={24} color={color} />
-      ),
+      icon: 'school',
       route: '/(auth)/school',
     },
   ];
@@ -95,7 +96,12 @@ const RoleCard: React.FC<RoleCardProps> = memo(
     }, [scale]);
 
     const cardBorder = selected ? t.primary : t.cardBorder;
-    const iconBg = selected ? t.primaryBg : t.iconBg;
+    const Icon =
+      item.id === 'parent'
+        ? ParentIcon
+        : item.id === 'collector'
+          ? CollectorIcon
+          : SchoolIcon;
 
     return (
       <Animated.View
@@ -130,18 +136,8 @@ const RoleCard: React.FC<RoleCardProps> = memo(
               elevation: selected ? 6 : 1,
             }}
           >
-            <View
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 18,
-                backgroundColor: iconBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: 14,
-              }}
-            >
-              {item.icon(t.primary)}
+            <View style={{ marginRight: 14 }}>
+              <Icon size={ROLE_ICON_SIZE} />
             </View>
             <View style={{ flex: 1 }}>
               <Text
@@ -303,22 +299,7 @@ export const RoleChoiceScreen: React.FC = memo(() => {
               elevation: 1,
             })}
           >
-            <View
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 18,
-                backgroundColor: t.accentBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <MaterialCommunityIcons
-                name="play-circle-outline"
-                size={28}
-                color={t.accent}
-              />
-            </View>
+            <DemoIcon size={ROLE_ICON_SIZE} />
             <View style={{ flex: 1, gap: 4 }}>
               <Text style={{ fontSize: 17, fontWeight: '800', color: t.text }}>
                 {i18nDemo('entry_title')}
