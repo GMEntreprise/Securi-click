@@ -187,7 +187,7 @@ const SchoolRegisterForm: React.FC<{
         postal_code: '',
         manager_first_name: '',
         manager_last_name: '',
-        manager_function: 'Directeur / Directrice',
+        manager_function: i18n(MANAGER_FUNCTION_KEYS[0]),
         email: defaultEmail,
         phone: '',
         address: '',

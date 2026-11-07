@@ -25,6 +25,8 @@ import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/theme';
+import { AppIcon } from '@/shared/ui/icons/AppIcon';
+import { CollectorIcon } from '@/shared/ui/icons/CollectorIcon';
 import { useTranslation } from 'react-i18next';
 import {
   useCollectorPinLogin,
@@ -183,18 +185,8 @@ export default memo(function CollectorPinScreen() {
               </TouchableOpacity>
 
               {/* Icône centrée */}
-              <View
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 20,
-                  backgroundColor: t.accentBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 20,
-                }}
-              >
-                <Ionicons name="shield-checkmark" size={28} color={t.accent} />
+              <View style={{ marginBottom: 20 }}>
+                <CollectorIcon size={72} />
               </View>
 
               {/* Titre + sous-titre centrés */}
@@ -236,19 +228,14 @@ export default memo(function CollectorPinScreen() {
               entering={FadeInDown.delay(60).duration(300)}
               style={{
                 flexDirection: 'row',
-                alignItems: 'flex-start',
-                gap: 8,
+                alignItems: 'center',
+                gap: 10,
                 backgroundColor: t.amberBg,
                 borderRadius: 12,
                 padding: 12,
               }}
             >
-              <Ionicons
-                name="shield-outline"
-                size={14}
-                color={t.amber}
-                style={{ marginTop: 1 }}
-              />
+              <AppIcon name="shield" tone="amber" size={30} />
               <Text
                 style={{
                   flex: 1,

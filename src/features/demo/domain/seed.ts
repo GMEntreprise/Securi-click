@@ -414,7 +414,7 @@ export function createDemoWorld(now: Date): DemoWorld {
       postal_code: '00000',
       manager_first_name: 'Claire',
       manager_last_name: 'Fontaine',
-      manager_function: 'Directrice',
+      manager_function: i18n.t('auth:manager_director'),
       admin_user_id: DEMO_USER_IDS.establishment,
       logo_url: null,
       opening_hours: null,

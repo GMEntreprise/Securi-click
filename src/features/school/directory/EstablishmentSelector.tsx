@@ -1,6 +1,7 @@
 import { memo, useCallback, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { SchoolIcon } from '@/shared/ui/icons/SchoolIcon';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
@@ -93,11 +94,7 @@ export const EstablishmentSelector = memo(function EstablishmentSelector({
             { backgroundColor: theme.input, borderColor: theme.inputBorder },
           ]}
         >
-          <View
-            style={[styles.fieldIcon, { backgroundColor: theme.primaryBg }]}
-          >
-            <Ionicons name="school-outline" size={18} color={theme.primary} />
-          </View>
+          <SchoolIcon size={48} />
           <View style={styles.fieldTexts}>
             <Text style={[styles.fieldTitle, { color: theme.text }]}>
               {t('directory_field_placeholder')}
@@ -167,13 +164,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     paddingHorizontal: 14,
-  },
-  fieldIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   fieldTexts: { flex: 1, gap: 2 },
   fieldTitle: { fontSize: 15, fontWeight: '700' },
