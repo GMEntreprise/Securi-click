@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
-import { View, Text, TouchableOpacity, Animated } from 'react-native';
-import {
+import { View, Text, TouchableOpacity } from 'react-native';
+import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,

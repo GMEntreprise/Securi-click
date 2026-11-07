@@ -10,6 +10,7 @@ import {
   View,
   Text,
   TextInput,
+  type TextInputInstance,
   TouchableOpacity,
   Modal,
   ScrollView,
@@ -121,7 +122,7 @@ export default function GuardianEditScreen() {
   const [selectedRelationship, setSelectedRelationship] = useState('');
   const [customModalVisible, setCustomModalVisible] = useState(false);
   const [customInput, setCustomInput] = useState('');
-  const customInputRef = useRef<TextInput>(null);
+  const customInputRef = useRef<TextInputInstance>(null);
 
   const {
     control,
@@ -676,7 +677,9 @@ export default function GuardianEditScreen() {
           }}
         >
           <TouchableOpacity
-            onPress={handleSubmit(onSubmit)}
+            onPress={() => {
+            handleSubmit(onSubmit)();
+          }}
             disabled={isSaving}
             style={{
               backgroundColor: theme.primary,
@@ -716,7 +719,9 @@ export default function GuardianEditScreen() {
         transparent
         animationType="fade"
         onRequestClose={() => setCustomModalVisible(false)}
-        onShow={() => setTimeout(() => customInputRef.current?.focus(), 80)}
+        onShow={() => {
+          setTimeout(() => customInputRef.current?.focus(), 80);
+        }}
       >
         <TouchableOpacity
           style={{

@@ -14,7 +14,13 @@ import {
   SkImage,
   makeImageFromView,
 } from '@shopify/react-native-skia';
-import { Dimensions, PixelRatio, StyleSheet, View } from 'react-native';
+import {
+  Dimensions,
+  PixelRatio,
+  StyleSheet,
+  View,
+  type HostInstance,
+} from 'react-native';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
 import {
   ThemeMode,
@@ -47,7 +53,7 @@ export const ThemeSwitcher = forwardRef<ThemeSwitcherRef, ThemeSwitcherProps>(
     ref
   ) => {
     const pd = PixelRatio.get();
-    const viewRef = useRef<View>(null);
+    const viewRef = useRef<HostInstance>(null);
     const [overlay, setOverlay] = useState<SkImage | null>(null);
     const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } =
       Dimensions.get('screen');
@@ -74,8 +80,8 @@ export const ThemeSwitcher = forwardRef<ThemeSwitcherRef, ThemeSwitcherProps>(
       circleCenterY.value = centerY;
 
       if (viewRef.current) {
-        const snapshot = await makeImageFromView<View>(
-          viewRef as React.RefObject<View>
+        const snapshot = await makeImageFromView(
+          viewRef as unknown as React.RefObject<React.Component<unknown>>
         );
         setOverlay(snapshot);
       }
@@ -270,7 +276,7 @@ export const ThemeSwitcher = forwardRef<ThemeSwitcherRef, ThemeSwitcherProps>(
         {children}
 
         {overlay && (
-          <Canvas style={StyleSheet.absoluteFillObject} pointerEvents="none">
+          <Canvas style={StyleSheet.absoluteFill} pointerEvents="none">
             <Mask mode="luminance" mask={renderMask()}>
               <Image
                 image={overlay}

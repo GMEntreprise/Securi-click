@@ -67,11 +67,10 @@ export const Dialog: DialogComponent = ({ children }: DialogProps) => {
     <DialogContext.Provider value={contextValue}>
       {React.Children.map(children, child => {
         if (React.isValidElement(child) && child.type === DialogContent) {
-          return React.cloneElement(child, {
-            ...child.props,
-            isAnimating,
-            setIsAnimating,
-          } as any);
+          return React.cloneElement(
+            child as React.ReactElement<ExtendedDialogContentProps>,
+            { isAnimating, setIsAnimating }
+          );
         }
         return child;
       })}
@@ -336,7 +335,7 @@ Dialog.Backdrop = DialogBackdrop;
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   modalContainer: {
     flex: 1,

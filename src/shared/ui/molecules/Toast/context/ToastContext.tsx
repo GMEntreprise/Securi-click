@@ -108,7 +108,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (toasts.length === 0) return;
-    const timeouts: NodeJS.Timeout[] = [];
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
     toasts.forEach(toast => {
       if (toast.options.duration > 0) {
         const timeout = setTimeout(() => {

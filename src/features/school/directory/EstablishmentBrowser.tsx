@@ -235,7 +235,7 @@ export const EstablishmentBrowser = memo(function EstablishmentBrowser({
       ListFooterComponent={
         search.isFetchingNextPage ? (
           <ActivityIndicator color={theme.primary} style={styles.spacer} />
-        ) : null
+        ) : undefined
       }
     />
   );

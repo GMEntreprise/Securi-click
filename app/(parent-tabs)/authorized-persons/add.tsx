@@ -470,7 +470,9 @@ export default function AddGuardianScreen() {
         }}
       >
         <TouchableOpacity
-          onPress={handleSubmit(onSubmit)}
+          onPress={() => {
+            handleSubmit(onSubmit)();
+          }}
           disabled={isSubmitting}
           style={{
             backgroundColor: theme.accent,

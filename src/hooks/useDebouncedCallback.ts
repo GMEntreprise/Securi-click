@@ -19,7 +19,7 @@ export function useDebouncedCallback<T extends any[], R>(
 ) {
   const { delay = 300, leading = false, trailing = true } = options;
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [state, setState] = useState<UseDebouncedCallbackState<R>>({
     data: null,

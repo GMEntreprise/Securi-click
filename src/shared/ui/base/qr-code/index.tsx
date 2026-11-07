@@ -146,7 +146,7 @@ const QRCode: React.FC<QRCodeProps> & React.FunctionComponent<QRCodeProps> =
                 tint="systemChromeMaterialLight"
                 animatedProps={[animatedBlurViewPropz]}
                 style={[
-                  StyleSheet.absoluteFillObject,
+                  StyleSheet.absoluteFill,
                   {
                     overflow: 'hidden',
                     borderRadius: 30,
@@ -172,7 +172,7 @@ const QRCode: React.FC<QRCodeProps> & React.FunctionComponent<QRCodeProps> =
                 tint="systemUltraThinMaterialLight"
                 animatedProps={animatedBlurViewPropsBottom}
                 style={[
-                  StyleSheet.absoluteFillObject,
+                  StyleSheet.absoluteFill,
                   {
                     overflow: 'hidden',
                     borderRadius: 30,

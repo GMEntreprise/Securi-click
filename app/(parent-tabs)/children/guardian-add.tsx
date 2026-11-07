@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TextInput,
+  type TextInputInstance,
   TouchableOpacity,
   Modal,
   ScrollView,
@@ -142,7 +143,7 @@ function RelationshipPicker({
   const { t: i18n } = useTranslation('parent');
   const [customModalVisible, setCustomModalVisible] = useState(false);
   const [customInput, setCustomInput] = useState('');
-  const customInputRef = useRef<TextInput>(null);
+  const customInputRef = useRef<TextInputInstance>(null);
 
   const PRESET_RELATIONSHIPS = useMemo(
     () => [
@@ -241,7 +242,9 @@ function RelationshipPicker({
         transparent
         animationType="fade"
         onRequestClose={() => setCustomModalVisible(false)}
-        onShow={() => setTimeout(() => customInputRef.current?.focus(), 80)}
+        onShow={() => {
+          setTimeout(() => customInputRef.current?.focus(), 80);
+        }}
       >
         <TouchableOpacity
           style={{
@@ -858,9 +861,10 @@ export default function AddGuardianScreen() {
         }}
       >
         <TouchableOpacity
-          onPress={
-            mode === 'new' ? handleSubmit(onSubmitNew) : handleLinkExisting
-          }
+          onPress={() => {
+            if (mode === 'new') handleSubmit(onSubmitNew)();
+            else handleLinkExisting();
+          }}
           disabled={
             isSubmitting ||
             (mode === 'existing' && (!selectedCollector || !linkRelationship))

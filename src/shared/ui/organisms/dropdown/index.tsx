@@ -7,7 +7,12 @@ import React, {
   Children,
   useCallback,
 } from 'react';
-import { View, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import {
+  StyleSheet,
+  Modal,
+  TouchableOpacity,
+  type HostInstance,
+} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -24,7 +29,6 @@ import type {
   ContentProps,
   DropdownContextValue,
   ItemProps,
-  Styles,
   TriggerLayout,
   TriggerProps,
 } from './types';
@@ -45,7 +49,7 @@ interface DropdownProps {
   children: ReactNode;
 }
 
-const Dropdown = ({ children }: DropdownProps): JSX.Element => {
+const Dropdown = ({ children }: DropdownProps): React.JSX.Element => {
   const [visible, setVisible] = useState<boolean>(false);
   const [triggerLayout, setTriggerLayout] = useState<TriggerLayout | null>(
     null
@@ -88,9 +92,9 @@ const Dropdown = ({ children }: DropdownProps): JSX.Element => {
   );
 };
 
-const Trigger = ({ children, style }: TriggerProps): JSX.Element => {
+const Trigger = ({ children, style }: TriggerProps): React.JSX.Element => {
   const { open, setTriggerLayout } = useDropdownContext();
-  const triggerRef = useRef<View>(null);
+  const triggerRef = useRef<HostInstance>(null);
 
   const handlePress = (): void => {
     triggerRef.current?.measure(
@@ -124,12 +128,12 @@ const Content = ({
   children,
   style,
   position = 'auto',
-}: ContentProps): JSX.Element | null => {
+}: ContentProps): React.JSX.Element | null => {
   const { visible, close, triggerLayout, flipAnim, activeItemIndex } =
     useDropdownContext();
   const itemCount = Children.count(children);
   const lastHapticIndex = useSharedValue<number>(-1);
-  const contentRef = useRef<View>(null);
+  const contentRef = useRef<HostInstance>(null);
   const [contentDimensions, setContentDimensions] = useState<{
     width: number;
     height: number;
@@ -270,7 +274,9 @@ const Content = ({
 
   const childrenWithIndex = Children.map(children, (child, index) =>
     React.isValidElement(child)
-      ? React.cloneElement(child, { ...child.props, index } as any)
+      ? React.cloneElement(child as React.ReactElement<{ index: number }>, {
+          index,
+        })
       : child
   );
 
@@ -318,7 +324,7 @@ const Item = ({
   onPress,
   style,
   index = 0,
-}: ItemProps): JSX.Element => {
+}: ItemProps): React.JSX.Element => {
   const { close, activeItemIndex } = useDropdownContext();
 
   const handlePress = (): void => {
@@ -368,7 +374,7 @@ Dropdown.Trigger = Trigger;
 Dropdown.Content = Content;
 Dropdown.Item = Item;
 
-const styles = StyleSheet.create<Styles>({
+const styles = StyleSheet.create({
   overlay: { flex: 1 },
   content: {
     position: 'absolute',

@@ -479,7 +479,9 @@ export default function GuardianDetailScreen() {
         }}
       >
         <TouchableOpacity
-          onPress={handleSubmit(onSubmit)}
+          onPress={() => {
+            handleSubmit(onSubmit)();
+          }}
           disabled={isSaving}
           style={{
             backgroundColor: theme.primary,

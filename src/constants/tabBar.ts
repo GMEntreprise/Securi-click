@@ -1,4 +1,4 @@
-import { Dimensions } from 'react-native';
+import { Dimensions, type ColorValue } from 'react-native';
 
 /**
  * Hauteur visuelle de la barre courbe (alignée sur CurvedBottomTabs : barHeight × VIEWPORT_HEIGHT).
@@ -11,3 +11,7 @@ const DEFAULT_BAR_HEIGHT_UNITS = 9;
 export const curvedTabBarVisualHeight = Math.ceil(
   VIEWPORT_HEIGHT * DEFAULT_BAR_HEIGHT_UNITS
 );
+
+export function tabIconColor(color: ColorValue): string {
+  return typeof color === 'string' ? color : '#ffffff';
+}

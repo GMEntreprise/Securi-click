@@ -11,7 +11,7 @@ interface IBottomSheetOptions {
 interface IStackedSheet {
   id: string;
   component: React.ReactElement;
-  ref: React.RefObject<BottomSheetMethods>;
+  ref: React.RefObject<BottomSheetMethods | null>;
   readonly onDismiss?: () => void;
 }
 

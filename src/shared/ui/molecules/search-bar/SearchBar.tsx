@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   TextInput,
+  type TextInputInstance,
   TouchableOpacity,
   StyleSheet,
   Text,
@@ -17,7 +18,7 @@ import Animated, {
   useAnimatedProps,
 } from 'react-native-reanimated';
 import { SymbolView } from 'expo-symbols';
-import { BlurView, type BlurViewProps } from 'expo-blur';
+import { BlurView } from 'expo-blur';
 import type { SearchBarProps } from './SearchBar.types';
 import { scheduleOnRN } from 'react-native-worklets';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,8 +26,7 @@ import { Ionicons } from '@expo/vector-icons';
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 const AnimatedView = Animated.createAnimatedComponent(View);
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
-const AnimatedBlurView =
-  Animated.createAnimatedComponent<BlurViewProps>(BlurView);
+const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -49,7 +49,7 @@ export const SearchBar = ({
   const [query, setQuery] = useState('');
   const [, setIsFocused] = useState(false);
   const [containerDimensions, setContainerDimensions] = useState({ width: 0 });
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
 
   const focusProgress = useSharedValue(0);
   const clearButtonScale = useSharedValue(0);
@@ -299,7 +299,7 @@ export const SearchBar = ({
                 {Platform.OS === 'ios' && (
                   <AnimatedBlurView
                     style={[
-                      StyleSheet.absoluteFillObject,
+                      StyleSheet.absoluteFill,
                       {
                         overflow: 'hidden',
                       },

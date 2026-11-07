@@ -5,6 +5,7 @@ import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
 import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
 import { useTheme } from '@/theme';
+import { tabIconColor } from '@/constants/tabBar';
 
 const ICON_SIZE = 24;
 
@@ -44,7 +45,7 @@ export default function SchoolTabsLayout() {
               <MaterialCommunityIcons
                 name="home-outline"
                 size={ICON_SIZE}
-                color={color}
+                color={tabIconColor(color)}
               />
             ),
           }}
@@ -57,7 +58,7 @@ export default function SchoolTabsLayout() {
               <MaterialCommunityIcons
                 name="account-group"
                 size={ICON_SIZE}
-                color={color}
+                color={tabIconColor(color)}
               />
             ),
           }}
@@ -70,7 +71,7 @@ export default function SchoolTabsLayout() {
               <MaterialCommunityIcons
                 name="line-scan"
                 size={ICON_SIZE}
-                color={color}
+                color={tabIconColor(color)}
               />
             ),
           }}
@@ -83,7 +84,7 @@ export default function SchoolTabsLayout() {
               <MaterialCommunityIcons
                 name="history"
                 size={ICON_SIZE}
-                color={color}
+                color={tabIconColor(color)}
               />
             ),
           }}
@@ -93,7 +94,7 @@ export default function SchoolTabsLayout() {
           options={{
             title: 'Profil',
             tabBarIcon: ({ color }) => (
-              <Ionicons name="person-outline" size={ICON_SIZE} color={color} />
+              <Ionicons name="person-outline" size={ICON_SIZE} color={tabIconColor(color)} />
             ),
           }}
         />

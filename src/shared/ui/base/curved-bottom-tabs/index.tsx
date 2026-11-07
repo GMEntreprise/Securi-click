@@ -453,7 +453,8 @@ export const CurvedBottomTabs: React.FC<
     ({
       state,
       descriptors,
-      navigation,
+      emitter,
+      navigateToTab,
       gradients = ['#121212', '#1A1A1A'],
       activeColor,
       inactiveColor,
@@ -503,14 +504,14 @@ export const CurvedBottomTabs: React.FC<
       const handlePress = (tabIndex: number, _tab: Tab): void => {
         const { route, index } = visibleRoutes[tabIndex];
 
-        const event = navigation.emit({
+        const event = emitter.emit({
           type: 'tabPress',
           target: route.key,
           canPreventDefault: true,
         });
 
         if (state.index !== index && !event.defaultPrevented) {
-          navigation.navigate(route.name, route.params);
+          navigateToTab(route.key);
         }
       };
 

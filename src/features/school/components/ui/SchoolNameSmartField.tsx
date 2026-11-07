@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Text,
   TextInput,
+  type TextInputInstance,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -241,7 +242,7 @@ export const SchoolNameSmartField = memo(function SchoolNameSmartField({
   initialQuery,
 }: Props) {
   const theme = useTheme();
-  const inputRef = useRef<TextInput>(null);
+  const inputRef = useRef<TextInputInstance>(null);
   const { setQuery, results, isSearching, clear } = useSchoolSearch();
   const [dismissedId, setDismissedId] = useState<string | null>(null);
   const [prefillApplied, setPrefillApplied] = useState(false);

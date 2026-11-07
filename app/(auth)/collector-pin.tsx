@@ -5,6 +5,7 @@ import {
   Platform,
   Text,
   TextInput,
+  type TextInputInstance,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
@@ -47,7 +48,7 @@ export default memo(function CollectorPinScreen() {
   const [emailFocused, setEmailFocused] = useState(false);
   const [pinFocused, setPinFocused] = useState(false);
   const autoHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pinRef = useRef<TextInput>(null);
+  const pinRef = useRef<TextInputInstance>(null);
   const shakeX = useSharedValue(0);
 
   const shakeStyle = useAnimatedStyle(() => ({

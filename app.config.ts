@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { existsSync } from 'node:fs';
 import type { ExpoConfig } from 'expo/config';
 
@@ -138,6 +139,8 @@ const config: ExpoConfig = {
       },
     ],
     'expo-file-system',
+    'expo-status-bar',
+    'expo-web-browser',
   ],
 
   experiments: {

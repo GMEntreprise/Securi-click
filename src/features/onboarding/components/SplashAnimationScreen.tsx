@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   grid: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: 'hidden',
   },
   gridLine: {
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(32,138,239,0.06)',
   },
   particles: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   particle: {
     position: 'absolute',
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     elevation: 20,
   },
   logoGradient: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 36,
   },
   logoShine: {

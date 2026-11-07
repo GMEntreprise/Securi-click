@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   background: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   item: {
     alignItems: 'center',

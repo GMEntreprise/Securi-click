@@ -267,7 +267,9 @@ export default function HistoryScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={refetch}
+            onRefresh={() => {
+              refetch();
+            }}
             tintColor={theme.accent}
           />
         }

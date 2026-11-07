@@ -69,6 +69,7 @@ export default function CollectorQRScreen() {
   const childId = selectedGuardian?.child?.id ?? undefined;
 
   const generateMutation = useCollectorGenerateQr();
+  const isGenerating = generateMutation.isPending;
   const { data: recentScans, isLoading: scansLoading } =
     useCollectorRecentScans(childId);
   const { data: activeQr } = useCollectorQrCode(childId);
@@ -163,8 +164,6 @@ export default function CollectorQRScreen() {
     qrRotate,
     generateMutation,
   ]);
-
-  const isGenerating = generateMutation.isPending;
 
   if (guardiansLoading) {
     return (

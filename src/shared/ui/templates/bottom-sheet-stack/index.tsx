@@ -70,14 +70,21 @@ const StackedSheetWrapper = memo<IStackedSheetWrapper>(
       transform: [{ scale: scale.value }, { translateY: -translateY.value }],
     }));
 
-    const element = React.cloneElement(sheet.component, {
+    const element = React.cloneElement(
+      sheet.component as React.ReactElement<{
+        ref: IStackedSheet['ref'];
+        onClose: () => void;
+        dismissOnBackdropPress: boolean;
+      }>,
+      {
       ref: sheet.ref,
       onClose: () => {
         sheet.onDismiss?.();
         onClose();
       },
       dismissOnBackdropPress: true,
-    });
+      }
+    );
 
     return (
       <Animated.View
@@ -209,7 +216,7 @@ export const useBottomSheet = <
 };
 const styles = StyleSheet.create({
   stackLayer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'transparent',
   },
 });
