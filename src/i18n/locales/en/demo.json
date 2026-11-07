@@ -70,5 +70,6 @@
   "seed_notif_collector_title": "Pickup confirmed",
   "seed_notif_collector_body": "École des Tilleuls validated your pickup of Emma.",
   "seed_notif_school_title": "Pickup validated",
-  "seed_notif_school_body": "Sophie Martin collected Emma Martin."
+  "seed_notif_school_body": "Sophie Martin collected Emma Martin.",
+  "menu_current": "Current"
 }

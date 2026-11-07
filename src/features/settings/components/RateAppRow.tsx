@@ -4,6 +4,11 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import {
+  AppIcon,
+  type AppIconName,
+  type AppIconTone,
+} from '@/shared/ui/icons/AppIcon';
 import { useStoreReview } from '../hooks/useStoreReview';
 
 export function RateAppRow({ isLast = false }: { isLast?: boolean }) {
@@ -15,19 +20,11 @@ export function RateAppRow({ isLast = false }: { isLast?: boolean }) {
   const isBlocked = reviewState === 'blocked';
   const isBusy = reviewState === 'requesting';
 
-  const iconName: React.ComponentProps<typeof Ionicons>['name'] = isDone
-    ? 'checkmark-circle-outline'
+  const icon: { name: AppIconName; tone: AppIconTone } = isDone
+    ? { name: 'check', tone: 'green' }
     : isBlocked
-      ? 'time-outline'
-      : 'star-outline';
-
-  const iconColor = isDone ? theme.green : isBlocked ? theme.amber : '#f59e0b';
-
-  const iconBg = isDone
-    ? theme.greenBg
-    : isBlocked
-      ? theme.amberBg
-      : 'rgba(245,158,11,0.12)';
+      ? { name: 'clock', tone: 'amber' }
+      : { name: 'star', tone: 'amber' };
 
   const label = isDone
     ? t('rate_thanks')
@@ -62,19 +59,17 @@ export function RateAppRow({ isLast = false }: { isLast?: boolean }) {
     >
       <View
         style={{
-          width: 34,
-          height: 34,
-          borderRadius: 11,
-          backgroundColor: iconBg,
+          width: 36,
+          height: 36,
           alignItems: 'center',
           justifyContent: 'center',
           marginRight: 12,
         }}
       >
         {isBusy ? (
-          <ActivityIndicator size="small" color={iconColor} />
+          <ActivityIndicator size="small" color={theme.amber} />
         ) : (
-          <Ionicons name={iconName} size={16} color={iconColor} />
+          <AppIcon name={icon.name} tone={icon.tone} />
         )}
       </View>
       <View style={{ flex: 1 }}>

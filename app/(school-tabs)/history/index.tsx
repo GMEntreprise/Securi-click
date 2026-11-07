@@ -22,6 +22,7 @@ import type {
   ValidationStatus,
 } from '@/features/school/types';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '@/i18n/locale';
 
 type FilterKey = 'all' | ValidationStatus;
 
@@ -33,7 +34,7 @@ function groupByDay(items: PickupValidation[]): GroupedItem[] {
   const result: GroupedItem[] = [];
   let lastDay = '';
   for (const item of items) {
-    const day = new Date(item.scanned_at).toLocaleDateString('fr-FR', {
+    const day = new Date(item.scanned_at).toLocaleDateString(appLocale(), {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -318,7 +319,7 @@ const HistoryRow = memo(function HistoryRow({
   const isOk = item.status === 'validated';
   const color = isOk ? theme.green : theme.red;
   const bg = isOk ? theme.greenBg : theme.redBg;
-  const time = new Date(item.scanned_at).toLocaleTimeString('fr-FR', {
+  const time = new Date(item.scanned_at).toLocaleTimeString(appLocale(), {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -478,7 +479,7 @@ const ValidationDetailSheet = memo(function ValidationDetailSheet({
   const color = isOk ? theme.green : theme.red;
   const bg = isOk ? theme.greenBg : theme.redBg;
 
-  const dateStr = new Date(item.scanned_at).toLocaleString('fr-FR', {
+  const dateStr = new Date(item.scanned_at).toLocaleString(appLocale(), {
     weekday: 'long',
     day: 'numeric',
     month: 'long',

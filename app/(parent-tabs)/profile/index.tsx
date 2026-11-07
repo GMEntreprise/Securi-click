@@ -12,6 +12,10 @@ import { Toast } from '@/shared/ui/molecules/Toast';
 import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { useTheme } from '@/theme';
+import {
+  SettingIcon,
+  type SettingId,
+} from '@/features/settings/components/SettingIcon';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { RateAppRow } from '@/features/settings/components/RateAppRow';
@@ -32,8 +36,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from '@/stores/language.store';
 
 interface RowItem {
-  icon: React.ReactNode;
-  iconBg: string;
+  icon: SettingId;
   title: string;
   subtitle?: string;
   toggle?: boolean;
@@ -71,18 +74,8 @@ const SettingRow = React.memo(function SettingRow({
         borderBottomColor: theme.separator,
       }}
     >
-      <View
-        style={{
-          width: 34,
-          height: 34,
-          borderRadius: 11,
-          backgroundColor: item.destructive ? theme.redBg : item.iconBg,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginRight: 12,
-        }}
-      >
-        {item.icon}
+      <View style={{ marginRight: 12 }}>
+        <SettingIcon id={item.icon} />
       </View>
       <View style={{ flex: 1 }}>
         <Text
@@ -240,23 +233,13 @@ export default function ProfileScreen() {
         title: i18n('profile_section_account'),
         items: [
           {
-            icon: (
-              <Ionicons name="person-outline" size={16} color={theme.primary} />
-            ),
-            iconBg: theme.primaryBg,
+            icon: 'personalInfo',
             title: i18n('profile_personal_info'),
             subtitle: i18n('profile_personal_info_subtitle'),
             onPress: () => setEditSheetVisible(true),
           },
           {
-            icon: (
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={16}
-                color={theme.accent}
-              />
-            ),
-            iconBg: theme.accentBg,
+            icon: 'security',
             title: i18n('profile_security'),
             subtitle: i18n('profile_security_subtitle'),
             onPress: () => nav.goToParentSecurity(),
@@ -267,14 +250,7 @@ export default function ProfileScreen() {
         title: i18n('profile_section_preferences'),
         items: [
           {
-            icon: (
-              <Ionicons
-                name="moon-outline"
-                size={16}
-                color={theme.textSecondary}
-              />
-            ),
-            iconBg: theme.iconBg,
+            icon: 'darkMode',
             title: i18n('profile_dark_mode'),
             subtitle: isDark
               ? i18n('profile_dark_mode_on')
@@ -283,27 +259,13 @@ export default function ProfileScreen() {
             onPress: () => {},
           },
           {
-            icon: (
-              <Ionicons
-                name="notifications-outline"
-                size={16}
-                color={theme.green}
-              />
-            ),
-            iconBg: theme.greenBg,
+            icon: 'notifications',
             title: i18n('profile_notifications'),
             subtitle: i18n('profile_notifications_subtitle'),
             onPress: () => nav.goToParentNotifications(),
           },
           {
-            icon: (
-              <Ionicons
-                name="phone-portrait-outline"
-                size={16}
-                color="#6366f1"
-              />
-            ),
-            iconBg: 'rgba(99,102,241,0.1)',
+            icon: 'biometrics',
             title: i18n('profile_biometric'),
             subtitle: biometricEnabled
               ? i18n('profile_biometric_on')
@@ -315,14 +277,7 @@ export default function ProfileScreen() {
             onPress: () => nav.goToParentSecurity(),
           },
           {
-            icon: (
-              <Ionicons
-                name="language-outline"
-                size={16}
-                color={theme.primary}
-              />
-            ),
-            iconBg: theme.primaryBg,
+            icon: 'language',
             title: i18n('profile_language'),
             subtitle:
               language === 'fr'
@@ -336,38 +291,17 @@ export default function ProfileScreen() {
         title: i18n('profile_section_support'),
         items: [
           {
-            icon: (
-              <Ionicons
-                name="help-circle-outline"
-                size={16}
-                color={theme.amber}
-              />
-            ),
-            iconBg: theme.amberBg,
+            icon: 'help',
             title: i18n('profile_faq'),
             onPress: () => nav.goToParentFaq(),
           },
           {
-            icon: (
-              <Ionicons
-                name="document-text-outline"
-                size={16}
-                color={theme.textMuted}
-              />
-            ),
-            iconBg: theme.iconBg,
+            icon: 'legal',
             title: i18n('profile_legal'),
             onPress: () => nav.goToParentLegalMentions(),
           },
           {
-            icon: (
-              <Ionicons
-                name="lock-closed-outline"
-                size={16}
-                color={theme.textMuted}
-              />
-            ),
-            iconBg: theme.iconBg,
+            icon: 'privacy',
             title: i18n('profile_privacy'),
             onPress: () => nav.goToParentPrivacyPolicy(),
           },
@@ -596,7 +530,7 @@ export default function ProfileScreen() {
                 gap: 8,
               }}
             >
-              <Ionicons name="log-out-outline" size={18} color={theme.red} />
+              <SettingIcon id="logout" size={26} />
               <Text
                 style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}
               >

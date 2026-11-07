@@ -14,6 +14,7 @@ import type {
   HistoryFilters,
   HistoryPage,
 } from '../services/history.service';
+import { appLocale } from '@/i18n/locale';
 
 export type { HistoryEntry, HistoryFilters };
 
@@ -45,7 +46,7 @@ function groupByDate(entries: HistoryEntry[]): FlatListItem[] {
     const dayKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     if (dayKey !== currentDay) {
       currentDay = dayKey;
-      const label = d.toLocaleDateString('fr-FR', {
+      const label = d.toLocaleDateString(appLocale(), {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -88,7 +89,12 @@ export function useHistoryFeed(filters: HistoryFilters) {
 
     return subscribeToTableMulti(`pickup-history-${parentId}`, [
       {
-        config: { event: 'INSERT', schema: 'public', table: 'pickup_history', filter: `parent_id=eq.${parentId}` },
+        config: {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'pickup_history',
+          filter: `parent_id=eq.${parentId}`,
+        },
         callback: payload => {
           queryClient.setQueryData<InfiniteData<HistoryPage>>(
             HISTORY_KEY(parentId, filters),
@@ -103,17 +109,28 @@ export function useHistoryFeed(filters: HistoryFilters) {
                 ...old,
                 pages: old.pages.map((page, i) =>
                   i === 0
-                    ? { ...page, items: [newEntry, ...page.items], total: page.total + 1 }
+                    ? {
+                        ...page,
+                        items: [newEntry, ...page.items],
+                        total: page.total + 1,
+                      }
                     : page
                 ),
               };
             }
           );
-          queryClient.invalidateQueries({ queryKey: MONTHLY_COUNTS_KEY(parentId) });
+          queryClient.invalidateQueries({
+            queryKey: MONTHLY_COUNTS_KEY(parentId),
+          });
         },
       },
       {
-        config: { event: 'UPDATE', schema: 'public', table: 'pickup_history', filter: `parent_id=eq.${parentId}` },
+        config: {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'pickup_history',
+          filter: `parent_id=eq.${parentId}`,
+        },
         callback: payload => {
           const updated = payload.new as HistoryEntry;
           queryClient.setQueryData<InfiniteData<HistoryPage>>(

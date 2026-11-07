@@ -113,7 +113,7 @@
   "identity_title": "Identity verification",
   "identity_back": "Back of the document",
   "identity_front_required": "Front of the document *",
-  "identity_storage_note": "🔒 Your documents are stored securely and encrypted. Only the linked parent can access them for verification.",
+  "identity_storage_note": "Your documents are stored securely and encrypted. Only the linked parent can access them for verification.",
   "identity_sending": "Sending…",
   "identity_submit_review": "Submit for verification",
   "identity_change": "Change",
@@ -173,5 +173,7 @@
   "detail_days": "Authorized days",
   "detail_hours": "Hours",
   "detail_medical": "Medical notes",
-  "detail_suspended": "Your access was suspended by the responsible parent. Contact them directly to restore the authorization."
+  "detail_suspended": "Your access was suspended by the responsible parent. Contact them directly to restore the authorization.",
+  "access_status_suspended": "Suspended",
+  "qr_choose": "Choose"
 }

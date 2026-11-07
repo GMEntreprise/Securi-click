@@ -36,6 +36,7 @@ import { useTranslation } from 'react-i18next';
 import { useIsFocused } from 'expo-router';
 import { useDemoRole } from '@/features/demo/store/demo.store';
 import { DemoScanPicker } from '@/features/demo/components/DemoScanPicker';
+import { appLocale } from '@/i18n/locale';
 
 type ScanState = 'idle' | 'scanning' | 'result';
 
@@ -220,12 +221,12 @@ const ResultSheet = memo(function ResultSheet({
   const statusColor = isOk ? t.green : t.red;
   const statusBg = isOk ? t.greenBg : t.redBg;
   const scanTime = result.scanned_at
-    ? new Date(result.scanned_at).toLocaleTimeString('fr-FR', {
+    ? new Date(result.scanned_at).toLocaleTimeString(appLocale(), {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
       })
-    : new Date().toLocaleTimeString('fr-FR', {
+    : new Date().toLocaleTimeString(appLocale(), {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
@@ -863,7 +864,7 @@ export default function ScannerScreen() {
                 textShadowRadius: 4,
               }}
             >
-              {school?.name ?? 'Scanner'}
+              {school?.name ?? i18n('common:tab_scanner')}
             </Text>
             <View
               style={{

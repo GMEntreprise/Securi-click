@@ -47,6 +47,7 @@ export const ROUTES = {
     legalMentions: '/(collector-tabs)/profile/legal-mentions' as const,
     privacyPolicy: '/(collector-tabs)/profile/privacy-policy' as const,
     faq: '/(collector-tabs)/profile/faq' as const,
+    language: '/(collector-tabs)/profile/language' as const,
   },
   school: {
     home: '/(school-tabs)/home' as const,

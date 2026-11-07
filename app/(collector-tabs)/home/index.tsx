@@ -14,6 +14,11 @@ import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { Avatar } from '@/shared/ui/base/avatar';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import {
+  AppIcon,
+  type AppIconName,
+  type AppIconTone,
+} from '@/shared/ui/icons/AppIcon';
 import { appLocale } from '@/i18n/locale';
 import {
   useMyGuardians,
@@ -37,35 +42,39 @@ import {
 
 const STATUS_CFG = {
   completed: {
-    iconName: 'checkmark-circle' as const,
+    icon: 'check',
+    tone: 'green',
     color: '#10b981',
     labelKey: 'common:status_completed',
   },
   denied: {
-    iconName: 'close-circle' as const,
+    icon: 'cross',
+    tone: 'red',
     color: '#ef4444',
     labelKey: 'common:status_denied',
   },
   cancelled: {
-    iconName: 'remove-circle' as const,
+    icon: 'clock',
+    tone: 'amber',
     color: '#f59e0b',
     labelKey: 'common:status_cancelled',
   },
-} as const;
+} as const satisfies Record<
+  string,
+  { icon: AppIconName; tone: AppIconTone; color: string; labelKey: string }
+>;
 
 function StatCard({
   label,
   value,
-  iconName,
-  color,
-  bg,
+  icon,
+  tone,
   delay,
 }: {
   label: string;
   value: number | string;
-  iconName: React.ComponentProps<typeof Ionicons>['name'];
-  color: string;
-  bg: string;
+  icon: AppIconName;
+  tone: AppIconTone;
   delay: number;
 }) {
   const theme = useTheme();
@@ -84,18 +93,7 @@ function StatCard({
           gap: 8,
         }}
       >
-        <View
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 11,
-            backgroundColor: bg,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Ionicons name={iconName} size={17} color={color} />
-        </View>
+        <AppIcon name={icon} tone={tone} size={40} />
         <Text
           style={{
             color: theme.text,
@@ -293,17 +291,15 @@ export default function CollectorHomeScreen() {
             <StatCard
               label={t('home_stat_total')}
               value={stats.total}
-              iconName="trending-up"
-              color="#10b981"
-              bg="rgba(16,185,129,0.12)"
+              icon="trend"
+              tone="green"
               delay={50}
             />
             <StatCard
               label={t('home_stat_week')}
               value={stats.thisWeek}
-              iconName="calendar-outline"
-              color="#3b82f6"
-              bg="rgba(59,130,246,0.12)"
+              icon="calendar"
+              tone="primary"
               delay={90}
             />
           </View>
@@ -311,17 +307,15 @@ export default function CollectorHomeScreen() {
             <StatCard
               label={t('home_stat_active')}
               value={stats.activeAccess}
-              iconName="qr-code-outline"
-              color={theme.accent}
-              bg={theme.accentBg}
+              icon="qr"
+              tone="accent"
               delay={130}
             />
             <StatCard
               label={t('home_stat_incidents')}
               value={stats.incidents}
-              iconName="warning-outline"
-              color={stats.incidents > 0 ? '#ef4444' : theme.textMuted}
-              bg={stats.incidents > 0 ? 'rgba(239,68,68,0.12)' : theme.card}
+              icon="warning"
+              tone={stats.incidents > 0 ? 'red' : 'neutral'}
               delay={170}
             />
           </View>
@@ -520,18 +514,7 @@ export default function CollectorHomeScreen() {
                 gap: 12,
               }}
             >
-              <View
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 13,
-                  backgroundColor: theme.accent,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="person-add" size={18} color="#fff" />
-              </View>
+              <AppIcon name="userPlus" tone="accent" size={42} />
               <View style={{ flex: 1 }}>
                 <Text
                   style={{ color: theme.text, fontWeight: '700', fontSize: 14 }}
@@ -573,24 +556,11 @@ export default function CollectorHomeScreen() {
               gap: 16,
             }}
           >
-            <View
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 16,
-                backgroundColor: hasAnyAccess
-                  ? 'rgba(16,185,129,0.2)'
-                  : 'rgba(239,68,68,0.2)',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons
-                name={hasAnyAccess ? 'shield-checkmark' : 'shield-outline'}
-                size={26}
-                color={hasAnyAccess ? '#10b981' : '#ef4444'}
-              />
-            </View>
+            <AppIcon
+              name={hasAnyAccess ? 'shield' : 'warning'}
+              tone={hasAnyAccess ? 'green' : 'red'}
+              size={52}
+            />
             <View style={{ flex: 1 }}>
               <Text
                 style={{
@@ -779,11 +749,7 @@ export default function CollectorHomeScreen() {
               <ActivityIndicator color={theme.accent} style={{ padding: 24 }} />
             ) : recentLogs.length === 0 ? (
               <View style={{ padding: 24, alignItems: 'center', gap: 8 }}>
-                <Ionicons
-                  name="time-outline"
-                  size={32}
-                  color={theme.textMuted}
-                />
+                <AppIcon name="clock" tone="neutral" size={48} />
                 <Text
                   style={{
                     color: theme.textMuted,
@@ -810,22 +776,7 @@ export default function CollectorHomeScreen() {
                       gap: 12,
                     }}
                   >
-                    <View
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 11,
-                        backgroundColor: `${cfg.color}20`,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Ionicons
-                        name={cfg.iconName}
-                        size={16}
-                        color={cfg.color}
-                      />
-                    </View>
+                    <AppIcon name={cfg.icon} tone={cfg.tone} size={38} />
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{

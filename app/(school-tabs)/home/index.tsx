@@ -13,6 +13,11 @@ import { useAppNavigation } from '@/navigation/useAppNavigation';
 import * as Haptics from 'expo-haptics';
 import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useTheme } from '@/theme';
+import {
+  AppIcon,
+  type AppIconName,
+  type AppIconTone,
+} from '@/shared/ui/icons/AppIcon';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
 import { QueryError } from '@/shared/ui/base/query-error';
 import { useMySchool } from '@/features/school/hooks/useSchool';
@@ -27,6 +32,7 @@ import {
 import { Avatar } from '@/shared/ui/base/avatar';
 import type { PickupValidation } from '@/features/school/types';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '@/i18n/locale';
 
 export default function SchoolHomeScreen() {
   const insets = useSafeAreaInsets();
@@ -158,43 +164,22 @@ export default function SchoolHomeScreen() {
         style={{ flexDirection: 'row', gap: 12, marginBottom: 24 }}
       >
         <StatCard
-          icon={
-            <MaterialCommunityIcons
-              name="check-circle-outline"
-              size={22}
-              color={theme.green}
-            />
-          }
+          icon="check"
+          tone="green"
           label={i18n('home_stat_validated')}
           value={stats?.todayValidations ?? 0}
-          bg={theme.greenBg}
-          color={theme.green}
         />
         <StatCard
-          icon={
-            <MaterialCommunityIcons
-              name="close-circle-outline"
-              size={22}
-              color={theme.red}
-            />
-          }
+          icon="cross"
+          tone="red"
           label={i18n('home_stat_refused')}
           value={stats?.todayRefusals ?? 0}
-          bg={theme.redBg}
-          color={theme.red}
         />
         <StatCard
-          icon={
-            <MaterialCommunityIcons
-              name="account-group"
-              size={22}
-              color={theme.primary}
-            />
-          }
+          icon="students"
+          tone="primary"
           label={i18n('home_stat_students')}
           value={stats?.enrolledCount ?? 0}
-          bg={theme.primaryBg}
-          color={theme.primary}
         />
       </Animated.View>
 
@@ -212,22 +197,7 @@ export default function SchoolHomeScreen() {
               marginBottom: 10,
             }}
           >
-            <View
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 9,
-                backgroundColor: theme.accentBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <MaterialCommunityIcons
-                name="calendar-today"
-                size={16}
-                color={theme.accent}
-              />
-            </View>
+            <AppIcon name="calendar" tone="accent" size={30} />
             <Text
               style={{ color: theme.text, fontSize: 15, fontWeight: '700' }}
             >
@@ -397,11 +367,7 @@ export default function SchoolHomeScreen() {
               alignItems: 'center',
             }}
           >
-            <MaterialCommunityIcons
-              name="clock-outline"
-              size={30}
-              color={theme.textMuted}
-            />
+            <AppIcon name="clock" tone="neutral" size={48} />
             <Text
               style={{
                 color: theme.textMuted,
@@ -439,15 +405,14 @@ export default function SchoolHomeScreen() {
 
 const StatCard = memo(function StatCard({
   icon,
+  tone,
   label,
   value,
-  bg,
 }: {
-  icon: React.ReactNode;
+  icon: AppIconName;
+  tone: AppIconTone;
   label: string;
   value: number;
-  bg: string;
-  color: string;
 }) {
   const theme = useTheme();
   return (
@@ -463,18 +428,7 @@ const StatCard = memo(function StatCard({
         gap: 6,
       }}
     >
-      <View
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 12,
-          backgroundColor: bg,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {icon}
-      </View>
+      <AppIcon name={icon} tone={tone} size={40} />
       <Text style={{ color: theme.text, fontSize: 22, fontWeight: '800' }}>
         {value}
       </Text>
@@ -496,7 +450,7 @@ const ValidationRow = memo(function ValidationRow({
   const { t: i18n } = useTranslation('school');
   const isOk = item.status === 'validated';
   const color = isOk ? theme.green : theme.red;
-  const time = new Date(item.scanned_at).toLocaleTimeString('fr-FR', {
+  const time = new Date(item.scanned_at).toLocaleTimeString(appLocale(), {
     hour: '2-digit',
     minute: '2-digit',
   });

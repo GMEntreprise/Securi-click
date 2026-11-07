@@ -42,6 +42,10 @@ export default function CollectorProfileLayout() {
         name="faq"
         options={{ title: t('screen_faq'), headerBackTitle: '' }}
       />
+      <Stack.Screen
+        name="language"
+        options={{ title: t('language'), headerBackTitle: '' }}
+      />
     </Stack>
   );
 }

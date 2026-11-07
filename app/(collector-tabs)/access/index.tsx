@@ -263,7 +263,9 @@ const AccessCard = memo(function AccessCard({
                       fontWeight: '700',
                     }}
                   >
-                    {suspended ? 'Suspendu' : 'Actif'}
+                    {suspended
+                      ? t('access_status_suspended')
+                      : t('detail_active')}
                   </Text>
                 </View>
                 <Ionicons

@@ -113,7 +113,7 @@
   "identity_title": "Vérification d'identité",
   "identity_back": "Verso du document",
   "identity_front_required": "Recto du document *",
-  "identity_storage_note": "🔒 Vos documents sont stockés de manière sécurisée et chiffrée. Seul le parent associé peut y accéder pour vérification.",
+  "identity_storage_note": "Vos documents sont stockés de manière sécurisée et chiffrée. Seul le parent associé peut y accéder pour vérification.",
   "identity_sending": "Envoi en cours…",
   "identity_submit_review": "Soumettre pour vérification",
   "identity_change": "Changer",
@@ -173,5 +173,7 @@
   "detail_days": "Jours autorisés",
   "detail_hours": "Horaires",
   "detail_medical": "Notes médicales",
-  "detail_suspended": "Votre accès a été suspendu par le parent responsable. Contactez-le directement pour rétablir l'autorisation."
+  "detail_suspended": "Votre accès a été suspendu par le parent responsable. Contactez-le directement pour rétablir l'autorisation.",
+  "access_status_suspended": "Suspendu",
+  "qr_choose": "Choisir"
 }

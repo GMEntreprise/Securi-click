@@ -15,6 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { AppIcon, type AppIconName } from '@/shared/ui/icons/AppIcon';
 import { SheetModal } from '@/shared/ui/molecules/SheetModal';
 import {
   useUploadIdentity,
@@ -31,10 +32,10 @@ interface Props {
   currentIdentity: CollectorIdentity | null | undefined;
 }
 
-const DOC_TYPES: { id: DocumentType; labelKey: string }[] = [
-  { id: 'id_card', labelKey: 'doc_id_card' },
-  { id: 'passport', labelKey: 'doc_passport' },
-  { id: 'driving_license', labelKey: 'doc_driving_license' },
+const DOC_TYPES: { id: DocumentType; labelKey: string; icon: AppIconName }[] = [
+  { id: 'id_card', labelKey: 'doc_id_card', icon: 'idCard' },
+  { id: 'passport', labelKey: 'doc_passport', icon: 'passport' },
+  { id: 'driving_license', labelKey: 'doc_driving_license', icon: 'license' },
 ];
 
 export default function IdentityVerificationSheet({
@@ -134,22 +135,26 @@ export default function IdentityVerificationSheet({
     pending: {
       labelKey: 'identity_status_pending',
       color: '#f59e0b',
-      iconName: 'warning-outline' as const,
+      icon: 'clock' as const,
+      tone: 'amber' as const,
     },
     verified: {
       labelKey: 'identity_badge_verified',
       color: '#10b981',
-      iconName: 'checkmark-circle' as const,
+      icon: 'check' as const,
+      tone: 'green' as const,
     },
     refused: {
       labelKey: 'identity_badge_refused',
       color: '#ef4444',
-      iconName: 'shield-outline' as const,
+      icon: 'cross' as const,
+      tone: 'red' as const,
     },
     expired: {
       labelKey: 'identity_status_expired',
       color: '#ef4444',
-      iconName: 'shield-outline' as const,
+      icon: 'warning' as const,
+      tone: 'red' as const,
     },
   } as const;
 
@@ -228,7 +233,7 @@ export default function IdentityVerificationSheet({
                       gap: 10,
                     }}
                   >
-                    <Ionicons name={cfg.iconName} size={18} color={cfg.color} />
+                    <AppIcon name={cfg.icon} tone={cfg.tone} size={34} />
                     <Text
                       style={{
                         color: cfg.color,
@@ -283,10 +288,10 @@ export default function IdentityVerificationSheet({
                       docType === dt.id ? theme.accent : theme.cardBorder,
                   }}
                 >
-                  <Ionicons
-                    name="document-text-outline"
-                    size={16}
-                    color={docType === dt.id ? theme.accent : theme.textMuted}
+                  <AppIcon
+                    name={dt.icon}
+                    tone={docType === dt.id ? 'accent' : 'primary'}
+                    size={38}
                   />
                   <Text
                     style={{
@@ -337,10 +342,15 @@ export default function IdentityVerificationSheet({
               borderRadius: 14,
               padding: 14,
               marginBottom: 20,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
             }}
           >
+            <AppIcon name="lock" tone="accent" size={36} />
             <Text
               style={{
+                flex: 1,
                 color: theme.accent,
                 fontSize: 12,
                 fontWeight: '600',
@@ -459,11 +469,7 @@ function UploadSlot({
               gap: 6,
             }}
           >
-            <Ionicons
-              name="cloud-upload-outline"
-              size={20}
-              color={theme.textMuted}
-            />
+            <AppIcon name="image" tone="primary" size={44} />
             <Text
               style={{
                 color: theme.textMuted,
@@ -489,7 +495,7 @@ function UploadSlot({
               gap: 6,
             }}
           >
-            <Ionicons name="camera-outline" size={20} color={theme.accent} />
+            <AppIcon name="camera" tone="accent" size={44} />
             <Text
               style={{ color: theme.accent, fontSize: 12, fontWeight: '600' }}
             >

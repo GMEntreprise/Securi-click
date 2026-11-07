@@ -70,5 +70,6 @@
   "seed_notif_collector_title": "Récupération confirmée",
   "seed_notif_collector_body": "L’École des Tilleuls a validé votre récupération d’Emma.",
   "seed_notif_school_title": "Récupération validée",
-  "seed_notif_school_body": "Sophie Martin a récupéré Emma Martin."
+  "seed_notif_school_body": "Sophie Martin a récupéré Emma Martin.",
+  "menu_current": "Actuel"
 }

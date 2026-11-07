@@ -143,5 +143,7 @@
   "day_friday": "Friday",
   "today_at": "Today at {{time}}",
   "tomorrow_at": "Tomorrow at {{time}}",
-  "day_at": "{{day}} at {{time}}"
+  "day_at": "{{day}} at {{time}}",
+  "today": "Today",
+  "yesterday": "Yesterday"
 }

@@ -8,6 +8,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLanguageStore } from '@/stores/language.store';
 import type { SupportedLanguage } from '@/i18n/resources';
+import {
+  ComplianceIcon,
+  type ComplianceIconName,
+} from '@/shared/ui/icons/ComplianceIcon';
 
 interface WelcomeComplianceSheetProps {
   visible: boolean;
@@ -91,11 +95,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                 justifyContent: 'center',
               }}
             >
-              <Ionicons
-                name="shield-checkmark"
-                size={20}
-                color={theme.primary}
-              />
+              <ComplianceIcon name="shield" size={23} color={theme.primary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text
@@ -132,7 +132,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
               }}
             >
               <InfoRow
-                icon="lock-closed"
+                icon="lock"
                 iconColor={theme.primary}
                 iconBg={theme.primaryBg}
                 title={t('welcome_data_title')}
@@ -140,7 +140,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
               />
               <Separator color={theme.separator} />
               <InfoRow
-                icon="people-outline"
+                icon="family"
                 iconColor={theme.accent}
                 iconBg={theme.accentBg}
                 title={t('welcome_children_title')}
@@ -148,7 +148,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
               />
               <Separator color={theme.separator} />
               <InfoRow
-                icon="notifications-outline"
+                icon="bell"
                 iconColor={theme.green}
                 iconBg={theme.greenBg}
                 title={t('welcome_notif_title')}
@@ -156,7 +156,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
               />
               <Separator color={theme.separator} />
               <InfoRow
-                icon="trash-outline"
+                icon="trash"
                 iconColor={theme.red}
                 iconBg={theme.redBg}
                 title={t('welcome_delete_title')}
@@ -164,7 +164,7 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
               />
               <Separator color={theme.separator} />
               <InfoRow
-                icon="document-text-outline"
+                icon="document"
                 iconColor={theme.textMuted}
                 iconBg={theme.iconBg}
                 title={t('welcome_rgpd_title')}
@@ -207,9 +207,9 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons
-                    name="lock-closed-outline"
-                    size={15}
+                  <ComplianceIcon
+                    name="lock"
+                    size={17}
                     color={theme.textMuted}
                   />
                 </View>
@@ -252,9 +252,9 @@ export const WelcomeComplianceSheet = memo(function WelcomeComplianceSheet({
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons
-                    name="document-text-outline"
-                    size={15}
+                  <ComplianceIcon
+                    name="document"
+                    size={17}
                     color={theme.textMuted}
                   />
                 </View>
@@ -364,7 +364,7 @@ function InfoRow({
   title,
   body,
 }: {
-  icon: React.ComponentProps<typeof Ionicons>['name'];
+  icon: ComplianceIconName;
   iconColor: string;
   iconBg: string;
   title: string;
@@ -384,7 +384,7 @@ function InfoRow({
           marginTop: 1,
         }}
       >
-        <Ionicons name={icon} size={16} color={iconColor} />
+        <ComplianceIcon name={icon} size={19} color={iconColor} />
       </View>
       <View style={{ flex: 1 }}>
         <Text

@@ -38,10 +38,11 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     const { role: previous, world } = get();
     if (previous === role) return;
     discardCachedData();
+    const nextWorld = world ?? createDemoWorld(new Date());
     set({
       role,
-      session: createDemoSession(role),
-      world: world ?? createDemoWorld(new Date()),
+      session: createDemoSession(role, nextWorld),
+      world: nextWorld,
       guideStep: 0,
     });
   },

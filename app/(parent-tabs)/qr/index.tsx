@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '@/theme';
+import { AppIcon } from '@/shared/ui/icons/AppIcon';
 import { Toast } from '@/shared/ui/molecules/Toast';
 import Animated, {
   FadeInDown,
@@ -30,6 +31,7 @@ import {
 } from '@/features/parent/hooks/useQr';
 import { useTranslation } from 'react-i18next';
 import { isDemoActive } from '@/features/demo/store/demo.store';
+import { appLocale } from '@/i18n/locale';
 
 export default function QRScreen() {
   const insets = useSafeAreaInsets();
@@ -65,17 +67,20 @@ export default function QRScreen() {
   const STATUS_CFG = useMemo(
     () => ({
       completed: {
-        iconName: 'checkmark-circle' as const,
+        icon: 'check' as const,
+        tone: 'green' as const,
         color: '#10b981',
         label: i18n('activity_ok'),
       },
       denied: {
-        iconName: 'close-circle' as const,
+        icon: 'cross' as const,
+        tone: 'red' as const,
         color: '#ef4444',
         label: i18n('activity_denied'),
       },
       cancelled: {
-        iconName: 'remove-circle' as const,
+        icon: 'clock' as const,
+        tone: 'amber' as const,
         color: '#f59e0b',
         label: i18n('activity_cancelled'),
       },
@@ -287,22 +292,7 @@ export default function QRScreen() {
                   gap: 10,
                 }}
               >
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: theme.accentBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Ionicons
-                    name="person-outline"
-                    size={15}
-                    color={theme.accent}
-                  />
-                </View>
+                <AppIcon name="person" tone="accent" size={34} />
                 <Text
                   style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
                 >
@@ -348,11 +338,7 @@ export default function QRScreen() {
             <View
               style={{ alignItems: 'center', gap: 10, paddingHorizontal: 20 }}
             >
-              <Ionicons
-                name="person-outline"
-                size={32}
-                color={theme.textMuted}
-              />
+              <AppIcon name="family" tone="neutral" size={56} />
               <Text
                 style={{
                   color: theme.textMuted,
@@ -372,22 +358,7 @@ export default function QRScreen() {
             />
           ) : (
             <View style={{ alignItems: 'center', gap: 10 }}>
-              <View
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 22,
-                  backgroundColor: theme.isDark ? '#21262d' : '#f3f4f6',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={28}
-                  color={theme.textMuted}
-                />
-              </View>
+              <AppIcon name="lock" tone="neutral" size={64} />
               <Text
                 style={{
                   color: theme.textSecondary,
@@ -525,16 +496,15 @@ export default function QRScreen() {
           ) : (
             recentScans.map((scan, i) => {
               const cfg = STATUS_CFG[scan.status] ?? STATUS_CFG.completed;
-              const { iconName } = cfg;
               const guardianName = scan.guardian
                 ? `${scan.guardian.first_name} ${scan.guardian.last_name}`
                 : i18n('activity_unknown');
               const d = new Date(scan.pickup_time);
-              const timeStr = d.toLocaleTimeString('fr-FR', {
+              const timeStr = d.toLocaleTimeString(appLocale(), {
                 hour: '2-digit',
                 minute: '2-digit',
               });
-              const dateStr = d.toLocaleDateString('fr-FR', {
+              const dateStr = d.toLocaleDateString(appLocale(), {
                 day: 'numeric',
                 month: 'short',
               });
@@ -550,18 +520,8 @@ export default function QRScreen() {
                     borderBottomColor: theme.separator,
                   }}
                 >
-                  <View
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 12,
-                      backgroundColor: `${cfg.color}20`,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      marginRight: 12,
-                    }}
-                  >
-                    <Ionicons name={iconName} size={16} color={cfg.color} />
+                  <View style={{ marginRight: 12 }}>
+                    <AppIcon name={cfg.icon} tone={cfg.tone} size={38} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text

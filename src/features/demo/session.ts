@@ -1,5 +1,5 @@
-import type { AuthSession, UserRole } from '@/features/auth/types';
-import type { DemoRole } from './domain/types';
+import type { AuthSession, UserProfile, UserRole } from '@/features/auth/types';
+import type { DemoRole, DemoWorld } from './domain/types';
 
 export const DEMO_USER_IDS: Record<DemoRole, string> = {
   parent: 'demo-parent',
@@ -13,7 +13,41 @@ const SESSION_ROLES: Record<DemoRole, UserRole> = {
   establishment: 'school_admin',
 };
 
-export function createDemoSession(role: DemoRole): AuthSession {
+function demoProfile(
+  role: DemoRole,
+  world: DemoWorld,
+  id: string
+): UserProfile {
+  switch (role) {
+    case 'parent':
+      return {
+        id,
+        first_name: world.parentProfile.first_name,
+        last_name: world.parentProfile.last_name,
+        role: 'parent',
+      };
+    case 'collector':
+      return {
+        id,
+        first_name: world.collectorProfile.first_name,
+        last_name: world.collectorProfile.last_name,
+        role: 'collector',
+      };
+    case 'establishment':
+      return {
+        id,
+        first_name: world.school.manager_first_name,
+        last_name: world.school.manager_last_name,
+        school_id: world.school.id,
+        role: 'school_admin',
+      };
+  }
+}
+
+export function createDemoSession(
+  role: DemoRole,
+  world: DemoWorld
+): AuthSession {
   const id = DEMO_USER_IDS[role];
   const email = `${id}@demo.invalid`;
   return {
@@ -29,7 +63,7 @@ export function createDemoSession(role: DemoRole): AuthSession {
         user_metadata: {},
         created_at: new Date(0).toISOString(),
       },
-      profile: null,
+      profile: demoProfile(role, world, id),
     },
     access_token: '',
     refresh_token: '',

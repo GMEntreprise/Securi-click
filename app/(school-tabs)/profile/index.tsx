@@ -15,6 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { RateAppRow } from '@/features/settings/components/RateAppRow';
 import { AvatarPickerSheet } from '@/shared/ui/molecules/AvatarPickerSheet';
 import { useTheme } from '@/theme';
+import {
+  SettingIcon,
+  type SettingId,
+} from '@/features/settings/components/SettingIcon';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import { useUnreadCount } from '@/features/notifications/stores/notification.store';
 import {
@@ -218,28 +222,28 @@ export default function SchoolProfileScreen() {
           >
             {officialUai && (
               <InfoRow
-                iconName="key-outline"
+                icon="uai"
                 label={i18n('profile_info_uai')}
                 value={officialUai}
               />
             )}
             <InfoRow
-              iconName="business-outline"
+              icon="personalInfo"
               label={i18n('profile_info_manager')}
               value={`${school?.manager_first_name ?? ''} ${school?.manager_last_name ?? ''}`.trim()}
             />
             <InfoRow
-              iconName="mail-outline"
+              icon="email"
               label={i18n('profile_info_email')}
               value={school?.email ?? '—'}
             />
             <InfoRow
-              iconName="call-outline"
+              icon="phone"
               label={i18n('profile_info_phone')}
               value={school?.phone ?? '—'}
             />
             <InfoRow
-              iconName="location-outline"
+              icon="address"
               label={i18n('profile_info_address')}
               value={
                 school
@@ -269,22 +273,7 @@ export default function SchoolProfileScreen() {
               gap: 12,
             }}
           >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                backgroundColor: theme.greenBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons
-                name="notifications-outline"
-                size={18}
-                color={theme.green}
-              />
-            </View>
+            <SettingIcon id="notifications" />
             <View style={{ flex: 1 }}>
               <Text
                 style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
@@ -349,22 +338,7 @@ export default function SchoolProfileScreen() {
               gap: 12,
             }}
           >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                backgroundColor: theme.accentBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={18}
-                color={theme.accent}
-              />
-            </View>
+            <SettingIcon id="security" />
             <View style={{ flex: 1 }}>
               <Text
                 style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
@@ -403,22 +377,7 @@ export default function SchoolProfileScreen() {
               gap: 12,
             }}
           >
-            <View
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                backgroundColor: theme.primaryBg,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons
-                name="language-outline"
-                size={18}
-                color={theme.primary}
-              />
-            </View>
+            <SettingIcon id="language" />
             <View style={{ flex: 1 }}>
               <Text
                 style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
@@ -466,22 +425,7 @@ export default function SchoolProfileScreen() {
                 borderBottomColor: theme.separator,
               }}
             >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 11,
-                  backgroundColor: theme.amberBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons
-                  name="help-circle-outline"
-                  size={16}
-                  color={theme.amber}
-                />
-              </View>
+              <SettingIcon id="help" />
               <Text
                 style={{
                   flex: 1,
@@ -509,22 +453,7 @@ export default function SchoolProfileScreen() {
                 borderBottomColor: theme.separator,
               }}
             >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 11,
-                  backgroundColor: theme.iconBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons
-                  name="document-text-outline"
-                  size={16}
-                  color={theme.textMuted}
-                />
-              </View>
+              <SettingIcon id="legal" />
               <Text
                 style={{
                   flex: 1,
@@ -550,22 +479,7 @@ export default function SchoolProfileScreen() {
                 gap: 12,
               }}
             >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 11,
-                  backgroundColor: theme.iconBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={16}
-                  color={theme.textMuted}
-                />
-              </View>
+              <SettingIcon id="privacy" />
               <Text
                 style={{
                   flex: 1,
@@ -630,7 +544,7 @@ export default function SchoolProfileScreen() {
               gap: 10,
             }}
           >
-            <Ionicons name="log-out-outline" size={18} color={theme.red} />
+            <SettingIcon id="logout" size={26} />
             <Text style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}>
               {i18n('profile_logout')}
             </Text>
@@ -656,12 +570,12 @@ export default function SchoolProfileScreen() {
 }
 
 function InfoRow({
-  iconName,
+  icon,
   label,
   value,
   isLast = false,
 }: {
-  iconName: React.ComponentProps<typeof Ionicons>['name'];
+  icon: SettingId;
   label: string;
   value: string;
   isLast?: boolean;
@@ -679,7 +593,7 @@ function InfoRow({
         borderBottomColor: theme.separator,
       }}
     >
-      <Ionicons name={iconName} size={15} color={theme.textMuted} />
+      <SettingIcon id={icon} size={32} />
       <View style={{ flex: 1 }}>
         <Text
           style={{ color: theme.textMuted, fontSize: 11, fontWeight: '600' }}

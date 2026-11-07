@@ -16,6 +16,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { RateAppRow } from '@/features/settings/components/RateAppRow';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import {
+  SettingIcon,
+  type SettingId,
+} from '@/features/settings/components/SettingIcon';
+import { useLanguageStore } from '@/stores/language.store';
 import { appLocale } from '@/i18n/locale';
 import { useTheme as useThemeSwitcher } from '@/shared/ui/organisms/theme-switch/hooks';
 import { GooeySwitch } from '@/shared/ui/micro-interactions/gooey-switch';
@@ -81,6 +86,7 @@ export default function CollectorProfileScreen() {
   const insets = useSafeAreaInsets();
   const theme = useTheme();
   const { t } = useTranslation('collector');
+  const language = useLanguageStore(s => s.language);
   const nav = useAppNavigation();
   const unreadCount = useUnreadCount();
 
@@ -427,17 +433,17 @@ export default function CollectorProfileScreen() {
               }}
             >
               <InfoRow
-                iconName="person-outline"
+                icon="firstName"
                 label={t('common:first_name')}
                 value={profile?.first_name ?? '—'}
               />
               <InfoRow
-                iconName="person-outline"
+                icon="lastName"
                 label={t('common:last_name')}
                 value={profile?.last_name ?? '—'}
               />
               <InfoRow
-                iconName="call-outline"
+                icon="phone"
                 label={t('common:phone')}
                 value={profile?.phone ?? '—'}
                 isLast
@@ -461,18 +467,7 @@ export default function CollectorProfileScreen() {
                 gap: 12,
               }}
             >
-              <View
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 13,
-                  backgroundColor: theme.accentBg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons name="card-outline" size={19} color={theme.accent} />
-              </View>
+              <SettingIcon id="identity" />
               <View style={{ flex: 1 }}>
                 <Text
                   style={{ color: theme.text, fontWeight: '700', fontSize: 15 }}
@@ -519,24 +514,7 @@ export default function CollectorProfileScreen() {
                   borderBottomColor: theme.separator,
                 }}
               >
-                <View
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 11,
-                    backgroundColor: isDark
-                      ? 'rgba(99,102,241,0.14)'
-                      : theme.iconBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Ionicons
-                    name={isDark ? 'moon' : 'sunny-outline'}
-                    size={17}
-                    color={isDark ? '#818cf8' : theme.textSecondary}
-                  />
-                </View>
+                <SettingIcon id="darkMode" />
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
@@ -569,24 +547,11 @@ export default function CollectorProfileScreen() {
                   paddingHorizontal: 16,
                   paddingVertical: 13,
                   gap: 12,
+                  borderBottomWidth: 1,
+                  borderBottomColor: theme.separator,
                 }}
               >
-                <View
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 11,
-                    backgroundColor: theme.greenBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Ionicons
-                    name="notifications-outline"
-                    size={17}
-                    color={theme.green}
-                  />
-                </View>
+                <SettingIcon id="notifications" />
                 <View style={{ flex: 1 }}>
                   <Text
                     style={{
@@ -634,6 +599,15 @@ export default function CollectorProfileScreen() {
                   color={theme.textMuted}
                 />
               </TouchableOpacity>
+              <NavRow
+                icon="language"
+                label={t('profile_language')}
+                subtitle={
+                  language === 'fr' ? t('common:french') : t('common:english')
+                }
+                onPress={() => nav.goToCollectorLanguage()}
+                isLast
+              />
             </View>
           </Animated.View>
 
@@ -650,23 +624,17 @@ export default function CollectorProfileScreen() {
               }}
             >
               <NavRow
-                iconName="help-circle-outline"
-                iconBg={theme.amberBg}
-                iconColor={theme.amber}
+                icon="help"
                 label={t('common:screen_faq')}
                 onPress={() => nav.goToCollectorFaq()}
               />
               <NavRow
-                iconName="document-text-outline"
-                iconBg={theme.iconBg}
-                iconColor={theme.textMuted}
+                icon="legal"
                 label={t('common:screen_legal')}
                 onPress={() => nav.goToCollectorLegalMentions()}
               />
               <NavRow
-                iconName="lock-closed-outline"
-                iconBg={theme.iconBg}
-                iconColor={theme.textMuted}
+                icon="privacy"
                 label={t('common:privacy')}
                 onPress={() => nav.goToCollectorPrivacyPolicy()}
                 isLast
@@ -710,7 +678,7 @@ export default function CollectorProfileScreen() {
                 borderColor: 'rgba(239,68,68,0.2)',
               }}
             >
-              <Ionicons name="log-out-outline" size={18} color={theme.red} />
+              <SettingIcon id="logout" size={26} />
               <Text
                 style={{ color: theme.red, fontWeight: '700', fontSize: 15 }}
               >
@@ -741,11 +709,7 @@ export default function CollectorProfileScreen() {
               {isDeleting ? (
                 <ActivityIndicator color={theme.textMuted} size="small" />
               ) : (
-                <Ionicons
-                  name="trash-outline"
-                  size={15}
-                  color={theme.textMuted}
-                />
+                <SettingIcon id="deleteAccount" size={26} />
               )}
               <Text
                 style={{
@@ -814,12 +778,12 @@ function SectionLabel({ label }: { label: string }) {
 }
 
 function InfoRow({
-  iconName,
+  icon,
   label,
   value,
   isLast = false,
 }: {
-  iconName: React.ComponentProps<typeof Ionicons>['name'];
+  icon: SettingId;
   label: string;
   value: string;
   isLast?: boolean;
@@ -837,7 +801,7 @@ function InfoRow({
         borderBottomColor: theme.separator,
       }}
     >
-      <Ionicons name={iconName} size={15} color={theme.textMuted} />
+      <SettingIcon id={icon} size={32} />
       <View style={{ flex: 1 }}>
         <Text
           style={{ color: theme.textMuted, fontSize: 11, fontWeight: '600' }}
@@ -860,17 +824,15 @@ function InfoRow({
 }
 
 function NavRow({
-  iconName,
-  iconBg,
-  iconColor,
+  icon,
   label,
+  subtitle,
   onPress,
   isLast = false,
 }: {
-  iconName: React.ComponentProps<typeof Ionicons>['name'];
-  iconBg: string;
-  iconColor: string;
+  icon: SettingId;
   label: string;
+  subtitle?: string;
   onPress: () => void;
   isLast?: boolean;
 }) {
@@ -889,23 +851,17 @@ function NavRow({
         borderBottomColor: theme.separator,
       }}
     >
-      <View
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 11,
-          backgroundColor: iconBg,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Ionicons name={iconName} size={16} color={iconColor} />
+      <SettingIcon id={icon} />
+      <View style={{ flex: 1 }}>
+        <Text style={{ color: theme.text, fontWeight: '600', fontSize: 15 }}>
+          {label}
+        </Text>
+        {subtitle ? (
+          <Text style={{ color: theme.textMuted, fontSize: 12, marginTop: 1 }}>
+            {subtitle}
+          </Text>
+        ) : null}
       </View>
-      <Text
-        style={{ flex: 1, color: theme.text, fontWeight: '600', fontSize: 15 }}
-      >
-        {label}
-      </Text>
       <Ionicons name="chevron-forward" size={16} color={theme.textMuted} />
     </TouchableOpacity>
   );

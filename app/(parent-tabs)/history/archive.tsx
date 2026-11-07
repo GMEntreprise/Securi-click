@@ -17,9 +17,12 @@ import {
   useRestoreMonth,
 } from '@/features/parent/hooks/useArchive';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '@/i18n/locale';
 
 function getMonthName(year: number, month: number): string {
-  return new Date(year, month - 1).toLocaleString(undefined, { month: 'long' });
+  return new Date(year, month - 1).toLocaleString(appLocale(), {
+    month: 'long',
+  });
 }
 
 interface MonthRowProps {

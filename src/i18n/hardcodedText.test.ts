@@ -144,6 +144,33 @@ function literalText(node: ts.Node | undefined): string | null {
   return null;
 }
 
+function displayedTexts(node: ts.Node | undefined): string[] {
+  if (!node) return [];
+  const text = literalText(node);
+  if (text !== null) return [text];
+  if (ts.isParenthesizedExpression(node))
+    return displayedTexts(node.expression);
+  if (ts.isConditionalExpression(node)) {
+    return [
+      ...displayedTexts(node.whenTrue),
+      ...displayedTexts(node.whenFalse),
+    ];
+  }
+  if (ts.isBinaryExpression(node)) {
+    const operator = node.operatorToken.kind;
+    if (
+      operator === ts.SyntaxKind.QuestionQuestionToken ||
+      operator === ts.SyntaxKind.BarBarToken
+    ) {
+      return [...displayedTexts(node.left), ...displayedTexts(node.right)];
+    }
+    if (operator === ts.SyntaxKind.AmpersandAmpersandToken) {
+      return displayedTexts(node.right);
+    }
+  }
+  return [];
+}
+
 function isHuman(text: string | null): text is string {
   if (!text) return false;
   const trimmed = text.trim();
@@ -173,14 +200,21 @@ function findHardcodedText(file: string): string[] {
   };
 
   const visit = (node: ts.Node) => {
-    if (ts.isJsxText(node) && isHuman(node.text)) {
+    if (
+      ts.isStringLiteral(node) &&
+      /^[a-z]{2}-[A-Z]{2}$/.test(node.text) &&
+      !file.endsWith('locale.ts')
+    ) {
+      report(node, node.text);
+    } else if (ts.isJsxText(node) && isHuman(node.text)) {
       report(node, node.text);
     } else if (
       ts.isJsxExpression(node) &&
       (ts.isJsxElement(node.parent) || ts.isJsxFragment(node.parent))
     ) {
-      const text = literalText(node.expression);
-      if (isHuman(text)) report(node, text);
+      for (const text of displayedTexts(node.expression)) {
+        if (isHuman(text)) report(node, text);
+      }
     } else if (
       ts.isJsxAttribute(node) &&
       DISPLAY_PROPS.has(node.name.getText())
@@ -208,6 +242,13 @@ function findHardcodedText(file: string): string[] {
           report(arg, text);
         }
       }
+    } else if (
+      ts.isBindingElement(node) &&
+      DISPLAY_PROPS.has(node.name.getText()) &&
+      node.initializer
+    ) {
+      const text = literalText(node.initializer);
+      if (isHuman(text) && SENTENCE.test(text.trim())) report(node, text);
     } else if (
       ts.isPropertyAssignment(node) &&
       DISPLAY_PROPS.has(node.name.getText())

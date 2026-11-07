@@ -19,6 +19,18 @@ describe('demo store', () => {
     expect(store().session).toBeNull();
   });
 
+  it('greets each role with its fictional name, never its technical id', () => {
+    store().enter('parent');
+    expect(store().session?.user.profile).toMatchObject({
+      first_name: 'Camille',
+      last_name: 'Martin',
+    });
+    store().enter('collector');
+    expect(store().session?.user.profile?.first_name).toBe('Sophie');
+    store().enter('establishment');
+    expect(store().session?.user.profile?.first_name).toBe('Claire');
+  });
+
   it('opens a role with a session that holds no credentials', () => {
     store().enter('parent');
     expect(isDemoActive()).toBe(true);

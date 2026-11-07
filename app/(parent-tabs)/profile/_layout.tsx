@@ -42,6 +42,10 @@ export default function ParentProfileLayout() {
         name="security"
         options={{ title: t('screen_security'), headerBackTitle: '' }}
       />
+      <Stack.Screen
+        name="language"
+        options={{ title: t('language'), headerBackTitle: '' }}
+      />
     </Stack>
   );
 }

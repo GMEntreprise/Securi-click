@@ -167,6 +167,10 @@ export function useAppNavigation() {
     router.push(ROUTES.collector.privacyPolicy as any);
   }, [router]);
 
+  const goToCollectorLanguage = useCallback(() => {
+    router.push(ROUTES.collector.language);
+  }, [router]);
+
   const goToCollectorFaq = useCallback(() => {
     router.push(ROUTES.collector.faq as any);
   }, [router]);
@@ -248,6 +252,7 @@ export function useAppNavigation() {
     goToCollectorDashboard,
     goToCollectorProfile,
     goToCollectorNotifications,
+    goToCollectorLanguage,
     goToCollectorLegalMentions,
     goToCollectorPrivacyPolicy,
     goToCollectorFaq,

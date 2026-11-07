@@ -2,7 +2,7 @@ import React, { memo, useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { dateFnsLocale } from '@/i18n/locale';
 import { useTheme } from '@/theme';
 import { NotificationIcon } from './NotificationIcon';
 import type { Notification } from '../types';
@@ -19,7 +19,7 @@ export const NotificationItem = memo(({ item, onPress }: Props) => {
 
   const timeAgo = formatDistanceToNow(new Date(item.created_at), {
     addSuffix: true,
-    locale: fr,
+    locale: dateFnsLocale(),
   });
 
   return (

@@ -22,6 +22,7 @@ import QRCodeStyled from 'react-native-qrcode-styled';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
+import { AppIcon } from '@/shared/ui/icons/AppIcon';
 import { appLocale } from '@/i18n/locale';
 import { QrGenerationError } from '@/features/collector/services/collector.service';
 import {
@@ -34,17 +35,20 @@ import { isDemoActive } from '@/features/demo/store/demo.store';
 
 const STATUS_CFG = {
   completed: {
-    iconName: 'checkmark-circle' as const,
+    icon: 'check' as const,
+    tone: 'green' as const,
     color: '#10b981',
     labelKey: 'common:status_completed',
   },
   denied: {
-    iconName: 'close-circle' as const,
+    icon: 'cross' as const,
+    tone: 'red' as const,
     color: '#ef4444',
     labelKey: 'common:status_denied',
   },
   cancelled: {
-    iconName: 'remove-circle' as const,
+    icon: 'clock' as const,
+    tone: 'amber' as const,
     color: '#f59e0b',
     labelKey: 'common:status_cancelled',
   },
@@ -239,7 +243,7 @@ export default function CollectorQRScreen() {
             >
               {selectedGuardian
                 ? `${selectedGuardian.child?.first_name} ${selectedGuardian.child?.last_name}`
-                : 'Choisir'}
+                : t('qr_choose')}
             </Text>
             <Ionicons name="chevron-down" size={16} color={theme.textMuted} />
           </TouchableOpacity>
@@ -289,22 +293,7 @@ export default function CollectorQRScreen() {
                   gap: 10,
                 }}
               >
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: theme.accentBg,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Ionicons
-                    name="person-outline"
-                    size={15}
-                    color={theme.accent}
-                  />
-                </View>
+                <AppIcon name="person" tone="accent" size={34} />
                 <Text
                   style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}
                 >
@@ -348,7 +337,7 @@ export default function CollectorQRScreen() {
             <View
               style={{ alignItems: 'center', gap: 10, paddingHorizontal: 20 }}
             >
-              <Ionicons name="shield-outline" size={36} color="#ef4444" />
+              <AppIcon name="warning" tone="red" size={56} />
               <Text
                 style={{
                   color: '#ef4444',
@@ -371,11 +360,7 @@ export default function CollectorQRScreen() {
             <View
               style={{ alignItems: 'center', gap: 10, paddingHorizontal: 20 }}
             >
-              <Ionicons
-                name="lock-open-outline"
-                size={28}
-                color={theme.textMuted}
-              />
+              <AppIcon name="qr" tone="neutral" size={56} />
               <Text
                 style={{
                   color: theme.textSecondary,
@@ -388,22 +373,7 @@ export default function CollectorQRScreen() {
             </View>
           ) : (
             <View style={{ alignItems: 'center', gap: 10 }}>
-              <View
-                style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: 22,
-                  backgroundColor: theme.isDark ? '#21262d' : '#f3f4f6',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Ionicons
-                  name="lock-closed-outline"
-                  size={28}
-                  color={theme.textMuted}
-                />
-              </View>
+              <AppIcon name="lock" tone="neutral" size={64} />
               <Text
                 style={{
                   color: theme.textSecondary,
@@ -527,18 +497,7 @@ export default function CollectorQRScreen() {
                     gap: 12,
                   }}
                 >
-                  <View
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 12,
-                      backgroundColor: `${cfg.color}20`,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Ionicons name={cfg.iconName} size={16} color={cfg.color} />
-                  </View>
+                  <AppIcon name={cfg.icon} tone={cfg.tone} size={38} />
                   <View style={{ flex: 1 }}>
                     <Text
                       style={{

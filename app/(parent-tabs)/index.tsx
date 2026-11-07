@@ -7,6 +7,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useTheme } from '@/theme';
+import {
+  AppIcon,
+  type AppIconName,
+  type AppIconTone,
+} from '@/shared/ui/icons/AppIcon';
 import { useSession } from '@/features/auth/store/auth.store';
 import { useAppNavigation } from '@/navigation/useAppNavigation';
 import Animated, {
@@ -18,7 +23,6 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTabBarHeight } from '@/hooks/useTabBarHeight';
 import * as Haptics from 'expo-haptics';
-import { MaterialCommunityIcons, Feather } from '@expo/vector-icons';
 import { useChildren } from '@/features/parent/hooks/useChildren';
 import { useRecentPickupLogs } from '@/features/parent/hooks/usePickupLogs';
 import type { PickupLog } from '@/features/parent/types';
@@ -26,12 +30,12 @@ import { NotificationBell } from '@/features/notifications/components/Notificati
 import { QueryError } from '@/shared/ui/base/query-error';
 import { useChildrenSheetStore } from '@/features/parent/stores/childrenSheet.store';
 import { useTranslation } from 'react-i18next';
+import { appLocale } from '@/i18n/locale';
 
 interface QuickAction {
   id: string;
-  icon: React.ReactNode;
+  icon: { name: AppIconName; tone: AppIconTone };
   label: string;
-  accentBg: string;
   onPress: () => void;
 }
 
@@ -70,18 +74,8 @@ const QuickActionCard = React.memo(function QuickActionCard({
           },
         ]}
       >
-        <View
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: 16,
-            backgroundColor: action.accentBg,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: 8,
-          }}
-        >
-          {action.icon}
+        <View style={{ marginBottom: 8 }}>
+          <AppIcon name={action.icon.name} tone={action.icon.tone} size={52} />
         </View>
         <Text
           style={{
@@ -126,7 +120,7 @@ const ActivityRow = React.memo(function ActivityRow({
   const guardianName = item.guardian
     ? `${item.guardian.first_name} ${item.guardian.last_name}`
     : i18n('activity_unknown');
-  const time = new Date(item.pickup_time).toLocaleTimeString('fr-FR', {
+  const time = new Date(item.pickup_time).toLocaleTimeString(appLocale(), {
     hour: '2-digit',
     minute: '2-digit',
   });
@@ -143,36 +137,12 @@ const ActivityRow = React.memo(function ActivityRow({
         borderBottomColor: theme.separator,
       }}
     >
-      <View
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 12,
-          backgroundColor: bg,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginRight: 12,
-        }}
-      >
-        {isSuccess ? (
-          <MaterialCommunityIcons
-            name="check-circle-outline"
-            size={20}
-            color={color}
-          />
-        ) : isDenied ? (
-          <MaterialCommunityIcons
-            name="alert-circle-outline"
-            size={20}
-            color={color}
-          />
-        ) : (
-          <MaterialCommunityIcons
-            name="clock-outline"
-            size={20}
-            color={color}
-          />
-        )}
+      <View style={{ marginRight: 12 }}>
+        <AppIcon
+          name={isSuccess ? 'check' : isDenied ? 'cross' : 'clock'}
+          tone={isSuccess ? 'green' : isDenied ? 'red' : 'amber'}
+          size={40}
+        />
       </View>
       <View style={{ flex: 1 }}>
         <Text style={{ color: theme.text, fontWeight: '600', fontSize: 14 }}>
@@ -231,28 +201,14 @@ export default function ParentDashboard() {
     () => [
       {
         id: 'qr',
-        icon: (
-          <MaterialCommunityIcons
-            name="qrcode"
-            size={24}
-            color={theme.accent}
-          />
-        ),
+        icon: { name: 'qr', tone: 'accent' },
         label: i18n('qr_code'),
-        accentBg: theme.accentBg,
         onPress: () => nav.goToParentQr(),
       },
       {
         id: 'children',
-        icon: (
-          <MaterialCommunityIcons
-            name="account-group"
-            size={24}
-            color={theme.primary}
-          />
-        ),
+        icon: { name: 'family', tone: 'primary' },
         label: childrenCount === 0 ? i18n('add_child') : i18n('my_children'),
-        accentBg: theme.primaryBg,
         onPress: () => {
           if (childrenCount === 0) {
             nav.goToParentChildAdd();
@@ -264,80 +220,54 @@ export default function ParentDashboard() {
       },
       {
         id: 'add-guardian',
-        icon: (
-          <MaterialCommunityIcons
-            name="account-plus"
-            size={24}
-            color={theme.green}
-          />
-        ),
+        icon: { name: 'userPlus', tone: 'green' },
         label: i18n('dashboard_action_authorize'),
-        accentBg: theme.greenBg,
         onPress: () => nav.goToParentChildren(),
       },
       {
         id: 'history',
-        icon: (
-          <MaterialCommunityIcons
-            name="history"
-            size={24}
-            color={theme.textSecondary}
-          />
-        ),
+        icon: { name: 'history', tone: 'neutral' },
         label: i18n('history_title'),
-        accentBg: theme.iconBg,
         onPress: () => nav.goToParentHistory(),
       },
     ],
-    [theme, nav, childrenCount, requestChildrenSheetOpen, i18n]
+    [nav, childrenCount, requestChildrenSheetOpen, i18n]
   );
 
-  const stats = useMemo(
+  const stats = useMemo<
+    {
+      icon: { name: AppIconName; tone: AppIconTone };
+      label: string;
+      value: number;
+    }[]
+  >(
     () => [
       {
-        icon: (
-          <MaterialCommunityIcons
-            name="shield-half-full"
-            size={20}
-            color={theme.accent}
-          />
-        ),
+        icon: { name: 'family', tone: 'accent' },
         label:
           childrenCount > 1
             ? i18n('dashboard_stat_children_other')
             : i18n('dashboard_stat_children_one'),
         value: childrenCount,
-        bg: theme.accentBg,
-        color: theme.accent,
       },
       {
-        icon: <Feather name="trending-up" size={20} color={theme.green} />,
+        icon: { name: 'trend', tone: 'green' },
         label:
           completedCount > 1
             ? i18n('dashboard_stat_pickups_other')
             : i18n('dashboard_stat_pickups_one'),
         value: completedCount,
-        bg: theme.greenBg,
-        color: theme.green,
       },
       {
-        icon: (
-          <MaterialCommunityIcons
-            name="file-document-outline"
-            size={20}
-            color={theme.primary}
-          />
-        ),
+        icon: { name: 'document', tone: 'primary' },
         label:
           (recentLogs?.length ?? 0) > 1
             ? i18n('dashboard_stat_recent_other')
             : i18n('dashboard_stat_recent_one'),
         value: recentLogs?.length ?? 0,
-        bg: theme.primaryBg,
-        color: theme.primary,
       },
     ],
-    [theme, childrenCount, completedCount, recentLogs, i18n]
+    [childrenCount, completedCount, recentLogs, i18n]
   );
 
   if ((childrenError && !children) || (logsError && !recentLogs)) {
@@ -425,18 +355,12 @@ export default function ParentDashboard() {
                 alignItems: 'center',
               }}
             >
-              <View
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 12,
-                  backgroundColor: stat.bg,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: 8,
-                }}
-              >
-                {stat.icon}
+              <View style={{ marginBottom: 8 }}>
+                <AppIcon
+                  name={stat.icon.name}
+                  tone={stat.icon.tone}
+                  size={40}
+                />
               </View>
               <View
                 style={{
@@ -531,11 +455,7 @@ export default function ParentDashboard() {
               <View
                 style={{ paddingVertical: 24, alignItems: 'center', gap: 8 }}
               >
-                <MaterialCommunityIcons
-                  name="clock-outline"
-                  size={30}
-                  color={theme.textMuted}
-                />
+                <AppIcon name="clock" tone="neutral" size={48} />
                 <Text style={{ color: theme.textMuted, fontSize: 14 }}>
                   {i18n('dashboard_no_activity')}
                 </Text>

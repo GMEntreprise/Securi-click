@@ -6,11 +6,17 @@ import {
 } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { AppIcon } from '@/shared/ui/icons/AppIcon';
+import { ParentIcon } from '@/shared/ui/icons/ParentIcon';
+import { CollectorIcon } from '@/shared/ui/icons/CollectorIcon';
+import { SchoolIcon } from '@/shared/ui/icons/SchoolIcon';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
 import { leaveDemo } from '@/features/auth/store/auth.store';
 import { DEMO_GUIDE_STEPS, useDemoStore } from '../store/demo.store';
 import type { DemoRole } from '../domain/types';
+
+const MENU_ICON_SIZE = 44;
 
 const ROLES: readonly DemoRole[] = ['parent', 'collector', 'establishment'];
 
@@ -84,38 +90,66 @@ function MenuAction({
   icon,
   label,
   onPress,
-  disabled = false,
+  current = false,
+  currentLabel,
   tone = 'default',
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: React.ReactNode;
   label: string;
   onPress: () => void;
-  disabled?: boolean;
+  current?: boolean;
+  currentLabel?: string;
   tone?: 'default' | 'danger';
 }) {
   const theme = useTheme();
   const color = tone === 'danger' ? theme.red : theme.text;
   return (
     <Pressable
+      cssInterop={false}
       onPress={onPress}
-      disabled={disabled}
+      disabled={current}
       accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      style={{
+      accessibilityState={{ selected: current }}
+      style={({ pressed }) => ({
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        minHeight: 48,
-        paddingHorizontal: 14,
-        borderRadius: 12,
-        backgroundColor: theme.iconBg,
-        opacity: disabled ? 0.5 : 1,
-      }}
+        gap: 14,
+        minHeight: 64,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 18,
+        backgroundColor: theme.card,
+        borderWidth: 1.5,
+        borderColor: current
+          ? theme.accent
+          : pressed
+            ? theme.primary
+            : theme.cardBorder,
+        transform: [{ scale: pressed ? 0.985 : 1 }],
+      })}
     >
-      <Ionicons name={icon} size={20} color={color} />
-      <Text style={{ color, fontSize: 15, fontWeight: '700', flex: 1 }}>
+      {icon}
+      <Text style={{ color, fontSize: 16, fontWeight: '700', flex: 1 }}>
         {label}
       </Text>
+      {current ? (
+        <View
+          style={{
+            paddingHorizontal: 10,
+            paddingVertical: 4,
+            borderRadius: 999,
+            backgroundColor: theme.accentBg,
+          }}
+        >
+          <Text
+            style={{ color: theme.accent, fontSize: 12, fontWeight: '800' }}
+          >
+            {currentLabel}
+          </Text>
+        </View>
+      ) : (
+        <Ionicons name="chevron-forward" size={18} color={theme.textMuted} />
+      )}
     </Pressable>
   );
 }
@@ -190,13 +224,24 @@ function DemoMenu({
           onPress={() => {}}
           style={{
             backgroundColor: theme.bg,
-            borderTopLeftRadius: 24,
-            borderTopRightRadius: 24,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
             padding: 20,
+            paddingTop: 10,
             paddingBottom: insets.bottom + 20,
             gap: 10,
           }}
         >
+          <View
+            style={{
+              alignSelf: 'center',
+              width: 40,
+              height: 5,
+              borderRadius: 3,
+              backgroundColor: theme.cardBorder,
+              marginBottom: 8,
+            }}
+          />
           <Text
             accessibilityRole="header"
             style={{ color: theme.text, fontSize: 20, fontWeight: '800' }}
@@ -226,30 +271,35 @@ function DemoMenu({
             <MenuAction
               key={item}
               icon={
-                item === 'parent'
-                  ? 'people-outline'
-                  : item === 'collector'
-                    ? 'shield-checkmark-outline'
-                    : 'school-outline'
+                item === 'parent' ? (
+                  <ParentIcon size={MENU_ICON_SIZE} />
+                ) : item === 'collector' ? (
+                  <CollectorIcon size={MENU_ICON_SIZE} />
+                ) : (
+                  <SchoolIcon size={MENU_ICON_SIZE} />
+                )
               }
               label={t(`role_${item}_title`)}
-              disabled={item === role}
+              current={item === role}
+              currentLabel={t('menu_current')}
               onPress={() => switchTo(item)}
             />
           ))}
           <View style={{ height: 6 }} />
           <MenuAction
-            icon="help-circle-outline"
+            icon={<AppIcon name="help" tone="amber" size={MENU_ICON_SIZE} />}
             label={t('menu_guide')}
             onPress={replayGuide}
           />
           <MenuAction
-            icon="refresh-outline"
+            icon={
+              <AppIcon name="refresh" tone="primary" size={MENU_ICON_SIZE} />
+            }
             label={t('menu_restart')}
             onPress={restart}
           />
           <MenuAction
-            icon="log-out-outline"
+            icon={<AppIcon name="logout" tone="red" size={MENU_ICON_SIZE} />}
             label={t('menu_exit')}
             onPress={exit}
             tone="danger"

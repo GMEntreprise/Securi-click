@@ -143,5 +143,7 @@
   "day_friday": "Vendredi",
   "today_at": "Aujourd'hui à {{time}}",
   "tomorrow_at": "Demain à {{time}}",
-  "day_at": "{{day}} à {{time}}"
+  "day_at": "{{day}} à {{time}}",
+  "today": "Aujourd'hui",
+  "yesterday": "Hier"
 }

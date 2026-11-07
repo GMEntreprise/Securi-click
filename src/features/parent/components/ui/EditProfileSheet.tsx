@@ -432,12 +432,12 @@ export const EditProfileSheet = memo(function EditProfileSheet({
 const SaveButton = memo(function SaveButton({
   onPress,
   isLoading,
-  label = 'Enregistrer',
+  label,
   theme,
 }: {
   onPress: () => void;
   isLoading: boolean;
-  label?: string;
+  label: string;
   theme: ReturnType<typeof useTheme>;
 }) {
   return (
