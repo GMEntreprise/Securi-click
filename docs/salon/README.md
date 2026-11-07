@@ -38,12 +38,31 @@ unique, comme un vrai.
 Sans caméra (permission refusée, simulateur), le bouton **Simuler un scan**
 propose les cinq mêmes codes à l’écran.
 
-## 3. Deux familles de QR, à ne pas confondre
+## 3. Comment fonctionnent les QR codes
 
-- **Chevalets** (2) : scannés avec l’appareil photo du visiteur. Ils ouvrent la
-  démo sur **son** téléphone.
-- **QR enfants** (5) : scannés **dans** Sécuri’Click, rôle Établissement.
-  L’appareil photo classique n’en fait rien.
+Il existe trois sortes de QR, à ne pas confondre :
+
+1. **QR des chevalets** (2) : le visiteur les scanne avec l’appareil photo de
+   **son** téléphone. Le QR contient un lien `https://securi-click.com/demo/…`.
+   - Application installée : le lien ouvre directement Sécuri’Click, déjà dans
+     la démo, sur le bon écran (Établissement ou Parent → Collecteurs).
+   - Application absente : la page web de transition s’affiche, avec les liens
+     App Store / Google Play.
+   - Prérequis : fichiers de `docs/salon/site/` déposés sur le serveur (§ 7) et
+     nouvelle build installée (§ 8). Sans cela, utiliser le bouton
+     **Essayer sans compte** de l’écran d’accueil.
+2. **QR enfants imprimés** (5) : scannés **dans** Sécuri’Click, rôle
+   Établissement, onglet Scanner. L’appareil photo classique n’en fait rien.
+3. **QR générés en direct** : un visiteur en rôle Parent ou Collecteur génère
+   son QR sur son téléphone et le présente à la tablette du stand (rôle
+   Établissement), exactement comme dans la vraie application. Le QR contient
+   l’enfant, la personne autorisée et sa date d’expiration : la tablette le
+   valide même si elle ne connaît pas cette personne (par exemple Nina Roux,
+   ajoutée pendant la démo). Il est **à usage unique** : un second scan est
+   refusé, comme en production. Il expire au bout de 24 h.
+
+Aucun de ces QR n’atteint le serveur : un QR de démo scanné dans l’application
+réelle est refusé avant tout appel réseau.
 
 ## 4. Préparer le stand
 
@@ -153,11 +172,12 @@ changements.
   **Recommencer la démonstration** entre deux visiteurs.
 - Pas de démo web : sans l’application, le visiteur arrive sur la page de
   transition (installation).
-- En démo, certaines actions sans intérêt pédagogique répondent « non
-  disponible en mode démonstration » : envoi de photos, archivage de
-  l’historique, vérification d’identité du collecteur.
-- La démo ne montre pas une transaction distante entre deux appareils : chaque
-  appareil a son propre état fictif. Révoquer Sophie sur l’appareil Parent ne
-  change pas le résultat sur l’appareil Établissement.
+- Photos, pièce d’identité et archivage fonctionnent en démo : les images
+  restent sur l’appareil, en mémoire, et disparaissent au redémarrage de la
+  démo. Seule l’acceptation d’une invitation par e-mail n’existe pas (les
+  collecteurs ajoutés sont actifs immédiatement).
+- Chaque appareil garde son propre état fictif : un QR généré sur un téléphone
+  est bien validé par la tablette, mais une révocation faite ensuite sur le
+  téléphone n’est pas connue de la tablette (il n’y a pas de serveur).
 - Vérifications restant à faire sur appareils réels : Android, iPhone physique,
   QR imprimés sous lumière forte, liens HTTPS après dépôt des fichiers.
