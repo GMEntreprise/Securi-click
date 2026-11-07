@@ -54,6 +54,7 @@ export function DemoRolePicker() {
       }}
     >
       <Pressable
+        cssInterop={false}
         onPress={back}
         accessibilityRole="button"
         hitSlop={10}
@@ -91,6 +92,7 @@ export function DemoRolePicker() {
 
       {ROLES.map(({ role, icon }) => (
         <Pressable
+          cssInterop={false}
           key={role}
           onPress={() => open(role)}
           accessibilityRole="button"
