@@ -1,6 +1,6 @@
 /// <reference types="node" />
-import { existsSync } from 'node:fs';
 import type { ExpoConfig } from 'expo/config';
+import { existsSync } from 'node:fs';
 
 // iOS Firebase config is gitignored and absent locally; only wire it up when
 // the file (or EAS secret env var) is actually present so `prebuild` won't crash.
@@ -15,7 +15,7 @@ const EAS_PROJECT_ID = '858bf27d-7dbe-4355-bb8c-13fc80bb2b24';
 const config: ExpoConfig = {
   name: 'SecuriClick',
   slug: 'securiclick',
-  version: '1.1.0',
+  version: '1.2.0',
   orientation: 'portrait',
   scheme: 'securiclick',
   userInterfaceStyle: 'automatic',
@@ -45,7 +45,7 @@ const config: ExpoConfig = {
       tinted: './assets/icons/ios-tinted.png',
     },
     supportsTablet: true,
-    buildNumber: '1.1.0',
+    buildNumber: '1.2.0',
     associatedDomains: ['applinks:securi-click.com'],
     infoPlist: {
       NSCameraUsageDescription:
