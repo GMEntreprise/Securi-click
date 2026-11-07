@@ -46,6 +46,7 @@ const config: ExpoConfig = {
     },
     supportsTablet: true,
     buildNumber: '1.1.0',
+    associatedDomains: ['applinks:securi-click.com'],
     infoPlist: {
       NSCameraUsageDescription:
         "SecuriClick a besoin d'accéder à votre caméra pour scanner les QR codes et prendre des photos des enfants.",
@@ -79,6 +80,18 @@ const config: ExpoConfig = {
             scheme: 'securiclick',
             host: 'auth',
             pathPrefix: '/callback',
+          },
+        ],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        data: [
+          {
+            scheme: 'https',
+            host: 'securi-click.com',
+            pathPrefix: '/demo',
           },
         ],
         category: ['BROWSABLE', 'DEFAULT'],

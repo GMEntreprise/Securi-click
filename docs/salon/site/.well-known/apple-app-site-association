@@ -1,0 +1,10 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["N9M36K8YNL.com.shavod.Securiclick"],
+        "components": [{ "/": "/demo/*" }]
+      }
+    ]
+  }
+}
