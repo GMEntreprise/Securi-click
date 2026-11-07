@@ -2,7 +2,7 @@ import React, { useCallback } from 'react';
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { CurvedBottomTabs } from '@/shared/ui/base/curved-bottom-tabs';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarProps } from 'expo-router/js-tabs';
 import type { CurvedTabBarNavigationProps } from '@/shared/ui/base/curved-bottom-tabs/types';
 import { useTheme } from '@/theme';
 import { NotificationBell } from '@/features/notifications/components/NotificationBell';
