@@ -7,19 +7,32 @@ import {
 } from './qrScenarios';
 
 describe('demo QR payloads', () => {
-  it('defines five distinct printed scenarios', () => {
+  it('defines ten distinct printed scenarios, half validated', () => {
     const payloads = DEMO_QR_SCENARIOS.map(scenario => scenario.payload);
-    expect(new Set(payloads).size).toBe(5);
+    expect(new Set(payloads).size).toBe(10);
+    expect(DEMO_QR_SCENARIOS.map(scenario => scenario.number)).toEqual([
+      '01',
+      '02',
+      '03',
+      '04',
+      '05',
+      '06',
+      '07',
+      '08',
+      '09',
+      '10',
+    ]);
     expect(
       DEMO_QR_SCENARIOS.filter(s => s.expected === 'validated')
-    ).toHaveLength(3);
+    ).toHaveLength(5);
     expect(
       DEMO_QR_SCENARIOS.filter(s => s.expected === 'refused')
-    ).toHaveLength(2);
+    ).toHaveLength(5);
   });
 
-  it('never resembles a real pickup token', () => {
-    for (const { payload } of DEMO_QR_SCENARIOS) {
+  it('opens the download section of the website when scanned by a camera', () => {
+    for (const { id, payload } of DEMO_QR_SCENARIOS) {
+      expect(payload).toBe(`https://securi-click.com/?demo=${id}#telecharger`);
       expect(payload.startsWith('SC-')).toBe(false);
       expect(isDemoQrPayload(payload)).toBe(true);
     }
@@ -30,11 +43,23 @@ describe('demo QR payloads', () => {
       kind: 'scenario',
       scenario: DEMO_QR_SCENARIOS[0].id,
     });
+    expect(
+      parseDemoQrPayload('SECURICLICK-DEMO:v1:authorized-grandmother')
+    ).toEqual({ kind: 'scenario', scenario: 'authorized-grandmother' });
     expect(parseDemoQrPayload('SC-TESTTOKEN0001')).toBeNull();
     expect(parseDemoQrPayload('SECURICLICK-DEMO:v1:unknown')).toBeNull();
     expect(
       parseDemoQrPayload('SECURICLICK-DEMO:v2:authorized-grandmother')
     ).toBeNull();
+    expect(
+      parseDemoQrPayload('https://securi-click.com/?demo=unknown#telecharger')
+    ).toBeNull();
+    expect(
+      parseDemoQrPayload('https://evil.example/?demo=authorized-grandmother')
+    ).toBeNull();
+    expect(isDemoQrPayload('https://securi-click.com/#telecharger')).toBe(
+      false
+    );
     expect(parseDemoQrPayload('')).toBeNull();
   });
 

@@ -1,3 +1,4 @@
+import { i18n } from '@/i18n';
 import type { CollectorIdentityStatus } from '@/features/school/types';
 import { DEMO_IDS, demoUnauthorizedPerson } from './seed';
 import {
@@ -40,7 +41,15 @@ export type DemoScanOutcome =
     };
 
 const SCENARIO_ROWS: Record<
-  Exclude<DemoQrScenarioId, 'unauthorized-person' | 'expired-code'>,
+  Exclude<
+    DemoQrScenarioId,
+    | 'unauthorized-person'
+    | 'expired-code'
+    | 'parent-ines'
+    | 'parent-lea'
+    | 'wrong-child'
+    | 'already-used'
+  >,
   { childId: string; guardianId: string; noteKey: string }
 > = {
   'authorized-grandmother': {
@@ -57,6 +66,11 @@ const SCENARIO_ROWS: Record<
     childId: DEMO_IDS.emma,
     guardianId: DEMO_IDS.julieEmma,
     noteKey: 'qr_note_temporary',
+  },
+  'revoked-access': {
+    childId: DEMO_IDS.lucas,
+    guardianId: DEMO_IDS.sophieLucas,
+    noteKey: 'qr_note_authorized',
   },
 };
 
@@ -219,6 +233,43 @@ export function demoLiveCodeFor(
   };
 }
 
+function parentPickup(world: DemoWorld, childId: string): DemoScanOutcome {
+  const row = world.children.find(child => child.id === childId);
+  const child = childOf(world, childId);
+  if (!row?.parent || !child) return UNKNOWN;
+  return {
+    status: 'validated',
+    child,
+    guardian: {
+      id: `${childId}-parent`,
+      first_name: row.parent.first_name,
+      last_name: row.parent.last_name,
+      phone: row.parent.phone ?? '',
+      relationship: i18n.t('demo:seed_rel_parent'),
+      identity_status: 'none',
+    },
+    noteKey: 'qr_note_parent',
+  };
+}
+
+function refusedWith(
+  world: DemoWorld,
+  childId: string,
+  guardianId: string,
+  reasonKey: string
+): DemoScanOutcome {
+  const child = childOf(world, childId);
+  const guardian = world.guardians.find(g => g.id === guardianId);
+  return child
+    ? {
+        status: 'refused',
+        child,
+        guardian: guardian ? guardianOf(guardian) : null,
+        reasonKey,
+      }
+    : UNKNOWN;
+}
+
 export function evaluateDemoScan(
   world: DemoWorld,
   payload: string,
@@ -253,6 +304,24 @@ export function evaluateDemoScan(
           }
         : UNKNOWN;
     }
+    case 'parent-ines':
+      return parentPickup(world, DEMO_IDS.ines);
+    case 'parent-lea':
+      return parentPickup(world, DEMO_IDS.lea);
+    case 'wrong-child':
+      return refusedWith(
+        world,
+        DEMO_IDS.noe,
+        DEMO_IDS.thomasLucas,
+        'qr_refused_unauthorized'
+      );
+    case 'already-used':
+      return refusedWith(
+        world,
+        DEMO_IDS.emma,
+        DEMO_IDS.julieEmma,
+        'qr_refused_used'
+      );
     default: {
       const row = SCENARIO_ROWS[parsed.scenario];
       const child = childOf(world, row.childId);

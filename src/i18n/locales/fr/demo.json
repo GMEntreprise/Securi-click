@@ -71,5 +71,11 @@
   "seed_notif_collector_body": "L’École des Tilleuls a validé votre récupération d’Emma.",
   "seed_notif_school_title": "Récupération validée",
   "seed_notif_school_body": "Sophie Martin a récupéré Emma Martin.",
-  "menu_current": "Actuel"
+  "menu_current": "Actuel",
+  "seed_rel_parent": "Parent",
+  "qr_label_parent_ines": "Inès · Paul Moreau, parent",
+  "qr_label_parent_lea": "Léa · Marie Petit, parent",
+  "qr_label_revoked_access": "Lucas · Sophie Martin, accès révoqué",
+  "qr_label_wrong_child": "Noé · Thomas Martin, mauvais enfant",
+  "qr_label_already_used": "Emma · Julie Bernard, code déjà utilisé"
 }

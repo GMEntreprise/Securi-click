@@ -71,5 +71,11 @@
   "seed_notif_collector_body": "École des Tilleuls validated your pickup of Emma.",
   "seed_notif_school_title": "Pickup validated",
   "seed_notif_school_body": "Sophie Martin collected Emma Martin.",
-  "menu_current": "Current"
+  "menu_current": "Current",
+  "seed_rel_parent": "Parent",
+  "qr_label_parent_ines": "Inès · Paul Moreau, parent",
+  "qr_label_parent_lea": "Léa · Marie Petit, parent",
+  "qr_label_revoked_access": "Lucas · Sophie Martin, access revoked",
+  "qr_label_wrong_child": "Noé · Thomas Martin, wrong child",
+  "qr_label_already_used": "Emma · Julie Bernard, code already used"
 }

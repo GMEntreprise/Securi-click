@@ -8,11 +8,14 @@ import {
   type PDFFont,
   type PDFPage,
 } from 'pdf-lib';
-import { DEMO_QR_SCENARIOS } from '../src/features/demo/domain/qrScenarios';
+import {
+  DEMO_QR_SCENARIOS,
+  DEMO_QR_SITE,
+} from '../src/features/demo/domain/qrScenarios';
 
 const OUT = join(process.cwd(), 'docs/salon/qr');
-const DEMO_BASE_URL =
-  process.env.DEMO_BASE_URL ?? 'https://securi-click.com/demo';
+const DOWNLOAD_URL = `${DEMO_QR_SITE}#telecharger`;
+const PER_PAGE = 5;
 
 const A4: [number, number] = [595.28, 841.89];
 const MM = 72 / 25.4;
@@ -50,25 +53,50 @@ const SCENARIO_TEXT: Record<
     outcome: 'REFUSÉ — QR code expiré',
     detail: 'Ce code n’est plus valable. Demandez un nouveau QR code.',
   },
+  'parent-ines': {
+    title: 'Inès Moreau · Paul Moreau (parent)',
+    outcome: 'VALIDÉ — Récupération par le parent',
+    detail: 'Le parent récupère lui-même son enfant.',
+  },
+  'parent-lea': {
+    title: 'Léa Petit · Marie Petit (parent)',
+    outcome: 'VALIDÉ — Récupération par le parent',
+    detail: 'Le parent récupère lui-même son enfant.',
+  },
+  'revoked-access': {
+    title: 'Lucas Martin · Sophie Martin (grand-mère)',
+    outcome: 'REFUSÉ — Autorisation révoquée',
+    detail: 'Le parent a retiré l’accès de cette personne pour Lucas.',
+  },
+  'wrong-child': {
+    title: 'Noé Petit · Thomas Martin',
+    outcome: 'REFUSÉ — Pas autorisé pour cet enfant',
+    detail: 'Thomas est autorisé pour Lucas, pas pour Noé.',
+  },
+  'already-used': {
+    title: 'Emma Martin · Julie Bernard (nounou)',
+    outcome: 'REFUSÉ — QR code déjà utilisé',
+    detail: 'Chaque QR code ne sert qu’une seule fois.',
+  },
 };
 
 const STANDS = [
   {
     id: 'chevalet-etablissement',
-    url: `${DEMO_BASE_URL}/etablissement`,
+    url: DOWNLOAD_URL,
     title: 'Découvrez Sécuri’Click côté Établissement',
     subtitle: [
-      'Scannez et testez comment une école vérifie',
-      'une autorisation en quelques secondes.',
+      'Téléchargez l’application, puis touchez',
+      '« Essayer sans compte », puis Établissement.',
     ],
   },
   {
     id: 'chevalet-parent',
-    url: `${DEMO_BASE_URL}/parent/collecteurs`,
+    url: DOWNLOAD_URL,
     title: 'Découvrez Sécuri’Click côté Parent',
     subtitle: [
-      'Ajoutez un collecteur et découvrez comment',
-      'sécuriser la sortie de votre enfant.',
+      'Téléchargez l’application, puis touchez',
+      '« Essayer sans compte », puis Parent.',
     ],
   },
 ];
@@ -110,79 +138,91 @@ function centered(
 
 async function buildScenarioSheet(pngs: Map<string, Uint8Array>) {
   const pdf = await PDFDocument.create();
-  const page = pdf.addPage(A4);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
-
-  centered(page, 'DÉMONSTRATION — Sécuri’Click', A4[1] - 18 * MM, bold, 18);
-  centered(
-    page,
-    'À scanner depuis l’application, rôle Établissement, onglet Scanner. Codes fictifs, sans effet réel.',
-    A4[1] - 25 * MM,
-    regular,
-    9.5,
-    MUTED
-  );
-
   const qrSize = 52 * MM;
   const rowHeight = 50 * MM;
-  let y = A4[1] - 34 * MM - qrSize;
-  for (const scenario of DEMO_QR_SCENARIOS) {
-    const text = SCENARIO_TEXT[scenario.id];
-    const image = await pdf.embedPng(pngs.get(scenario.id) ?? new Uint8Array());
-    const x = 16 * MM;
-    page.drawImage(image, {
-      x,
-      y: y + (rowHeight - qrSize) / 2 + 2 * MM,
-      width: qrSize * 0.9,
-      height: qrSize * 0.9,
-    });
-    const tx = x + qrSize + 4 * MM;
-    const ok = scenario.expected === 'validated';
-    page.drawText(`QR ${scenario.number}`, {
-      x: tx,
-      y: y + rowHeight - 12 * MM,
-      size: 20,
-      font: bold,
-      color: NAVY,
-    });
-    page.drawText(text.title, {
-      x: tx,
-      y: y + rowHeight - 20 * MM,
-      size: 12,
-      font: bold,
-      color: rgb(0.1, 0.1, 0.12),
-    });
-    page.drawText(text.outcome, {
-      x: tx,
-      y: y + rowHeight - 27 * MM,
-      size: 11.5,
-      font: bold,
-      color: ok ? GREEN : RED,
-    });
-    page.drawText(text.detail, {
-      x: tx,
-      y: y + rowHeight - 33 * MM,
-      size: 10,
-      font: regular,
-      color: MUTED,
-    });
-    page.drawText('DÉMONSTRATION', {
-      x: tx,
-      y: y + rowHeight - 40 * MM,
-      size: 8,
-      font: bold,
-      color: MUTED,
-    });
-    page.drawLine({
-      start: { x: 12 * MM, y: y + 1 * MM },
-      end: { x: A4[0] - 12 * MM, y: y + 1 * MM },
-      thickness: 0.4,
-      color: rgb(0.85, 0.85, 0.85),
-    });
-    y -= rowHeight;
+
+  for (let start = 0; start < DEMO_QR_SCENARIOS.length; start += PER_PAGE) {
+    const page = pdf.addPage(A4);
+    centered(page, 'DÉMONSTRATION — Sécuri’Click', A4[1] - 16 * MM, bold, 18);
+    centered(
+      page,
+      'Dans l’application : rôle Établissement, onglet Scanner. Codes fictifs, sans effet réel.',
+      A4[1] - 23 * MM,
+      regular,
+      9.5,
+      MUTED
+    );
+    centered(
+      page,
+      'Avec l’appareil photo du téléphone : ouvre la page de téléchargement de l’application.',
+      A4[1] - 28 * MM,
+      regular,
+      9.5,
+      MUTED
+    );
+
+    let y = A4[1] - 36 * MM - qrSize;
+    for (const scenario of DEMO_QR_SCENARIOS.slice(start, start + PER_PAGE)) {
+      const text = SCENARIO_TEXT[scenario.id];
+      const image = await pdf.embedPng(
+        pngs.get(scenario.id) ?? new Uint8Array()
+      );
+      const x = 16 * MM;
+      page.drawImage(image, {
+        x,
+        y: y + (rowHeight - qrSize) / 2 + 2 * MM,
+        width: qrSize * 0.9,
+        height: qrSize * 0.9,
+      });
+      const tx = x + qrSize + 4 * MM;
+      const ok = scenario.expected === 'validated';
+      page.drawText(`QR ${scenario.number}`, {
+        x: tx,
+        y: y + rowHeight - 12 * MM,
+        size: 20,
+        font: bold,
+        color: NAVY,
+      });
+      page.drawText(text.title, {
+        x: tx,
+        y: y + rowHeight - 20 * MM,
+        size: 12,
+        font: bold,
+        color: rgb(0.1, 0.1, 0.12),
+      });
+      page.drawText(text.outcome, {
+        x: tx,
+        y: y + rowHeight - 27 * MM,
+        size: 11.5,
+        font: bold,
+        color: ok ? GREEN : RED,
+      });
+      page.drawText(text.detail, {
+        x: tx,
+        y: y + rowHeight - 33 * MM,
+        size: 10,
+        font: regular,
+        color: MUTED,
+      });
+      page.drawText('DÉMONSTRATION', {
+        x: tx,
+        y: y + rowHeight - 40 * MM,
+        size: 8,
+        font: bold,
+        color: MUTED,
+      });
+      page.drawLine({
+        start: { x: 12 * MM, y: y + 1 * MM },
+        end: { x: A4[0] - 12 * MM, y: y + 1 * MM },
+        thickness: 0.4,
+        color: rgb(0.85, 0.85, 0.85),
+      });
+      y -= rowHeight;
+    }
   }
-  writeFileSync(join(OUT, 'planche-5-qr-scenarios-A4.pdf'), await pdf.save());
+  writeFileSync(join(OUT, 'planche-10-qr-scenarios-A4.pdf'), await pdf.save());
 }
 
 async function buildStandSheet(
@@ -206,10 +246,10 @@ async function buildStandSheet(
     width: size,
     height: size,
   });
-  centered(page, 'Scanner pour essayer', A4[1] - 205 * MM, bold, 24);
+  centered(page, 'Scanner pour télécharger', A4[1] - 205 * MM, bold, 24);
   centered(
     page,
-    'Avec l’appareil photo de votre téléphone · Démonstration · données fictives',
+    'Avec l’appareil photo de votre téléphone · App Store ou Google Play',
     A4[1] - 215 * MM,
     regular,
     10.5,

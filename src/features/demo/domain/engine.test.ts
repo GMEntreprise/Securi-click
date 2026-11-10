@@ -93,6 +93,58 @@ describe('evaluateDemoScan', () => {
     });
   });
 
+  it.each([
+    ['parent-ines', DEMO_IDS.ines, 'Paul'],
+    ['parent-lea', DEMO_IDS.lea, 'Marie'],
+  ])('validates %s, collected by the parent', (scenario, childId, parent) => {
+    expect(
+      evaluateDemoScan(createDemoWorld(NOW), payloadOf(scenario), NOW)
+    ).toMatchObject({
+      status: 'validated',
+      child: { id: childId },
+      guardian: { first_name: parent },
+      noteKey: 'qr_note_parent',
+    });
+  });
+
+  it.each([
+    ['revoked-access', DEMO_IDS.lucas, 'Sophie', 'qr_refused_revoked'],
+    ['wrong-child', DEMO_IDS.noe, 'Thomas', 'qr_refused_unauthorized'],
+    ['already-used', DEMO_IDS.emma, 'Julie', 'qr_refused_used'],
+  ])('refuses %s', (scenario, childId, guardian, reasonKey) => {
+    expect(
+      evaluateDemoScan(createDemoWorld(NOW), payloadOf(scenario), NOW)
+    ).toMatchObject({
+      status: 'refused',
+      child: { id: childId },
+      guardian: { first_name: guardian },
+      reasonKey,
+    });
+  });
+
+  it('lets a revocation lifted by the parent validate the revoked code', () => {
+    const world = createDemoWorld(NOW);
+    const restored = {
+      ...world,
+      guardians: world.guardians.map(guardian =>
+        guardian.id === DEMO_IDS.sophieLucas
+          ? { ...guardian, is_active: true }
+          : guardian
+      ),
+      authorizations: [
+        ...world.authorizations,
+        {
+          ...world.authorizations[0],
+          guardian_id: DEMO_IDS.sophieLucas,
+          child_id: DEMO_IDS.lucas,
+        },
+      ],
+    };
+    expect(
+      evaluateDemoScan(restored, payloadOf('revoked-access'), NOW)
+    ).toMatchObject({ status: 'validated' });
+  });
+
   it('refuses a person with no authorization for that child', () => {
     const outcome = evaluateDemoScan(
       createDemoWorld(NOW),
