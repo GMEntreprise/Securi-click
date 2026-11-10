@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import type { ExpoConfig } from 'expo/config';
+import { withGradleProperties } from 'expo/config-plugins';
 import { existsSync } from 'node:fs';
 
 // iOS Firebase config is gitignored and absent locally; only wire it up when
@@ -11,6 +12,24 @@ const iosGoogleServicesFile =
     : undefined);
 
 const EAS_PROJECT_ID = '858bf27d-7dbe-4355-bb8c-13fc80bb2b24';
+
+const GRADLE_PROPERTIES: Record<string, string> = {
+  'org.gradle.jvmargs':
+    '-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError',
+  'org.gradle.workers.max': '2',
+};
+
+function withGradleMemory(expoConfig: ExpoConfig): ExpoConfig {
+  return withGradleProperties(expoConfig, gradleConfig => {
+    for (const [key, value] of Object.entries(GRADLE_PROPERTIES)) {
+      gradleConfig.modResults = gradleConfig.modResults.filter(
+        item => item.type !== 'property' || item.key !== key
+      );
+      gradleConfig.modResults.push({ type: 'property', key, value });
+    }
+    return gradleConfig;
+  });
+}
 
 const config: ExpoConfig = {
   name: 'SecuriClick',
@@ -172,4 +191,4 @@ const config: ExpoConfig = {
   },
 };
 
-export default config;
+export default withGradleMemory(config);
