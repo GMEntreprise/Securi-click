@@ -1,6 +1,9 @@
 /// <reference types="node" />
 import type { ExpoConfig } from 'expo/config';
-import { withGradleProperties } from 'expo/config-plugins';
+import {
+  withGradleProperties,
+  withProjectBuildGradle,
+} from 'expo/config-plugins';
 import { existsSync } from 'node:fs';
 
 // iOS Firebase config is gitignored and absent locally; only wire it up when
@@ -21,6 +24,32 @@ const GRADLE_PROPERTIES: Record<string, string> = {
   'kotlin.compiler.execution.strategy': 'in-process',
   reactNativeArchitectures: 'armeabi-v7a,arm64-v8a',
 };
+
+const NATIVE_JOB_POOLS_MARKER = '// securiclick:native-job-pools';
+
+const NATIVE_JOB_POOLS = `
+${NATIVE_JOB_POOLS_MARKER}
+subprojects { project ->
+  ['com.android.library', 'com.android.application'].each { pluginId ->
+    project.plugins.withId(pluginId) {
+      project.android.defaultConfig.externalNativeBuild.cmake.arguments(
+        '-DCMAKE_JOB_POOLS=native_compile=2;native_link=1',
+        '-DCMAKE_JOB_POOL_COMPILE=native_compile',
+        '-DCMAKE_JOB_POOL_LINK=native_link'
+      )
+    }
+  }
+}
+`;
+
+function withNativeBuildJobPools(expoConfig: ExpoConfig): ExpoConfig {
+  return withProjectBuildGradle(expoConfig, gradleConfig => {
+    if (!gradleConfig.modResults.contents.includes(NATIVE_JOB_POOLS_MARKER)) {
+      gradleConfig.modResults.contents += NATIVE_JOB_POOLS;
+    }
+    return gradleConfig;
+  });
+}
 
 function withGradleMemory(expoConfig: ExpoConfig): ExpoConfig {
   return withGradleProperties(expoConfig, gradleConfig => {
@@ -194,4 +223,4 @@ const config: ExpoConfig = {
   },
 };
 
-export default withGradleMemory(config);
+export default withNativeBuildJobPools(withGradleMemory(config));
