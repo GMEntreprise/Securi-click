@@ -29,6 +29,10 @@
     "production": {
       "channel": "production",
       "autoIncrement": true,
+      "env": {
+        "GRADLE_OPTS": "-Dorg.gradle.jvmargs=\"-Xmx4g -XX:MaxMetaspaceSize=2g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8\" -Dorg.gradle.parallel=false -Dorg.gradle.daemon=false",
+        "CMAKE_BUILD_PARALLEL_LEVEL": "2"
+      },
       "android": {
         "buildType": "app-bundle"
       }

@@ -15,9 +15,11 @@ const EAS_PROJECT_ID = '858bf27d-7dbe-4355-bb8c-13fc80bb2b24';
 
 const GRADLE_PROPERTIES: Record<string, string> = {
   'org.gradle.jvmargs':
-    '-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+HeapDumpOnOutOfMemoryError',
+    '-Xmx4096m -XX:MaxMetaspaceSize=2048m -XX:+HeapDumpOnOutOfMemoryError',
   'org.gradle.workers.max': '1',
+  'org.gradle.parallel': 'false',
   'kotlin.compiler.execution.strategy': 'in-process',
+  reactNativeArchitectures: 'armeabi-v7a,arm64-v8a',
 };
 
 function withGradleMemory(expoConfig: ExpoConfig): ExpoConfig {
